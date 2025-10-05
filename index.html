@@ -1,0 +1,461 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Artist Project Cost Estimator — Portable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #111827;
+      --accent: #2563eb;
+      --good: #065f46;
+      --warn: #92400e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: var(--bg); color: var(--text); }
+    .container { max-width: 1100px; padding: 24px; margin: 0 auto; }
+    h1 { font-size: 22px; margin: 0 0 6px; }
+    .muted { color: var(--muted); }
+    .grid { display: grid; gap: 16px; }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    label { display: block; font-size: 13px; margin-bottom: 6px; }
+    input[type="number"], input[type="text"], select { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+    input[type="range"] { width: 100%; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .badge { display: inline-flex; align-items: center; border: 1px solid var(--line); background: #f3f4f6; color: #111827; border-radius: 999px; padding: 2px 8px; font-size: 12px; }
+    .btn { cursor: pointer; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn.ghost { background: transparent; }
+    .table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .table th, .table td { padding: 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .right { text-align: right; }
+    .tot { font-weight: 600; }
+    .pill { padding: 6px 10px; border-radius: 10px; font-size: 13px; display: inline-block; }
+    .ok { background: #ecfdf5; color: var(--good); border: 1px solid #d1fae5; }
+    .warn { background: #fffbeb; color: var(--warn); border: 1px solid #fde68a; }
+    .small { font-size: 12px; }
+    .section-title { font-weight: 600; margin-bottom: 8px; }
+    .footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 24px; }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row" style="justify-content: space-between; margin-bottom: 12px;">
+      <div>
+        <h1>Artist Project Cost Estimator</h1>
+        <div class="muted small">Portable, offline — includes per-song details, session counts, and collaborator tiers.</div>
+      </div>
+      <div class="row">
+        <button class="btn" id="presetLean">Lean Single</button>
+        <button class="btn" id="presetEP">Indie EP</button>
+        <button class="btn" id="presetProEP">Pro EP + Campaign</button>
+        <button class="btn" id="presetAlbum">Album + Video</button>
+      </div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="section-title">Inputs</div>
+        <label>Artist Stage</label>
+        <select id="stage">
+          <option>Emerging</option>
+          <option selected>Developing</option>
+          <option>Professional</option>
+          <option>Established</option>
+        </select>
+        <label style="margin-top:8px;">Collaborator Tier</label>
+        <select id="tier">
+          <option value="0.85">C — Emerging (−15%)</option>
+          <option value="1.0" selected>B — Standard (±0%)</option>
+          <option value="1.3">A — Top Tier (+30%)</option>
+        </select>
+        <label style="margin-top:8px;">Number of Songs</label>
+        <input type="number" id="songs" min="1" step="1" value="3">
+        <label style="margin-top:8px;">Budget (USD)</label>
+        <input type="number" id="budget" min="0" step="100" value="10000">
+      </div>
+
+      <div class="card">
+        <div class="section-title">Readiness & Scope</div>
+        <label>Current Production Quality: <span id="qualityLabel">50%</span></label>
+        <input type="range" id="quality" min="0" max="100" step="5" value="50">
+        <div class="row" style="margin-top:8px;">
+          <input type="checkbox" id="hasPE">
+          <label for="hasPE" style="margin:0;">I already have a producer/engineer</label>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <input type="checkbox" id="needsLive">
+          <label for="needsLive" style="margin:0;">I need live players</label>
+        </div>
+        <label style="margin-top:8px;">Target Release Window (weeks)</label>
+        <input type="number" id="weeks" min="2" max="52" step="1" value="8">
+      </div>
+
+      <div class="card">
+        <div class="section-title">Totals</div>
+        <div class="row" style="justify-content: space-between;"><div class="muted">Low Estimate</div><div id="lowTot" class="tot"></div></div>
+        <div class="row" style="justify-content: space-between;"><div class="muted">High Estimate</div><div id="highTot" class="tot"></div></div>
+        <div class="row" style="justify-content: space-between; margin-top:6px;"><div class="muted">Budget</div><div id="budgetShow" class="tot"></div></div>
+        <div id="gapPill" class="pill ok" style="margin-top:8px;">Gap vs High: $0</div>
+        <div class="small muted" style="margin-top:6px;">Effective Multiplier = Stage × Tier</div>
+        <div id="multInfo" class="small"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="row" style="justify-content: space-between;">
+        <div class="section-title">Per-Song Details (session player counts)</div>
+        <button class="btn" id="regenSongs">Apply # Songs</button>
+      </div>
+      <div id="songsWrap"></div>
+      <div class="small muted" style="margin-top:8px;">“Session Musicians” cost = sum of (players per song × per-player rate × multiplier)</div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="row" style="justify-content: space-between;">
+        <div class="section-title">Services</div>
+        <div class="chips">
+          <button class="btn ghost" id="allOn">All ON</button>
+          <button class="btn ghost" id="allOff">All OFF</button>
+          <button class="btn" id="reset">Reset Defaults</button>
+        </div>
+      </div>
+      <div class="small muted" style="margin-bottom:6px;">Toggle services. Per-song lines scale with the number of songs. Visuals/PR are per-project.</div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>On</th>
+            <th>Service</th>
+            <th>Unit</th>
+            <th>Base Low</th>
+            <th>Base High</th>
+            <th>Adj Low</th>
+            <th>Adj High</th>
+            <th>Qty</th>
+            <th class="right">Total Low</th>
+            <th class="right">Total High</th>
+          </tr>
+        </thead>
+        <tbody id="svcBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="8" class="right tot">TOTALS</td>
+            <td class="right tot" id="tLow"></td>
+            <td class="right tot" id="tHigh"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="section-title">Recommendations</div>
+      <div id="recs" class="small"></div>
+    </div>
+
+    <div class="footer">© Artist Estimator — works fully offline. Share this folder as a zip.</div>
+  </div>
+
+  <script>
+    // ---------- Data ----------
+    const STAGES = [
+      { key: "Emerging", mult: 0.7 },
+      { key: "Developing", mult: 1.0 },
+      { key: "Professional", mult: 1.3 },
+      { key: "Established", mult: 1.6 },
+    ];
+
+    const SERVICES = [
+      { id: "songwriting", label: "Songwriting & Arrangement", unit: "per_song", low: 200, high: 1000, on: true, note: "Pre-pro, arrangement, top-line help" },
+      { id: "recording", label: "Recording (Studio + Engineer)", unit: "per_song", low: 400, high: 1500, on: true, note: "Room + engineer + gear" },
+      { id: "production", label: "Production (Beat/Instrumentation/Editing)", unit: "per_song", low: 500, high: 2000, on: true, note: "Beat, instrumentation, sound design" },
+      { id: "musicians", label: "Session Musicians", unit: "per_song", low: 150, high: 800, on: false, note: "Per instrument part" },
+      { id: "vocalprod", label: "Vocal Production / Coaching", unit: "per_song", low: 150, high: 600, on: false, note: "Guide vocals, tuning, comping" },
+      { id: "mix", label: "Mixing", unit: "per_song", low: 300, high: 1000, on: true, note: "Per mix engineer rate" },
+      { id: "master", label: "Mastering", unit: "per_song", low: 100, high: 400, on: true, note: "Per mastering engineer rate" },
+      { id: "art", label: "Cover Art / Visuals", unit: "per_project", low: 150, high: 600, on: true, note: "Single/EP/Album artwork" },
+      { id: "visualizer", label: "Visualizer / Lyric Video", unit: "per_project", low: 300, high: 1200, on: false, note: "Simple visual asset" },
+      { id: "video", label: "Music Video", unit: "per_project", low: 1500, high: 5000, on: false, note: "Scaled by scope/crew" },
+      { id: "admin", label: "Distribution & Admin (ISRC/PRO/Metadata)", unit: "per_project", low: 50, high: 200, on: true, note: "Fees & time" },
+      { id: "playlists", label: "Playlist Pitching", unit: "per_project", low: 300, high: 1500, on: false, note: "Legit outlets only" },
+      { id: "pr", label: "PR / Campaign Management", unit: "per_project", low: 1500, high: 5000, on: false, note: "Campaign/time-based" },
+      { id: "ads", label: "Digital Ads (Media Spend)", unit: "per_project", low: 300, high: 3000, on: false, note: "Paid media budget" },
+    ];
+
+    // Recommendation weights (similar to React version)\n
+    const WEIGHTS = {
+      noProducer: { production: 0.25, recording: 0.20, mix: 0.15, vocalprod: 0.15 },
+      quality: (q) => ({ // q: 0..1\n
+        production: q < 0.4 ? 0.30 : (q < 0.7 ? 0.15 : 0),
+        recording: q < 0.5 ? 0.25 : 0,
+        mix: q < 0.6 ? 0.20 : 0,
+        master: q < 0.7 ? 0.10 : 0,
+      }),
+      livePlayers: { musicians: 0.35, recording: 0.15, production: 0.10 },
+      scope: (songs) => ({
+        art: songs >= 5 ? 0.2 : 0.1,
+        pr: songs >= 5 ? 0.3 : 0.1,
+        playlists: songs >= 3 ? 0.2 : 0.1,
+        ads: songs >= 3 ? 0.2 : 0.1,
+      }),
+      timeline: (weeks) => ({
+        production: weeks <= 6 ? 0.2 : 0,
+        mix: weeks <= 6 ? 0.1 : 0,
+        pr: weeks <= 8 ? 0.1 : 0,
+      })
+    };
+
+    // ---------- State ----------
+    let state = {
+      stage: "Developing",
+      tier: 1.0,
+      songs: 3,
+      budget: 10000,
+      quality: 0.5,
+      hasPE: false,
+      needsLive: false,
+      weeks: 8,
+      services: JSON.parse(JSON.stringify(SERVICES)), // deep copy
+      songDetails: [] // {index, players, note}
+    };
+
+    // ---------- Helpers ----------
+    const $ = (sel) => document.querySelector(sel);
+    const money = (n) => n.toLocaleString(undefined, {style:"currency", currency:"USD", maximumFractionDigits:0});
+    const multForStage = (k) => STAGES.find(s => s.key === k)?.mult ?? 1;
+    const effectiveMult = () => multForStage(state.stage) * state.tier;
+
+    function buildSongDetails() {
+      state.songDetails = [];
+      const wrap = $("#songsWrap");
+      wrap.innerHTML = "";
+      const table = document.createElement("table");
+      table.className = "table";
+      const thead = document.createElement("thead");
+      thead.innerHTML = "<tr><th>#</th><th>Players (count)</th><th>Notes</th></tr>";
+      const tbody = document.createElement("tbody");
+      for (let i=0;i<state.songs;i++) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = \`<td>\${i+1}</td>
+          <td><input type="number" min="0" step="1" value="0" data-idx="\${i}" class="songPlayers" style="width:120px;"></td>
+          <td><input type="text" placeholder="Optional notes (keys, features, etc.)" data-idx="\${i}" class="songNote"></td>\`;
+        tbody.appendChild(tr);
+        state.songDetails.push({ index: i, players: 0, note: "" });
+      }
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+
+      // Bind inputs
+      wrap.querySelectorAll(".songPlayers").forEach(inp => {
+        inp.addEventListener("input", (e) => {
+          const idx = parseInt(e.target.getAttribute("data-idx"),10);
+          const val = Math.max(0, parseInt(e.target.value||"0",10));
+          state.songDetails[idx].players = val;
+          render();
+        });
+      });
+      wrap.querySelectorAll(".songNote").forEach(inp => {
+        inp.addEventListener("input", (e) => {
+          const idx = parseInt(e.target.getAttribute("data-idx"),10);
+          state.songDetails[idx].note = e.target.value;
+        });
+      });
+    }
+
+    function recommendationScores() {
+      const scores = {};
+      SERVICES.forEach(s => scores[s.id]=0);
+      if (!state.hasPE) {
+        Object.entries(WEIGHTS.noProducer).forEach(([id,w]) => scores[id]+=w);
+      }
+      const q = WEIGHTS.quality(state.quality);
+      Object.entries(q).forEach(([id,w]) => scores[id]+=w);
+      if (state.needsLive) {
+        Object.entries(WEIGHTS.livePlayers).forEach(([id,w])=> scores[id]+=w);
+      }
+      const sc = WEIGHTS.scope(state.songs);
+      Object.entries(sc).forEach(([id,w])=> scores[id]+=w);
+      const tl = WEIGHTS.timeline(state.weeks);
+      Object.entries(tl).forEach(([id,w])=> scores[id]+=w);
+      return scores;
+    }
+
+    function computeRows() {
+      const mult = effectiveMult();
+      const qtySongs = state.songs;
+      const svcMap = Object.fromEntries(state.services.map(s=>[s.id,s]));
+
+      // Sum musicians count across songs
+      const totalPlayers = state.songDetails.reduce((a,s)=>a + (s.players||0), 0);
+
+      return state.services.map(svc => {
+        const baseLow = svc.low;
+        const baseHigh = svc.high;
+        const adjLow = baseLow * mult;
+        const adjHigh = baseHigh * mult;
+        let qty = svc.unit === "per_song" ? qtySongs : 1;
+
+        // Special handling: musicians uses player counts as additional qty
+        let totalLow, totalHigh;
+        if (svc.id === "musicians") {
+          totalLow = svc.on ? adjLow * totalPlayers : 0;
+          totalHigh = svc.on ? adjHigh * totalPlayers : 0;
+          qty = totalPlayers; // show as qty
+        } else {
+          totalLow = svc.on ? adjLow * qty : 0;
+          totalHigh = svc.on ? adjHigh * qty : 0;
+        }
+
+        return { ...svc, adjLow, adjHigh, qty, totalLow, totalHigh };
+      });
+    }
+
+    function renderServices() {
+      const body = $("#svcBody");
+      const rows = computeRows();
+      body.innerHTML = "";
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = \`
+          <td><input type="checkbox" \${r.on ? "checked":""} data-id="\${r.id}" class="toggle"></td>
+          <td><div style="font-weight:600">\${r.label}</div><div class="small muted">\${r.note||""}</div></td>
+          <td>\${r.unit === "per_song" ? "per song" : "per project"}</td>
+          <td>\${money(r.low)}</td>
+          <td>\${money(r.high)}</td>
+          <td>\${money(r.adjLow)}</td>
+          <td>\${money(r.adjHigh)}</td>
+          <td>\${r.qty}</td>
+          <td class="right">\${money(r.totalLow)}</td>
+          <td class="right">\${money(r.totalHigh)}</td>
+        \`;
+        body.appendChild(tr);
+      });
+
+      body.querySelectorAll(".toggle").forEach(chk => {
+        chk.addEventListener("change", (e) => {
+          const id = e.target.getAttribute("data-id");
+          const svc = state.services.find(s => s.id === id);
+          svc.on = e.target.checked;
+          render();
+        });
+      });
+
+      // Totals
+      const low = rows.reduce((a, r) => a + r.totalLow, 0);
+      const high = rows.reduce((a, r) => a + r.totalHigh, 0);
+      $("#tLow").textContent = money(low);
+      $("#tHigh").textContent = money(high);
+
+      // Top totals card
+      $("#lowTot").textContent = money(low);
+      $("#highTot").textContent = money(high);
+      $("#budgetShow").textContent = money(state.budget);
+      const gapHigh = state.budget - high;
+      const gapPill = $("#gapPill");
+      gapPill.textContent = "Gap vs High: " + money(gapHigh);
+      gapPill.className = "pill " + (gapHigh >= 0 ? "ok" : "warn");
+
+      const eff = effectiveMult().toFixed(2);
+      const st = multForStage(state.stage).toFixed(2);
+      $("#multInfo").textContent = `Stage ${st}× × Tier ${state.tier.toFixed(2)}× = ${eff}×`;
+
+      // Recommendations
+      const recsEl = $("#recs");
+      const scores = recommendationScores();
+      const scoreEntries = Object.entries(scores).sort((a,b)=>b[1]-a[1]).slice(0,6);
+      let html = "<div class='chips'>";
+      for (const [id, sc] of scoreEntries) {
+        const label = SERVICES.find(s=>s.id===id)?.label || id;
+        html += `<span class="badge">${label}: ${Math.round(sc*100)}%</span>`;
+      }
+      html += "</div>";
+
+      if (gapHigh < 0) {
+        // simple greedy cuts listing lowest priority visuals/marketing first
+        const priority = ["video","visualizer","ads","playlists","pr","art","vocalprod","musicians","master","mix","recording","production","songwriting"];
+        let need = Math.abs(gapHigh);
+        const rowsNow = computeRows();
+        const cuts = [];
+        for (const id of priority) {
+          const r = rowsNow.find(rr => rr.id === id);
+          if (r && r.on) { cuts.push({id, amt:r.totalHigh}); need -= r.totalHigh; if (need <= 0) break; }
+        }
+        html += "<div class='small' style='margin-top:8px;'><strong>To fit budget (high-end):</strong><ul>";
+        cuts.forEach(c => {
+          const lbl = SERVICES.find(s=>s.id===c.id)?.label || c.id;
+          html += `<li>Disable <em>${lbl}</em> (−${money(c.amt)})</li>`;
+        });
+        html += "</ul></div>";
+      }
+      recsEl.innerHTML = html;
+    }
+
+    function renderSongTableOnly() {
+      // updates that don't require rebuilding services
+      // nothing additional here for now
+    }
+
+    function render() {
+      $("#qualityLabel").textContent = Math.round(state.quality*100) + "%";
+      renderServices();
+      renderSongTableOnly();
+    }
+
+    // ---------- Bind Inputs ----------
+    function bind() {
+      $("#stage").addEventListener("change", e => { state.stage = e.target.value; render(); });
+      $("#tier").addEventListener("change", e => { state.tier = parseFloat(e.target.value); render(); });
+      $("#songs").addEventListener("input", e => { const v = Math.max(1, parseInt(e.target.value||"1",10)); state.songs = v; });
+      $("#regenSongs").addEventListener("click", () => { buildSongDetails(); render(); });
+      $("#budget").addEventListener("input", e => { state.budget = parseInt(e.target.value||"0",10); render(); });
+      $("#quality").addEventListener("input", e => { state.quality = parseInt(e.target.value,10)/100; render(); });
+      $("#hasPE").addEventListener("change", e => { state.hasPE = e.target.checked; render(); });
+      $("#needsLive").addEventListener("change", e => { state.needsLive = e.target.checked; render(); });
+      $("#weeks").addEventListener("input", e => { state.weeks = parseInt(e.target.value||"8",10); render(); });
+
+      $("#allOn").addEventListener("click", () => { state.services.forEach(s=>s.on=true); render(); });
+      $("#allOff").addEventListener("click", () => { state.services.forEach(s=>s.on=false); render(); });
+      $("#reset").addEventListener("click", () => { state.services = JSON.parse(JSON.stringify(SERVICES)); render(); });
+
+      // Presets
+      $("#presetLean").addEventListener("click", () => {
+        state.stage = "Emerging"; state.tier = 0.85; state.songs = 1; state.budget = 1500; state.quality = 0.35; state.hasPE=false; state.needsLive=false; state.weeks=6;
+        $("#stage").value = state.stage; $("#tier").value = String(state.tier); $("#songs").value = String(state.songs); $("#budget").value = String(state.budget); $("#quality").value = String(Math.round(state.quality*100)); $("#hasPE").checked = state.hasPE; $("#needsLive").checked = state.needsLive; $("#weeks").value = String(state.weeks);
+        buildSongDetails(); render();
+      });
+      $("#presetEP").addEventListener("click", () => {
+        state.stage = "Developing"; state.tier = 1.0; state.songs = 3; state.budget = 10000; state.quality = 0.6; state.hasPE=true; state.needsLive=false; state.weeks=8;
+        $("#stage").value = state.stage; $("#tier").value = String(state.tier); $("#songs").value = String(state.songs); $("#budget").value = String(state.budget); $("#quality").value = String(Math.round(state.quality*100)); $("#hasPE").checked = state.hasPE; $("#needsLive").checked = state.needsLive; $("#weeks").value = String(state.weeks);
+        buildSongDetails(); render();
+      });
+      $("#presetProEP").addEventListener("click", () => {
+        state.stage = "Professional"; state.tier = 1.3; state.songs = 5; state.budget = 25000; state.quality = 0.7; state.hasPE=true; state.needsLive=true; state.weeks=6;
+        $("#stage").value = state.stage; $("#tier").value = String(state.tier); $("#songs").value = String(state.songs); $("#budget").value = String(state.budget); $("#quality").value = String(Math.round(state.quality*100)); $("#hasPE").checked = state.hasPE; $("#needsLive").checked = state.needsLive; $("#weeks").value = String(state.weeks);
+        buildSongDetails(); render();
+      });
+      $("#presetAlbum").addEventListener("click", () => {
+        state.stage = "Established"; state.tier = 1.3; state.songs = 10; state.budget = 60000; state.quality = 0.75; state.hasPE=true; state.needsLive=true; state.weeks=10;
+        $("#stage").value = state.stage; $("#tier").value = String(state.tier); $("#songs").value = String(state.songs); $("#budget").value = String(state.budget); $("#quality").value = String(Math.round(state.quality*100)); $("#hasPE").checked = state.hasPE; $("#needsLive").checked = state.needsLive; $("#weeks").value = String(state.weeks);
+        buildSongDetails(); render();
+      });
+    }
+
+    // ---------- Init ----------
+    function init() {
+      bind();
+      buildSongDetails();
+      render();
+    }
+    init();
+  </script>
+</body>
+</html>
