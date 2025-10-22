@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import AICharacter from './AICharacter';
 
 export type ChatMessage = {
   id: string;
@@ -15,6 +16,41 @@ type Props = {
 
 export default function Chat({ messages, onSendMessage, suggestions = [], className = '' }: Props) {
   const [input, setInput] = useState('');
+  const [isAITyping, setIsAITyping] = useState(false);
+  const [aiMood, setAiMood] = useState<'neutral' | 'excited' | 'listening' | 'thinking' | 'encouraging'>('neutral');
+
+  // Determine AI mood based on conversation state
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    const userMessages = messages.filter(m => m.type === 'user');
+    
+    if (isAITyping) {
+      setAiMood('thinking');
+    } else if (lastMessage?.type === 'user') {
+      setAiMood('listening');
+    } else if (userMessages.length >= 2) {
+      setAiMood('excited');
+    } else if (userMessages.length >= 1) {
+      setAiMood('encouraging');
+    } else {
+      setAiMood('neutral');
+    }
+  }, [messages, isAITyping]);
+
+  // Monitor for AI typing (when a system message is being added)
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.type === 'user') {
+      setIsAITyping(true);
+      // Reset typing after AI responds
+      const timeout = setTimeout(() => {
+        setIsAITyping(false);
+      }, 1500);
+      return () => clearTimeout(timeout);
+    } else {
+      setIsAITyping(false);
+    }
+  }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +59,26 @@ export default function Chat({ messages, onSendMessage, suggestions = [], classN
     setInput('');
   };
 
+  const getCharacterMessage = () => {
+    const userMessages = messages.filter(m => m.type === 'user');
+    if (isAITyping) return "Let me think about that...";
+    if (userMessages.length === 0) return "Tell me about your sound!";
+    if (userMessages.length === 1) return "Great start! Keep sharing...";
+    if (userMessages.length >= 3) return "I'm getting a great sense of your style!";
+    return "This is really helpful!";
+  };
+
   return (
     <div className={`flex flex-col h-full ${className} bg-surface-800/30 rounded-xl border border-surface-700`}>
+      {/* AI Character - positioned at top */}
+      <div className="flex justify-center p-4 border-b border-surface-700/50">
+        <AICharacter 
+          isTyping={isAITyping}
+          mood={aiMood}
+          message={getCharacterMessage()}
+        />
+      </div>
+
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map(msg => (

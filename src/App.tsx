@@ -580,17 +580,23 @@ export default function App() {
 
                 {/* Compact Suggestions Sidebar */}
                 <div className="w-72 bg-surface-800/50 rounded-xl p-4 flex flex-col">
-                  <h3 className="text-sm font-medium text-surface-200 mb-3">Quick Starters</h3>
+                  <div className="text-center mb-4">
+                    <h3 className="text-sm font-medium text-surface-200 mb-1">Need inspiration?</h3>
+                    <p className="text-xs text-surface-400">Try these conversation starters</p>
+                  </div>
                   
                   {/* Compact suggestion categories */}
                   <div className="space-y-3 flex-1">
                     <div>
-                      <div className="text-xs text-surface-400 mb-2">🎵 Style</div>
+                      <div className="text-xs text-surface-400 mb-2 flex items-center gap-2">
+                        <span>🎵</span>
+                        <span>Musical Style</span>
+                      </div>
                       <div className="grid grid-cols-1 gap-1">
                         {PERSONALITY_SUGGESTIONS.slice(0, 4).map((suggestion, i) => (
                           <button
                             key={i}
-                            className="text-left text-xs px-2 py-1.5 rounded bg-surface-700/50 hover:bg-surface-600 transition-colors text-surface-300"
+                            className="text-left text-xs px-3 py-2 rounded-lg bg-surface-700/50 hover:bg-surface-600 hover:bg-primary-600/20 transition-colors text-surface-300 hover:text-surface-200"
                             onClick={() => handleChatMessage(suggestion)}
                           >
                             {suggestion}
@@ -600,12 +606,15 @@ export default function App() {
                     </div>
                     
                     <div>
-                      <div className="text-xs text-surface-400 mb-2">⚡ Energy</div>
+                      <div className="text-xs text-surface-400 mb-2 flex items-center gap-2">
+                        <span>⚡</span>
+                        <span>Energy & Vibe</span>
+                      </div>
                       <div className="grid grid-cols-1 gap-1">
                         {PERSONALITY_SUGGESTIONS.slice(4, 8).map((suggestion, i) => (
                           <button
                             key={i}
-                            className="text-left text-xs px-2 py-1.5 rounded bg-surface-700/50 hover:bg-surface-600 transition-colors text-surface-300"
+                            className="text-left text-xs px-3 py-2 rounded-lg bg-surface-700/50 hover:bg-surface-600 hover:bg-primary-600/20 transition-colors text-surface-300 hover:text-surface-200"
                             onClick={() => handleChatMessage(suggestion)}
                           >
                             {suggestion}
@@ -615,12 +624,15 @@ export default function App() {
                     </div>
                     
                     <div>
-                      <div className="text-xs text-surface-400 mb-2">💭 Themes</div>
+                      <div className="text-xs text-surface-400 mb-2 flex items-center gap-2">
+                        <span>💭</span>
+                        <span>Themes & Message</span>
+                      </div>
                       <div className="grid grid-cols-1 gap-1">
                         {PERSONALITY_SUGGESTIONS.slice(8, 12).map((suggestion, i) => (
                           <button
                             key={i}
-                            className="text-left text-xs px-2 py-1.5 rounded bg-surface-700/50 hover:bg-surface-600 transition-colors text-surface-300"
+                            className="text-left text-xs px-3 py-2 rounded-lg bg-surface-700/50 hover:bg-surface-600 hover:bg-primary-600/20 transition-colors text-surface-300 hover:text-surface-200"
                             onClick={() => handleChatMessage(suggestion)}
                           >
                             {suggestion}
@@ -632,22 +644,28 @@ export default function App() {
 
                   {/* Compact Progress Details */}
                   <div className="mt-4 pt-3 border-t border-surface-600">
+                    <div className="text-center mb-3">
+                      <div className="text-xs text-surface-400 mb-1">Assessment Progress</div>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-surface-400">Style traits:</span>
-                        <span className="text-primary-400">{chatProgress.personality}</span>
+                        <span className="text-primary-400 font-medium">{chatProgress.personality}</span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-surface-400">Sound features:</span>
-                        <span className="text-primary-400">{chatProgress.sonics}</span>
+                        <span className="text-primary-400 font-medium">{chatProgress.sonics}</span>
                       </div>
                       
                       {/* Progress bar */}
-                      <div className="w-full bg-surface-600 rounded-full h-1.5 mt-2">
+                      <div className="w-full bg-surface-600 rounded-full h-2 mt-3">
                         <div 
-                          className="bg-primary-500 h-1.5 rounded-full transition-all duration-300" 
+                          className="bg-gradient-to-r from-primary-500 to-primary-400 h-2 rounded-full transition-all duration-300" 
                           style={{ width: `${Math.min(100, (chatProgress.total / 3) * 100)}%` }}
                         ></div>
+                      </div>
+                      <div className="text-center text-xs text-surface-400 mt-1">
+                        {chatProgress.total >= 3 ? "✨ Ready for next step!" : `${Math.max(0, 3 - chatProgress.total)} more to go`}
                       </div>
                     </div>
                   </div>
