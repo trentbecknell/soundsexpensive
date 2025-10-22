@@ -98,37 +98,37 @@ const sum = (arr: number[]) => arr.reduce((a,b)=>a+b,0);
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 const currency = (n: number) => n.toLocaleString(undefined,{style:"currency",currency:"USD", maximumFractionDigits:0});
 
-// Initial chat messages to understand artist personality
+// Initial chat messages to understand artist personality with diva flair
 const WELCOME_MESSAGES: ChatMessage[] = [
-  { id: uid(), type: 'system', content: "Welcome! I'm here to help you plan your music project. First, let's understand your artistic vision and style - this helps me create a roadmap that truly fits you." },
-  { id: uid(), type: 'system', content: "Tell me about your sound, inspirations, and what moves you as an artist. What feelings do you want to evoke in your listeners?" }
+  { id: uid(), type: 'system', content: "Hey gorgeous! ✨ I'm your personal diva mentor, and I'm here to help you create a roadmap that's as unique and fabulous as you are! First, let's dive deep into your artistic soul - this helps me craft a plan that truly captures your essence." },
+  { id: uid(), type: 'system', content: "Tell me about your sound, your inspirations, and what sets your heart on fire as an artist. What feelings do you want to ignite in your listeners? Paint me that picture, darling! 🎨💫" }
 ];
 
-// Personality-focused suggestions aligned with assessment schema
+// Personality-focused suggestions aligned with assessment schema and diva energy
 const PERSONALITY_SUGGESTIONS = [
-  // Genre-specific style descriptors
-  "My music blends R&B with soul influences",
-  "I create pop music with electronic elements", 
-  "My sound is rooted in hip-hop and urban styles",
-  "I'm inspired by alternative and indie aesthetics",
+  // Genre-specific style descriptors with flair
+  "My music is a sultry blend of R&B with soulful depth",
+  "I create infectious pop with electronic sparkle", 
+  "My sound pulses with hip-hop energy and urban storytelling",
+  "I'm channeling alternative vibes with indie authenticity",
   
-  // Audio profile descriptors
-  "My tracks are usually high-energy and danceable",
-  "I prefer mid-tempo, groove-based songs",
-  "My music tends to be mellow and introspective",
-  "I create uplifting, positive-vibed music",
+  // Audio profile descriptors with emotion
+  "My tracks are pure fire - high-energy and irresistibly danceable",
+  "I craft mid-tempo grooves that move both body and soul",
+  "My music is a gentle embrace - mellow and deeply introspective",
+  "I create sonic sunshine that lifts spirits and spreads joy",
   
-  // Brand and themes
-  "I focus on empowerment and self-love themes",
-  "My music tells personal, vulnerable stories",
-  "I want to heal and uplift my listeners",
-  "I explore social issues through my art",
+  // Brand and themes with personality
+  "My art is all about empowerment and radical self-love",
+  "I pour my heart out - telling raw, vulnerable stories",
+  "My mission is healing hearts and uplifting souls",
+  "I use my voice to spark conversations about what matters",
   
-  // Production style aligned with schema
-  "I like polished, radio-ready production",
-  "I prefer raw, authentic-sounding recordings",
-  "I experiment with unconventional arrangements",
-  "I blend organic instruments with electronic elements"
+  // Production style with artistic vision
+  "I love that polished, radio-ready shine",
+  "I'm all about keeping it real with authentic, raw recordings",
+  "I experiment fearlessly with unconventional arrangements",
+  "I weave magic by blending organic instruments with electronic elements"
 ];
 
 function computeStage(profile: ArtistProfile): Stage {
@@ -291,46 +291,71 @@ export default function App() {
     setTimeout(() => {
       let response: ChatMessage;
       
+      const divaResponses = [
+        "Honey, that's exactly the kind of authenticity that sets stars apart! ✨",
+        "Ooh, I'm getting major vibes from that! Tell me more, darling! 💫",
+        "Now THAT'S what I'm talking about! You've got that special something! 🎤",
+        "Beautiful! I can already hear your unique voice shining through! 🌟",
+        "Yasss! That's the kind of vision that creates magic! Keep going! ✨",
+        "Love it! You're painting such a vivid picture of your artistry! 🎨",
+        "Oh honey, you're speaking my language! That's pure artistry! 💎",
+        "Gorgeous! I can feel the passion in your words! 🔥",
+        "Perfect! That's the kind of depth that connects with souls! 💖"
+      ];
+      
       if (hasSubstantialData) {
         const matches = findMatchingArtists(analysis);
         if (matches.length > 0) {
           const match = matches[0];
           const followups = suggestFollowupQuestions(analysis);
-          const nextQuestion = followups.length > 0 ? followups[0] : "What other aspects of your music would you like to explore?";
+          const nextQuestion = followups.length > 0 ? followups[0] : "What other magical aspects of your music would you like to explore, superstar?";
           
           response = {
             id: uid(),
             type: 'system',
-            content: `Great! Based on your style, you remind me of ${match.name}. ${nextQuestion}`
+            content: `Stunning! Based on your vibe, you remind me of ${match.name} - that's some serious artistic DNA! ${nextQuestion} 💫`
           };
         } else {
           const followups = suggestFollowupQuestions(analysis);
-          const nextQuestion = followups.length > 0 ? followups[0] : "Tell me more about your creative process.";
+          const nextQuestion = followups.length > 0 ? followups[0] : "Tell me more about your creative magic, darling.";
+          const randomDivaResponse = divaResponses[Math.floor(Math.random() * divaResponses.length)];
           
           response = {
             id: uid(),
             type: 'system',
-            content: `I'm getting a sense of your style. ${nextQuestion}`
+            content: `${randomDivaResponse} ${nextQuestion}`
           };
         }
       } else if (hasMinimumData) {
-        // Encourage more specific details
+        // Encourage more specific details with diva flair
+        const encouragements = [
+          "Mmm, I'm loving this energy! Can you tell me more about your production style or the emotional energy of your music? 🎵",
+          "Beautiful start, gorgeous! Now paint me a picture - are you more electronic magic or acoustic soul? High-energy fire or mellow vibes? ✨",
+          "I'm feeling your essence! Help me understand - what's the heartbeat of your sound? Fast and fierce or slow and sultry? 💖"
+        ];
+        
         response = {
           id: uid(),
           type: 'system',
-          content: "Thanks for sharing! Can you tell me more about your production style or the energy level of your music?"
+          content: encouragements[Math.floor(Math.random() * encouragements.length)]
         };
       } else {
-        // First response - ask for more details
+        // First response with diva personality
+        const firstResponses = [
+          "That's a gorgeous start, darling! Tell me more about your specific sound - are you electronic sparkle or acoustic soul? High-energy fire or mellow magic? 🌟",
+          "Ooh, I'm already getting inspired! Help me feel your vibe - are you more dance floor energy or intimate storytelling? What's your sonic signature? ✨",
+          "Love what I'm hearing so far! Now let's go deeper - what's the energy of your music? Are you bringing the party or touching hearts? 💫"
+        ];
+        
         response = {
           id: uid(),
           type: 'system',
-          content: "That's a great start! Tell me more about your specific sound - are you more electronic or acoustic? High energy or mellow?"
+          content: firstResponses[Math.floor(Math.random() * firstResponses.length)]
         };
       }
 
       setChatMessages(prev => [...prev, response]);
-    }, 1000);
+    }, 1200 + Math.random() * 600); // More dramatic timing for diva effect
   };
 
   // Function to complete chat manually or automatically
