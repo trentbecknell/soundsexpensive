@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import AICharacter from './AICharacter';
+import VoiceControls from './VoiceControls';
 import { soundEffects } from '../lib/soundEffects';
+import { voiceManager } from '../lib/voiceManager';
 
 export type ChatMessage = {
   id: string;
@@ -45,6 +47,8 @@ export default function Chat({ messages, onSendMessage, suggestions = [], classN
   const [input, setInput] = useState('');
   const [isAITyping, setIsAITyping] = useState(false);
   const [aiMood, setAiMood] = useState<'neutral' | 'excited' | 'listening' | 'thinking' | 'encouraging'>('neutral');
+  const [isCharacterSpeaking, setIsCharacterSpeaking] = useState(false);
+  const [lastSystemMessage, setLastSystemMessage] = useState<string>('');
 
   // Determine AI mood based on conversation state
   useEffect(() => {
@@ -96,6 +100,41 @@ export default function Chat({ messages, onSendMessage, suggestions = [], classN
       setIsAITyping(false);
     }
   }, [messages]);
+
+  // Monitor for new system messages to potentially speak
+  useEffect(() => {
+    const systemMessages = messages.filter(m => m.type === 'system');
+    if (systemMessages.length > 0) {
+      const latest = systemMessages[systemMessages.length - 1].content;
+      if (latest !== lastSystemMessage && !isAITyping) {
+        setLastSystemMessage(latest);
+        // Auto-speak new system messages if voice is enabled
+        speakMessage(latest);
+      }
+    }
+  }, [messages, isAITyping, lastSystemMessage]);
+
+  // Voice interaction handlers
+  const handleVoiceTranscript = (transcript: string) => {
+    if (transcript.trim()) {
+      onSendMessage(transcript);
+    }
+  };
+
+  const speakMessage = async (message: string) => {
+    try {
+      setIsCharacterSpeaking(true);
+      await voiceManager.speak(message);
+    } catch (error) {
+      console.error('Error speaking message:', error);
+    } finally {
+      setIsCharacterSpeaking(false);
+    }
+  };
+
+  const handleSpeakMessage = (message: string) => {
+    speakMessage(message);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,6 +199,7 @@ export default function Chat({ messages, onSendMessage, suggestions = [], classN
             isTyping={isAITyping}
             mood={aiMood}
             message={getCharacterMessage()}
+            isSpeaking={isCharacterSpeaking}
           />
         </div>
       </div>
@@ -226,6 +266,15 @@ export default function Chat({ messages, onSendMessage, suggestions = [], classN
           </div>
         </div>
       )}
+
+      {/* Voice Controls */}
+      <div className="px-4 py-3 border-t border-surface-700/30 bg-surface-800/20">
+        <VoiceControls
+          onTranscript={handleVoiceTranscript}
+          onSpeakMessage={handleSpeakMessage}
+          isCharacterSpeaking={isCharacterSpeaking}
+        />
+      </div>
 
       {/* Enhanced input area */}
       <form onSubmit={handleSubmit} className="p-4 border-t border-surface-700/50 bg-surface-800/30 backdrop-blur">

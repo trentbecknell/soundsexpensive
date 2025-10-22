@@ -5,13 +5,15 @@ interface AICharacterProps {
   mood?: 'neutral' | 'excited' | 'listening' | 'thinking' | 'encouraging';
   message?: string;
   className?: string;
+  isSpeaking?: boolean;
 }
 
 export default function AICharacter({ 
   isTyping = false, 
   mood = 'neutral', 
   message,
-  className = '' 
+  className = '',
+  isSpeaking = false
 }: AICharacterProps) {
   const [eyeBlink, setEyeBlink] = useState(false);
   const [sparkles, setSparkles] = useState<Array<{id: number, x: number, y: number, delay: number}>>([]);
@@ -28,14 +30,14 @@ export default function AICharacter({
     return () => clearInterval(blinkInterval);
   }, []);
 
-  // Performance animation for excited/encouraging moods
+  // Performance animation for excited/encouraging moods or when speaking
   useEffect(() => {
-    if (mood === 'excited' || mood === 'encouraging') {
+    if (mood === 'excited' || mood === 'encouraging' || isSpeaking) {
       setIsPerforming(true);
       const timer = setTimeout(() => setIsPerforming(false), 2000);
       return () => clearTimeout(timer);
     }
-  }, [mood]);
+  }, [mood, isSpeaking]);
 
   // Sparkle effects for excited mood
   useEffect(() => {
@@ -300,6 +302,10 @@ export default function AICharacter({
           {/* Mouth - varies by mood with more dramatic expressions */}
           <path
             d={(() => {
+              if (isSpeaking) {
+                // Animated mouth for speaking
+                return "M55 70 Q70 82 85 70 Q80 77 70 77 Q60 77 55 70";
+              }
               switch (mood) {
                 case 'excited':
                   return "M55 70 Q70 85 85 70 Q80 75 70 75 Q60 75 55 70";
@@ -315,10 +321,10 @@ export default function AICharacter({
             })()}
             stroke={styles.mouthColor}
             strokeWidth="4"
-            fill={mood === 'excited' || mood === 'encouraging' ? styles.mouthColor : 'none'}
+            fill={mood === 'excited' || mood === 'encouraging' || isSpeaking ? styles.mouthColor : 'none'}
             fillOpacity="0.3"
             strokeLinecap="round"
-            className="transition-all duration-300"
+            className={`transition-all duration-300 ${isSpeaking ? 'animate-pulse' : ''}`}
           />
 
           {/* Lipstick shine */}
@@ -327,14 +333,23 @@ export default function AICharacter({
           )}
 
           {/* Microphone */}
-          {(mood === 'encouraging' || mood === 'excited') && (
+          {(mood === 'encouraging' || mood === 'excited' || isSpeaking) && (
             <g transform="translate(100, 65)">
               <rect x="0" y="0" width="5" height="20" fill="#C0C0C0" />
               <circle cx="2.5" cy="-4" r="5" fill="#4A4A4A" />
               <circle cx="2.5" cy="-4" r="3" fill="#8A8A8A" />
-              <circle cx="2.5" cy="-4" r="1" fill="white" className="animate-ping" />
+              <circle cx="2.5" cy="-4" r="1" fill="white" className={isSpeaking ? "animate-ping" : "animate-ping"} />
               {/* Mic cord */}
               <path d="M2.5 20 Q8 25 6 30" stroke="#333" strokeWidth="2" fill="none" />
+              
+              {/* Sound waves when speaking */}
+              {isSpeaking && (
+                <g className="animate-pulse">
+                  <path d="M12 -4 Q16 -8 20 -4 Q16 0 12 -4" stroke={styles.borderGlow} strokeWidth="1" fill="none" opacity="0.8" />
+                  <path d="M12 -4 Q18 -10 24 -4 Q18 2 12 -4" stroke={styles.borderGlow} strokeWidth="1" fill="none" opacity="0.6" />
+                  <path d="M12 -4 Q20 -12 28 -4 Q20 4 12 -4" stroke={styles.borderGlow} strokeWidth="1" fill="none" opacity="0.4" />
+                </g>
+              )}
             </g>
           )}
 
