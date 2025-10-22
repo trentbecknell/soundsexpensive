@@ -3,6 +3,9 @@ import AssessmentWizard from "./components/AssessmentWizard";
 import Toast from "./components/Toast";
 import Chat, { ChatMessage } from "./components/Chat";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
+import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
+import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
+import { ArtistSelfAssessment, PartialAssessment } from './types/artistAssessment';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LineChart, Line } from "recharts";
 
 import computeStageFromScores, { Stage } from "./lib/computeStage";
@@ -50,6 +53,7 @@ interface AppState {
   project: ProjectConfig;
   budget: BudgetItem[];
   tasks: RoadTask[];
+  assessment?: PartialAssessment; // New schema-based assessment
 }
 
 const PHASE_ORDER: PhaseKey[] = ["Discovery","Pre‑Production","Production","Post‑Production","Release","Growth"];
@@ -90,42 +94,35 @@ const currency = (n: number) => n.toLocaleString(undefined,{style:"currency",cur
 
 // Initial chat messages to understand artist personality
 const WELCOME_MESSAGES: ChatMessage[] = [
-  { id: uid(), type: 'system', content: "Hey there! Before we dive into the technical details, I'd love to understand your artistic vision and personality. This will help shape the project in a way that truly reflects you." },
-  { id: uid(), type: 'system', content: "Tell me about your sound, your inspirations, and what moves you as an artist. What feelings do you want to evoke in your listeners?" }
+  { id: uid(), type: 'system', content: "Welcome! I'm here to help you plan your music project. First, let's understand your artistic vision and style - this helps me create a roadmap that truly fits you." },
+  { id: uid(), type: 'system', content: "Tell me about your sound, inspirations, and what moves you as an artist. What feelings do you want to evoke in your listeners?" }
 ];
 
-// Personality-focused suggestions
+// Personality-focused suggestions aligned with assessment schema
 const PERSONALITY_SUGGESTIONS = [
-  // Emotional/Expressive
-  "I'm inspired by raw, emotional performances",
-  "I tell deep, personal stories through my music",
-  "My songs focus on social issues and change",
+  // Genre-specific style descriptors
+  "My music blends R&B with soul influences",
+  "I create pop music with electronic elements", 
+  "My sound is rooted in hip-hop and urban styles",
+  "I'm inspired by alternative and indie aesthetics",
   
-  // Sound/Production
-  "I love creating dreamy, atmospheric soundscapes",
-  "I blend electronic and organic instruments",
-  "I prefer a raw, unpolished sound",
-  "I aim for pristine, detailed production",
+  // Audio profile descriptors
+  "My tracks are usually high-energy and danceable",
+  "I prefer mid-tempo, groove-based songs",
+  "My music tends to be mellow and introspective",
+  "I create uplifting, positive-vibed music",
   
-  // Energy/Style
-  "My music is energetic and upbeat",
-  "I create calm, introspective pieces",
-  "I focus on heavy, intense sounds",
+  // Brand and themes
+  "I focus on empowerment and self-love themes",
+  "My music tells personal, vulnerable stories",
+  "I want to heal and uplift my listeners",
+  "I explore social issues through my art",
   
-  // Approach
-  "I tell stories through my lyrics",
-  "I experiment with unconventional structures",
-  "I prioritize catchy melodies and hooks",
-  
-  // Influences
-  "I blend different cultural influences",
-  "I'm inspired by classic genres",
-  "I combine multiple genres in new ways",
-  
-  // Purpose
-  "I'm focused on danceable rhythms",
-  "I want my music to heal and uplift",
-  "I create immersive sonic experiences"
+  // Production style aligned with schema
+  "I like polished, radio-ready production",
+  "I prefer raw, authentic-sounding recordings",
+  "I experiment with unconventional arrangements",
+  "I blend organic instruments with electronic elements"
 ];
 
 function computeStage(profile: ArtistProfile): Stage {
@@ -213,17 +210,30 @@ export default function App() {
   const [app, setApp] = useState<AppState>(() => {
     const fromUrl = decodeStateFromUrl(); if (fromUrl) return fromUrl;
     const raw = localStorage.getItem(LS_KEY);
-    return raw ? JSON.parse(raw) : {
+    const baseState = raw ? JSON.parse(raw) : {
       profile: DEFAULT_PROFILE,
       project: DEFAULT_PROJECT,
       budget: BUDGET_PRESETS(DEFAULT_PROJECT.units),
       tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units)
     };
+    
+    // Initialize assessment from legacy profile if not present
+    if (!baseState.assessment) {
+      baseState.assessment = convertLegacyProfileToAssessment(baseState);
+    }
+    
+    return baseState;
   });
 
   // Chat state for personality capture
   const [chatComplete, setChatComplete] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(WELCOME_MESSAGES);
+  const [chatProgress, setChatProgress] = useState({ 
+    personality: 0, 
+    sonics: 0, 
+    total: 0,
+    detailedAnalysis: { personality: {}, sonics: {} }
+  });
   
   const handleChatMessage = (message: string) => {
     // Add user message
@@ -231,50 +241,96 @@ export default function App() {
     const updatedMessages = [...chatMessages, userMsg];
     setChatMessages(updatedMessages);
     
-  // Analyze latest user message for personality traits and sonic preferences
-  const analysis = analyzeChatMessage(message);
+    // Analyze latest user message for personality traits and sonic preferences
+    const analysis = analyzeChatMessage(message);
+    
+    // Update progress tracking with detailed analysis
+    const personalityCount = Object.keys(analysis.personality).length;
+    const sonicsCount = Object.keys(analysis.sonics).length;
+    const totalResponses = updatedMessages.filter(m => m.type === 'user').length;
+    
+    setChatProgress({
+      personality: personalityCount,
+      sonics: sonicsCount,
+      total: totalResponses,
+      detailedAnalysis: analysis
+    });
     
     // Find matching artists if we have enough data
-    const hasSubstantialData = 
-      Object.keys(analysis.personality).length >= 3 ||
-      Object.keys(analysis.sonics).length >= 3;
+    const hasSubstantialData = personalityCount >= 2 || sonicsCount >= 2;
+    const hasMinimumData = totalResponses >= 2;
 
     setTimeout(() => {
       let response: ChatMessage;
+      
       if (hasSubstantialData) {
         const matches = findMatchingArtists(analysis);
         if (matches.length > 0) {
           const match = matches[0];
+          const followups = suggestFollowupQuestions(analysis);
+          const nextQuestion = followups.length > 0 ? followups[0] : "What other aspects of your music would you like to explore?";
+          
           response = {
             id: uid(),
             type: 'system',
-            content: `Based on your style, you remind me of ${match.name}! You share similar traits in ${Object.keys(analysis.personality).join(", ")}. ${suggestFollowupQuestions(analysis).join(" ")}`
+            content: `Great! Based on your style, you remind me of ${match.name}. ${nextQuestion}`
           };
         } else {
+          const followups = suggestFollowupQuestions(analysis);
+          const nextQuestion = followups.length > 0 ? followups[0] : "Tell me more about your creative process.";
+          
           response = {
             id: uid(),
             type: 'system',
-            content: suggestFollowupQuestions(analysis).join(" ")
+            content: `I'm getting a sense of your style. ${nextQuestion}`
           };
         }
-      } else {
+      } else if (hasMinimumData) {
+        // Encourage more specific details
         response = {
           id: uid(),
           type: 'system',
-          content: suggestFollowupQuestions(analysis).join(" ")
+          content: "Thanks for sharing! Can you tell me more about your production style or the energy level of your music?"
         };
-      }
-
-      // Complete the chat when we have enough information
-      if (
-        Object.keys(analysis.personality).length >= 5 &&
-        Object.keys(analysis.sonics).length >= 4
-      ) {
-        setChatComplete(true);
+      } else {
+        // First response - ask for more details
+        response = {
+          id: uid(),
+          type: 'system',
+          content: "That's a great start! Tell me more about your specific sound - are you more electronic or acoustic? High energy or mellow?"
+        };
       }
 
       setChatMessages(prev => [...prev, response]);
     }, 1000);
+  };
+
+  // Function to complete chat manually or automatically
+  const completeChatPhase = () => {
+    // Generate assessment from chat analysis
+    const finalAnalysis = analyzeChatMessage(
+      chatMessages.filter(m => m.type === 'user').map(m => m.content).join(' ')
+    );
+    
+    const updatedAssessment = mapChatAnalysisToAssessment(
+      finalAnalysis,
+      chatMessages,
+      app.profile
+    );
+    
+    // Update app state with new assessment data
+    setApp(prev => ({
+      ...prev,
+      assessment: { ...prev.assessment, ...updatedAssessment },
+      // Update legacy profile fields for backward compatibility
+      profile: {
+        ...prev.profile,
+        genres: updatedAssessment.identity.primary_genres?.join(', ') || prev.profile.genres,
+        elevatorPitch: updatedAssessment.brand_narrative?.positioning || prev.profile.elevatorPitch
+      }
+    }));
+    
+    setChatComplete(true);
   };
 
   useEffect(()=> { localStorage.setItem(LS_KEY, JSON.stringify(app)); }, [app]);
@@ -338,7 +394,17 @@ export default function App() {
     download("budget.csv", toCSV(rows), "text/csv");
   };
   const shareUrl = () => { const url = encodeStateToUrl(app); navigator.clipboard.writeText(url); alert("Sharable link copied to clipboard."); };
-  const reset = () => { setApp({ profile: DEFAULT_PROFILE, project: DEFAULT_PROJECT, budget: BUDGET_PRESETS(DEFAULT_PROJECT.units), tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units) }); window.history.replaceState({}, "", window.location.pathname); };
+  const reset = () => { 
+    const newState = { 
+      profile: DEFAULT_PROFILE, 
+      project: DEFAULT_PROJECT, 
+      budget: BUDGET_PRESETS(DEFAULT_PROJECT.units), 
+      tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units),
+      assessment: convertLegacyProfileToAssessment({ profile: DEFAULT_PROFILE, project: DEFAULT_PROJECT })
+    };
+    setApp(newState); 
+    window.history.replaceState({}, "", window.location.pathname); 
+  };
 
   return (
     <div className="min-h-screen w-full bg-surface-900">
@@ -370,8 +436,123 @@ export default function App() {
           {!chatComplete ? (
             // Initial Chat Interface
             <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-6 backdrop-blur">
-              <h2 className="mb-4 text-lg font-semibold text-primary-100">Let's Get to Know You</h2>
-              <div className="h-[60vh] flex flex-col">
+              <div className="mb-6">
+                <h2 className="mb-2 text-lg font-semibold text-primary-100">Let's Get to Know Your Sound</h2>
+                <p className="text-sm text-surface-400 mb-4">Share your artistic vision to get personalized recommendations</p>
+                
+                {/* Detailed Status Tracker */}
+                <div className="bg-surface-700/30 rounded-xl p-4 mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-medium text-surface-200">Assessment Progress</h3>
+                    <div className="text-xs text-surface-400">
+                      {chatProgress.total >= 3 ? "✓ Ready to continue" : `${chatProgress.total}/3 minimum responses`}
+                    </div>
+                  </div>
+                  
+                  {/* Progress bar */}
+                  <div className="w-full bg-surface-600 rounded-full h-2 mb-4">
+                    <div 
+                      className="bg-primary-500 h-2 rounded-full transition-all duration-300" 
+                      style={{ width: `${Math.min(100, (chatProgress.total / 3) * 100)}%` }}
+                    ></div>
+                  </div>
+                  
+                  {/* Detailed breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {/* Personality traits */}
+                    <div className="bg-surface-800/50 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className={`w-2 h-2 rounded-full ${chatProgress.personality >= 1 ? 'bg-primary-500' : 'bg-surface-600'}`}></div>
+                        <span className="text-xs font-medium text-surface-300">Style & Personality</span>
+                      </div>
+                      <div className="text-xs text-surface-400">
+                        {chatProgress.personality > 0 ? (
+                          <div>
+                            <div className="text-primary-400 mb-1">✓ {chatProgress.personality} trait{chatProgress.personality !== 1 ? 's' : ''} detected</div>
+                            <div className="space-y-1">
+                              {Object.keys(chatProgress.detailedAnalysis.personality).slice(0, 2).map(trait => (
+                                <div key={trait} className="text-xs bg-primary-500/20 text-primary-300 px-2 py-1 rounded">
+                                  {trait.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          "Tell us about your creative style and artistic approach"
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Sonic characteristics */}
+                    <div className="bg-surface-800/50 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className={`w-2 h-2 rounded-full ${chatProgress.sonics >= 1 ? 'bg-primary-500' : 'bg-surface-600'}`}></div>
+                        <span className="text-xs font-medium text-surface-300">Sound Profile</span>
+                      </div>
+                      <div className="text-xs text-surface-400">
+                        {chatProgress.sonics > 0 ? (
+                          <div>
+                            <div className="text-primary-400 mb-1">✓ {chatProgress.sonics} sonic feature{chatProgress.sonics !== 1 ? 's' : ''} detected</div>
+                            <div className="space-y-1">
+                              {Object.keys(chatProgress.detailedAnalysis.sonics).slice(0, 2).map(sonic => (
+                                <div key={sonic} className="text-xs bg-primary-500/20 text-primary-300 px-2 py-1 rounded">
+                                  {sonic.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          "Describe your musical sound and production style"
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Overall completion */}
+                    <div className="bg-surface-800/50 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className={`w-2 h-2 rounded-full ${chatProgress.total >= 3 ? 'bg-green-500' : 'bg-surface-600'}`}></div>
+                        <span className="text-xs font-medium text-surface-300">Completion Status</span>
+                      </div>
+                      <div className="text-xs text-surface-400">
+                        {chatProgress.total >= 3 ? (
+                          <div className="text-green-400">
+                            ✓ Assessment complete!<br/>
+                            Ready for project planning
+                          </div>
+                        ) : chatProgress.total >= 2 ? (
+                          <div className="text-yellow-400">
+                            Almost there!<br/>
+                            One more response recommended
+                          </div>
+                        ) : chatProgress.total >= 1 ? (
+                          <div className="text-blue-400">
+                            Good start!<br/>
+                            {2 - chatProgress.total} more response{2 - chatProgress.total !== 1 ? 's' : ''} needed
+                          </div>
+                        ) : (
+                          <div>
+                            Share your musical vision to begin<br/>
+                            3 responses recommended
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Quick stats summary */}
+                  {chatProgress.total > 0 && (
+                    <div className="mt-3 pt-3 border-t border-surface-600">
+                      <div className="flex justify-between text-xs text-surface-400">
+                        <span>Responses: {chatProgress.total}</span>
+                        <span>Traits identified: {chatProgress.personality + chatProgress.sonics}</span>
+                        <span>Status: {chatProgress.total >= 3 ? 'Complete' : 'In Progress'}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="h-[50vh] flex flex-col">
                 <Chat
                   messages={chatMessages}
                   onSendMessage={handleChatMessage}
@@ -379,10 +560,164 @@ export default function App() {
                   className="flex-1"
                 />
               </div>
+              
+              {/* Continue button when ready */}
+              {chatProgress.total >= 3 && (
+                <div className="mt-4 bg-primary-600/10 border border-primary-600/30 rounded-xl p-4">
+                  <div className="text-center">
+                    <div className="text-sm text-primary-300 mb-2">
+                      ✓ Assessment Complete! We've captured your artistic profile.
+                    </div>
+                    <button
+                      onClick={completeChatPhase}
+                      className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-primary-50 rounded-lg font-medium transition-colors shadow-lg"
+                    >
+                      Continue to Project Planning →
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Encourage continuation for partial progress */}
+              {chatProgress.total >= 1 && chatProgress.total < 3 && (
+                <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                  <div className="text-center">
+                    <div className="text-sm text-yellow-300 mb-2">
+                      Great start! {3 - chatProgress.total} more response{3 - chatProgress.total !== 1 ? 's' : ''} recommended for better recommendations.
+                    </div>
+                    <button
+                      onClick={completeChatPhase}
+                      className="px-4 py-2 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-200 rounded-lg text-sm transition-colors"
+                    >
+                      Continue Anyway →
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Skip option */}
+              <div className="mt-4 text-center">
+                <button
+                  onClick={completeChatPhase}
+                  className="text-xs text-surface-500 hover:text-surface-400 transition-colors"
+                >
+                  Skip personality assessment
+                </button>
+              </div>
             </section>
           ) : (
             // Main App Content
             <>
+            {/* Assessment Insights */}
+            {app.assessment && (
+              <section className="rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">
+                <h2 className="mb-4 text-lg font-semibold text-primary-100">Assessment Insights</h2>
+                <div className="grid gap-4 md:grid-cols-3">
+                  {/* Genre Analysis */}
+                  <div className="bg-surface-800/50 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-surface-200 mb-2">Genre Profile</h3>
+                    <div className="space-y-2">
+                      {app.assessment.identity.primary_genres?.map(genre => (
+                        <span key={genre} className="inline-block bg-primary-500/20 text-primary-300 px-2 py-1 rounded text-xs mr-1">
+                          {genre}
+                        </span>
+                      ))}
+                    </div>
+                    {app.assessment.identity.subgenres_tags && app.assessment.identity.subgenres_tags.length > 0 && (
+                      <div className="mt-2">
+                        <div className="text-xs text-surface-400 mb-1">Subgenres:</div>
+                        {app.assessment.identity.subgenres_tags.map(tag => (
+                          <span key={tag} className="inline-block bg-surface-700 text-surface-300 px-2 py-1 rounded text-xs mr-1">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Audio Profile */}
+                  <div className="bg-surface-800/50 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-surface-200 mb-2">Audio Profile</h3>
+                    <div className="space-y-2 text-xs">
+                      {app.assessment.audio_profile && (
+                        <>
+                          <div className="flex justify-between">
+                            <span className="text-surface-400">Tempo:</span>
+                            <span className="text-surface-200">{Math.round(app.assessment.audio_profile.tempo_bpm)} BPM</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-surface-400">Danceability:</span>
+                            <span className="text-surface-200">{Math.round(app.assessment.audio_profile.danceability * 100)}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-surface-400">Energy:</span>
+                            <span className="text-surface-200">{Math.round(app.assessment.audio_profile.energy * 100)}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-surface-400">Valence:</span>
+                            <span className="text-surface-200">{Math.round(app.assessment.audio_profile.valence * 100)}%</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Success Probability */}
+                  <div className="bg-surface-800/50 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-surface-200 mb-2">Success Indicators</h3>
+                    {(() => {
+                      const benchmark = getBenchmarkForGenres(app.assessment.identity.primary_genres || []);
+                      const probability = calculateSuccessProbability(app.assessment, benchmark);
+                      const recommendations = generateRecommendations(app.assessment, benchmark);
+                      
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-surface-400">Market Fit:</div>
+                            <div className={`text-xs font-medium ${
+                              probability > 0.7 ? 'text-green-400' : 
+                              probability > 0.5 ? 'text-yellow-400' : 'text-red-400'
+                            }`}>
+                              {Math.round(probability * 100)}%
+                            </div>
+                          </div>
+                          
+                          {recommendations.length > 0 && (
+                            <div className="mt-2">
+                              <div className="text-xs text-surface-400 mb-1">Top Recommendation:</div>
+                              <div className="text-xs text-surface-200 bg-surface-700/50 p-2 rounded">
+                                {recommendations[0]}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Brand Themes */}
+                {app.assessment.brand_narrative?.themes && (
+                  <div className="mt-4 bg-surface-800/30 rounded-lg p-4">
+                    <h3 className="text-sm font-medium text-surface-200 mb-2">Brand Themes</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {app.assessment.brand_narrative.themes.map(theme => (
+                        <span key={theme} className="bg-accent-500/20 text-accent-300 px-3 py-1 rounded-full text-sm">
+                          {theme}
+                        </span>
+                      ))}
+                    </div>
+                    {app.assessment.brand_narrative.positioning && (
+                      <div className="mt-3">
+                        <div className="text-xs text-surface-400 mb-1">Positioning:</div>
+                        <div className="text-sm text-surface-200 italic">"{app.assessment.brand_narrative.positioning}"</div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+            )}
+
             {/* Profile & Assessment */}
           <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-6 backdrop-blur">
             <h2 className="mb-4 text-lg font-semibold text-primary-100">Profile</h2>
