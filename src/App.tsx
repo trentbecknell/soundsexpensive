@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import AssessmentWizard from "./components/AssessmentWizard";
 import Toast from "./components/Toast";
+import Chat, { ChatMessage } from "./components/Chat";
+import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LineChart, Line } from "recharts";
 
 import computeStageFromScores, { Stage } from "./lib/computeStage";
@@ -85,6 +87,46 @@ const uid = () => Math.random().toString(36).slice(2, 9);
 const sum = (arr: number[]) => arr.reduce((a,b)=>a+b,0);
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 const currency = (n: number) => n.toLocaleString(undefined,{style:"currency",currency:"USD", maximumFractionDigits:0});
+
+// Initial chat messages to understand artist personality
+const WELCOME_MESSAGES: ChatMessage[] = [
+  { id: uid(), type: 'system', content: "Hey there! Before we dive into the technical details, I'd love to understand your artistic vision and personality. This will help shape the project in a way that truly reflects you." },
+  { id: uid(), type: 'system', content: "Tell me about your sound, your inspirations, and what moves you as an artist. What feelings do you want to evoke in your listeners?" }
+];
+
+// Personality-focused suggestions
+const PERSONALITY_SUGGESTIONS = [
+  // Emotional/Expressive
+  "I'm inspired by raw, emotional performances",
+  "I tell deep, personal stories through my music",
+  "My songs focus on social issues and change",
+  
+  // Sound/Production
+  "I love creating dreamy, atmospheric soundscapes",
+  "I blend electronic and organic instruments",
+  "I prefer a raw, unpolished sound",
+  "I aim for pristine, detailed production",
+  
+  // Energy/Style
+  "My music is energetic and upbeat",
+  "I create calm, introspective pieces",
+  "I focus on heavy, intense sounds",
+  
+  // Approach
+  "I tell stories through my lyrics",
+  "I experiment with unconventional structures",
+  "I prioritize catchy melodies and hooks",
+  
+  // Influences
+  "I blend different cultural influences",
+  "I'm inspired by classic genres",
+  "I combine multiple genres in new ways",
+  
+  // Purpose
+  "I'm focused on danceable rhythms",
+  "I want my music to heal and uplift",
+  "I create immersive sonic experiences"
+];
 
 function computeStage(profile: ArtistProfile): Stage {
   const s = profile.stageScores as any;
@@ -179,6 +221,62 @@ export default function App() {
     };
   });
 
+  // Chat state for personality capture
+  const [chatComplete, setChatComplete] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(WELCOME_MESSAGES);
+  
+  const handleChatMessage = (message: string) => {
+    // Add user message
+    const userMsg: ChatMessage = { id: uid(), type: 'user', content: message };
+    const updatedMessages = [...chatMessages, userMsg];
+    setChatMessages(updatedMessages);
+    
+  // Analyze latest user message for personality traits and sonic preferences
+  const analysis = analyzeChatMessage(message);
+    
+    // Find matching artists if we have enough data
+    const hasSubstantialData = 
+      Object.keys(analysis.personality).length >= 3 ||
+      Object.keys(analysis.sonics).length >= 3;
+
+    setTimeout(() => {
+      let response: ChatMessage;
+      if (hasSubstantialData) {
+        const matches = findMatchingArtists(analysis);
+        if (matches.length > 0) {
+          const match = matches[0];
+          response = {
+            id: uid(),
+            type: 'system',
+            content: `Based on your style, you remind me of ${match.name}! You share similar traits in ${Object.keys(analysis.personality).join(", ")}. ${suggestFollowupQuestions(analysis).join(" ")}`
+          };
+        } else {
+          response = {
+            id: uid(),
+            type: 'system',
+            content: suggestFollowupQuestions(analysis).join(" ")
+          };
+        }
+      } else {
+        response = {
+          id: uid(),
+          type: 'system',
+          content: suggestFollowupQuestions(analysis).join(" ")
+        };
+      }
+
+      // Complete the chat when we have enough information
+      if (
+        Object.keys(analysis.personality).length >= 5 &&
+        Object.keys(analysis.sonics).length >= 4
+      ) {
+        setChatComplete(true);
+      }
+
+      setChatMessages(prev => [...prev, response]);
+    }, 1000);
+  };
+
   useEffect(()=> { localStorage.setItem(LS_KEY, JSON.stringify(app)); }, [app]);
 
   // wizard visibility
@@ -259,11 +357,33 @@ export default function App() {
               <input type="file" accept="application/json" className="hidden" onChange={e => e.target.files && importJSON(e.target.files[0])}/>
             </label>
             <button className="rounded-lg border border-accent-600 px-3 py-2 text-sm text-accent-100 hover:bg-accent-800/50 transition-colors" onClick={reset}>Reset</button>
+            <button
+              className="rounded-lg border border-red-600 px-3 py-2 text-sm text-red-100 hover:bg-red-800/50 transition-colors"
+              onClick={() => { localStorage.removeItem('artist-roadmap-vite-v1'); window.location.reload(); }}
+            >
+              Clear Local State
+            </button>
           </div>
         </header>
 
         <div className="space-y-6">
-          {/* Profile & Assessment */}
+          {!chatComplete ? (
+            // Initial Chat Interface
+            <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-6 backdrop-blur">
+              <h2 className="mb-4 text-lg font-semibold text-primary-100">Let's Get to Know You</h2>
+              <div className="h-[60vh] flex flex-col">
+                <Chat
+                  messages={chatMessages}
+                  onSendMessage={handleChatMessage}
+                  suggestions={PERSONALITY_SUGGESTIONS}
+                  className="flex-1"
+                />
+              </div>
+            </section>
+          ) : (
+            // Main App Content
+            <>
+            {/* Profile & Assessment */}
           <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-6 backdrop-blur">
             <h2 className="mb-4 text-lg font-semibold text-primary-100">Profile</h2>
             <div className="grid gap-4 md:grid-cols-2">
@@ -386,7 +506,7 @@ export default function App() {
                       <input type="number" min={0} className="col-span-2 rounded bg-slate-900 px-2 py-1" value={b.unitCost} onChange={e => setApp({...app, budget: app.budget.map(x=> x.id===b.id? {...x, unitCost: Math.max(0, parseInt(e.target.value||'0')) }: x)})}/>
                       <div className="col-span-1 text-right text-sm">{currency(b.qty*b.unitCost)}</div>
                       <div className="col-span-1 flex justify-end">
-                        <button className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800" onClick={()=> removeTask(b.id) /* wrong function intentionally will fix below */}>X</button>
+                        <button className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800" onClick={()=> removeBudget(b.id)}>X</button>
                       </div>
                     </div>
                   ))}
@@ -485,6 +605,8 @@ export default function App() {
               <button className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800" onClick={exportJSON}>Export full JSON</button>
             </div>
           </section>
+            </>
+          )}
         </div>
       </div>
     </div>
