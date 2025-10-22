@@ -107,8 +107,8 @@ export function findArtistMatches(
 
     if (overallScore >= minSimilarity) {
       matches.push({
-        artistId: dbProfile.id,
-        name: dbProfile.name,
+        artistId: dbProfile.id || 'unknown',
+        name: dbProfile.name || 'Unknown Artist',
         matchScore: overallScore,
         matchDimensions: {
           personality: personalitySimilarity,

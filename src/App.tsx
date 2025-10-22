@@ -2,10 +2,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import AssessmentWizard from "./components/AssessmentWizard";
 import Toast from "./components/Toast";
 import Chat, { ChatMessage } from "./components/Chat";
+import GrantDiscovery from "./components/GrantDiscovery";
+import GrantApplicationTracker from "./components/GrantApplicationTracker";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
 import { ArtistSelfAssessment, PartialAssessment } from './types/artistAssessment';
+import { GrantOpportunity, GrantApplication, ApplicationStatus } from './types/grants';
+import { GRANT_OPPORTUNITIES } from './data/grants';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LineChart, Line } from "recharts";
 
 import computeStageFromScores, { Stage } from "./lib/computeStage";
@@ -54,6 +58,8 @@ interface AppState {
   budget: BudgetItem[];
   tasks: RoadTask[];
   assessment?: PartialAssessment; // New schema-based assessment
+  savedGrants: string[]; // Grant IDs that user has saved
+  grantApplications: GrantApplication[]; // User's grant applications
 }
 
 const PHASE_ORDER: PhaseKey[] = ["Discovery","Pre‑Production","Production","Post‑Production","Release","Growth"];
@@ -214,7 +220,9 @@ export default function App() {
       profile: DEFAULT_PROFILE,
       project: DEFAULT_PROJECT,
       budget: BUDGET_PRESETS(DEFAULT_PROJECT.units),
-      tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units)
+      tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units),
+      savedGrants: [],
+      grantApplications: []
     };
     
     // Initialize assessment from legacy profile if not present
@@ -234,6 +242,9 @@ export default function App() {
     total: 0,
     detailedAnalysis: { personality: {}, sonics: {} }
   });
+  
+  // Navigation state
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications'>('roadmap');
   
   const handleChatMessage = (message: string) => {
     // Add user message
@@ -380,6 +391,79 @@ export default function App() {
   const addTask = (phase: PhaseKey) => setApp(prev => ({...prev, tasks: [...prev.tasks, { id: uid(), phase, title: "New task", owner: "", weeks: 1 }]}));
   const removeTask = (id: string) => setApp(prev => ({...prev, tasks: prev.tasks.filter(t => t.id !== id)}));
 
+  // Grant management functions
+  const saveGrant = (grant: GrantOpportunity) => {
+    setApp(prev => ({
+      ...prev,
+      savedGrants: prev.savedGrants.includes(grant.id) 
+        ? prev.savedGrants.filter(id => id !== grant.id)
+        : [...prev.savedGrants, grant.id]
+    }));
+    pushToast(app.savedGrants.includes(grant.id) ? 'Grant removed from saved' : 'Grant saved successfully');
+  };
+
+  const startGrantApplication = (grant: GrantOpportunity) => {
+    const newApplication: GrantApplication = {
+      id: uid(),
+      grant_id: grant.id,
+      artist_id: 'current_user', // In a real app, this would be the user's ID
+      status: 'not_started',
+      project_title: `${app.profile.artistName || 'Untitled'} Project`,
+      project_description: app.profile.elevatorPitch || '',
+      requested_amount: Math.min(grant.award_amount.typical_amount || grant.award_amount.min, grant.award_amount.max),
+      project_timeline: {
+        start_date: new Date().toISOString().split('T')[0],
+        end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 1 year from now
+      },
+      completed_materials: [],
+      remaining_materials: grant.requirements.application_materials,
+      last_updated: new Date().toISOString(),
+      notes: '',
+      reminders: []
+    };
+
+    setApp(prev => ({
+      ...prev,
+      grantApplications: [...prev.grantApplications, newApplication]
+    }));
+    
+    setActiveTab('applications');
+    pushToast('Grant application started successfully');
+  };
+
+  const updateGrantApplication = (applicationId: string, updates: Partial<GrantApplication>) => {
+    setApp(prev => ({
+      ...prev,
+      grantApplications: prev.grantApplications.map(app => 
+        app.id === applicationId ? { ...app, ...updates } : app
+      )
+    }));
+  };
+
+  const deleteGrantApplication = (applicationId: string) => {
+    setApp(prev => ({
+      ...prev,
+      grantApplications: prev.grantApplications.filter(app => app.id !== applicationId)
+    }));
+    pushToast('Grant application deleted');
+  };
+
+  const addApplicationReminder = (applicationId: string, reminder: { date: string; message: string }) => {
+    setApp(prev => ({
+      ...prev,
+      grantApplications: prev.grantApplications.map(app => 
+        app.id === applicationId 
+          ? { 
+              ...app, 
+              reminders: [...app.reminders, { ...reminder, completed: false }],
+              last_updated: new Date().toISOString()
+            } 
+          : app
+      )
+    }));
+    pushToast('Reminder added successfully');
+  };
+
   const exportJSON = () => download(`${(app.profile.artistName || "artist").replaceAll(" ", "-")}-roadmap.json`, JSON.stringify(app, null, 2), "application/json");
   const importJSON = (file: File) => {
     const reader = new FileReader();
@@ -400,7 +484,9 @@ export default function App() {
       project: DEFAULT_PROJECT, 
       budget: BUDGET_PRESETS(DEFAULT_PROJECT.units), 
       tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units),
-      assessment: convertLegacyProfileToAssessment({ profile: DEFAULT_PROFILE, project: DEFAULT_PROJECT })
+      assessment: convertLegacyProfileToAssessment({ profile: DEFAULT_PROFILE, project: DEFAULT_PROJECT }),
+      savedGrants: [],
+      grantApplications: []
     };
     setApp(newState); 
     window.history.replaceState({}, "", window.location.pathname); 
@@ -412,7 +498,7 @@ export default function App() {
         <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-surface-50">Artist Roadmap <span className="text-surface-400">v1</span></h1>
-            <p className="text-sm text-surface-400">Plan projects, estimate budgets, and generate a go‑to‑market timeline.</p>
+            <p className="text-sm text-surface-400">Plan projects, estimate budgets, discover grants, and track applications.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={shareUrl}>Share</button>
@@ -608,6 +694,76 @@ export default function App() {
           ) : (
             // Main App Content
             <>
+            {/* Navigation Tabs */}
+            <div className="mb-6">
+              <div className="flex flex-wrap gap-2 p-1 bg-surface-800/50 rounded-xl border border-surface-700">
+                <button
+                  onClick={() => setActiveTab('roadmap')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'roadmap'
+                      ? 'bg-primary-600 text-primary-50'
+                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                  }`}
+                >
+                  📋 Project Roadmap
+                </button>
+                <button
+                  onClick={() => setActiveTab('grants')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'grants'
+                      ? 'bg-primary-600 text-primary-50'
+                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                  }`}
+                >
+                  🎯 Grant Discovery
+                  {app.savedGrants.length > 0 && (
+                    <span className="ml-1 px-1.5 py-0.5 bg-primary-500/30 text-primary-200 rounded text-xs">
+                      {app.savedGrants.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab('applications')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'applications'
+                      ? 'bg-primary-600 text-primary-50'
+                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                  }`}
+                >
+                  📝 Applications
+                  {app.grantApplications.length > 0 && (
+                    <span className="ml-1 px-1.5 py-0.5 bg-accent-500/30 text-accent-200 rounded text-xs">
+                      {app.grantApplications.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'grants' && (
+              <GrantDiscovery
+                profile={app.profile}
+                assessment={app.assessment}
+                savedGrants={app.savedGrants}
+                applications={app.grantApplications}
+                onSaveGrant={saveGrant}
+                onStartApplication={startGrantApplication}
+              />
+            )}
+
+            {activeTab === 'applications' && (
+              <GrantApplicationTracker
+                applications={app.grantApplications}
+                grants={GRANT_OPPORTUNITIES}
+                onUpdateApplication={updateGrantApplication}
+                onDeleteApplication={deleteGrantApplication}
+                onAddReminder={addApplicationReminder}
+              />
+            )}
+
+            {activeTab === 'roadmap' && (
+              <>
             {/* Assessment Insights */}
             {app.assessment && (
               <section className="rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">
@@ -940,6 +1096,8 @@ export default function App() {
               <button className="rounded-lg border border-slate-700 px-3 py-2 text-sm hover:bg-slate-800" onClick={exportJSON}>Export full JSON</button>
             </div>
           </section>
+            </>
+            )}
             </>
           )}
         </div>
