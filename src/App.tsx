@@ -214,7 +214,16 @@ function decodeStateFromUrl(): AppState | null {
 
 export default function App() {
   const [app, setApp] = useState<AppState>(() => {
-    const fromUrl = decodeStateFromUrl(); if (fromUrl) return fromUrl;
+    // First check URL state
+    const fromUrl = decodeStateFromUrl(); 
+    if (fromUrl) {
+      // Ensure grant properties exist even in URL state
+      if (!fromUrl.savedGrants) fromUrl.savedGrants = [];
+      if (!fromUrl.grantApplications) fromUrl.grantApplications = [];
+      return fromUrl;
+    }
+    
+    // Then check localStorage
     const raw = localStorage.getItem(LS_KEY);
     const baseState = raw ? JSON.parse(raw) : {
       profile: DEFAULT_PROFILE,
@@ -224,6 +233,14 @@ export default function App() {
       savedGrants: [],
       grantApplications: []
     };
+    
+    // Ensure grant properties exist (migration for existing users)
+    if (!baseState.savedGrants) {
+      baseState.savedGrants = [];
+    }
+    if (!baseState.grantApplications) {
+      baseState.grantApplications = [];
+    }
     
     // Initialize assessment from legacy profile if not present
     if (!baseState.assessment) {
