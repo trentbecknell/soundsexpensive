@@ -24,54 +24,39 @@ export default function Chat({ messages, onSendMessage, suggestions = [], classN
   };
 
   return (
-    <div className={`flex flex-col h-full ${className}`}>
+    <div className={`flex flex-col h-full ${className} bg-surface-800/30 rounded-xl border border-surface-700`}>
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map(msg => (
           <div
             key={msg.id}
-            className={`max-w-[80%] rounded-2xl p-3 ${
+            className={`max-w-[85%] rounded-2xl p-4 ${
               msg.type === 'user'
-                ? 'bg-primary-600/50 ml-auto'
+                ? 'bg-primary-600/60 ml-auto text-primary-50'
                 : msg.type === 'suggestion'
-                ? 'bg-surface-700/50'
-                : 'bg-surface-700/80'
+                ? 'bg-surface-700/50 text-surface-200'
+                : 'bg-surface-700/80 text-surface-100'
             }`}
           >
-            <p className="text-sm">{msg.content}</p>
+            <p className="text-sm leading-relaxed">{msg.content}</p>
           </div>
         ))}
       </div>
 
-      {/* Quick suggestions */}
-      {suggestions.length > 0 && (
-        <div className="p-2 border-t border-surface-700 flex gap-2 flex-wrap">
-          {suggestions.map((suggestion, i) => (
-            <button
-              key={i}
-              className="text-xs px-2 py-1 rounded-full bg-surface-700 hover:bg-surface-600 transition-colors"
-              onClick={() => onSendMessage(suggestion)}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Input area */}
       <form onSubmit={handleSubmit} className="p-4 border-t border-surface-700">
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <input
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 bg-surface-700/50 rounded-lg px-3 py-2 text-sm"
+            placeholder="Share your sound, style, or artistic vision..."
+            className="flex-1 bg-surface-700/50 rounded-xl px-4 py-3 text-sm text-surface-100 placeholder-surface-400 border border-surface-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
           />
           <button
             type="submit"
             disabled={!input.trim()}
-            className="px-4 py-2 bg-primary-600 text-primary-50 rounded-lg text-sm font-medium disabled:opacity-50"
+            className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-primary-50 rounded-xl text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
             Send
           </button>

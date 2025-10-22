@@ -537,145 +537,135 @@ export default function App() {
 
         <div className="space-y-6">
           {!chatComplete ? (
-            // Initial Chat Interface
-            <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-6 backdrop-blur">
-              <div className="mb-6">
-                <h2 className="mb-2 text-lg font-semibold text-primary-100">Let's Get to Know Your Sound</h2>
-                <p className="text-sm text-surface-400 mb-4">Share your artistic vision to get personalized recommendations</p>
+            // Initial Chat Interface - Sleek Conversation Design
+            <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-4 backdrop-blur h-[85vh] flex flex-col">
+              {/* Compact Header */}
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-primary-100">Let's Get to Know Your Sound</h2>
+                  <p className="text-sm text-surface-400">Share your artistic vision to get personalized recommendations</p>
+                </div>
                 
-                {/* Detailed Status Tracker */}
-                <div className="bg-surface-700/30 rounded-xl p-4 mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-surface-200">Assessment Progress</h3>
+                {/* Compact Progress Indicator */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-surface-700 flex items-center justify-center text-xs font-medium">
+                      {chatProgress.total}/3
+                    </div>
                     <div className="text-xs text-surface-400">
-                      {chatProgress.total >= 3 ? "✓ Ready to continue" : `${chatProgress.total}/3 minimum responses`}
+                      {chatProgress.total >= 3 ? "✓ Ready" : "responses"}
                     </div>
                   </div>
                   
-                  {/* Progress bar */}
-                  <div className="w-full bg-surface-600 rounded-full h-2 mb-4">
-                    <div 
-                      className="bg-primary-500 h-2 rounded-full transition-all duration-300" 
-                      style={{ width: `${Math.min(100, (chatProgress.total / 3) * 100)}%` }}
-                    ></div>
-                  </div>
+                  {/* Skip option */}
+                  <button
+                    onClick={completeChatPhase}
+                    className="text-xs text-surface-500 hover:text-surface-400 px-2 py-1 rounded transition-colors"
+                  >
+                    Skip →
+                  </button>
+                </div>
+              </div>
+
+              {/* Main Chat Interface - Takes up most space */}
+              <div className="flex-1 flex gap-4">
+                {/* Chat area - Primary focus */}
+                <div className="flex-1 flex flex-col">
+                  <Chat
+                    messages={chatMessages}
+                    onSendMessage={handleChatMessage}
+                    className="flex-1"
+                  />
+                </div>
+
+                {/* Compact Suggestions Sidebar */}
+                <div className="w-72 bg-surface-800/50 rounded-xl p-4 flex flex-col">
+                  <h3 className="text-sm font-medium text-surface-200 mb-3">Quick Starters</h3>
                   
-                  {/* Detailed breakdown */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {/* Personality traits */}
-                    <div className="bg-surface-800/50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`w-2 h-2 rounded-full ${chatProgress.personality >= 1 ? 'bg-primary-500' : 'bg-surface-600'}`}></div>
-                        <span className="text-xs font-medium text-surface-300">Style & Personality</span>
-                      </div>
-                      <div className="text-xs text-surface-400">
-                        {chatProgress.personality > 0 ? (
-                          <div>
-                            <div className="text-primary-400 mb-1">✓ {chatProgress.personality} trait{chatProgress.personality !== 1 ? 's' : ''} detected</div>
-                            <div className="space-y-1">
-                              {Object.keys(chatProgress.detailedAnalysis.personality).slice(0, 2).map(trait => (
-                                <div key={trait} className="text-xs bg-primary-500/20 text-primary-300 px-2 py-1 rounded">
-                                  {trait.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          "Tell us about your creative style and artistic approach"
-                        )}
+                  {/* Compact suggestion categories */}
+                  <div className="space-y-3 flex-1">
+                    <div>
+                      <div className="text-xs text-surface-400 mb-2">🎵 Style</div>
+                      <div className="grid grid-cols-1 gap-1">
+                        {PERSONALITY_SUGGESTIONS.slice(0, 4).map((suggestion, i) => (
+                          <button
+                            key={i}
+                            className="text-left text-xs px-2 py-1.5 rounded bg-surface-700/50 hover:bg-surface-600 transition-colors text-surface-300"
+                            onClick={() => handleChatMessage(suggestion)}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
                       </div>
                     </div>
                     
-                    {/* Sonic characteristics */}
-                    <div className="bg-surface-800/50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`w-2 h-2 rounded-full ${chatProgress.sonics >= 1 ? 'bg-primary-500' : 'bg-surface-600'}`}></div>
-                        <span className="text-xs font-medium text-surface-300">Sound Profile</span>
-                      </div>
-                      <div className="text-xs text-surface-400">
-                        {chatProgress.sonics > 0 ? (
-                          <div>
-                            <div className="text-primary-400 mb-1">✓ {chatProgress.sonics} sonic feature{chatProgress.sonics !== 1 ? 's' : ''} detected</div>
-                            <div className="space-y-1">
-                              {Object.keys(chatProgress.detailedAnalysis.sonics).slice(0, 2).map(sonic => (
-                                <div key={sonic} className="text-xs bg-primary-500/20 text-primary-300 px-2 py-1 rounded">
-                                  {sonic.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          "Describe your musical sound and production style"
-                        )}
+                    <div>
+                      <div className="text-xs text-surface-400 mb-2">⚡ Energy</div>
+                      <div className="grid grid-cols-1 gap-1">
+                        {PERSONALITY_SUGGESTIONS.slice(4, 8).map((suggestion, i) => (
+                          <button
+                            key={i}
+                            className="text-left text-xs px-2 py-1.5 rounded bg-surface-700/50 hover:bg-surface-600 transition-colors text-surface-300"
+                            onClick={() => handleChatMessage(suggestion)}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
                       </div>
                     </div>
                     
-                    {/* Overall completion */}
-                    <div className="bg-surface-800/50 rounded-lg p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className={`w-2 h-2 rounded-full ${chatProgress.total >= 3 ? 'bg-green-500' : 'bg-surface-600'}`}></div>
-                        <span className="text-xs font-medium text-surface-300">Completion Status</span>
-                      </div>
-                      <div className="text-xs text-surface-400">
-                        {chatProgress.total >= 3 ? (
-                          <div className="text-green-400">
-                            ✓ Assessment complete!<br/>
-                            Ready for project planning
-                          </div>
-                        ) : chatProgress.total >= 2 ? (
-                          <div className="text-yellow-400">
-                            Almost there!<br/>
-                            One more response recommended
-                          </div>
-                        ) : chatProgress.total >= 1 ? (
-                          <div className="text-blue-400">
-                            Good start!<br/>
-                            {2 - chatProgress.total} more response{2 - chatProgress.total !== 1 ? 's' : ''} needed
-                          </div>
-                        ) : (
-                          <div>
-                            Share your musical vision to begin<br/>
-                            3 responses recommended
-                          </div>
-                        )}
+                    <div>
+                      <div className="text-xs text-surface-400 mb-2">💭 Themes</div>
+                      <div className="grid grid-cols-1 gap-1">
+                        {PERSONALITY_SUGGESTIONS.slice(8, 12).map((suggestion, i) => (
+                          <button
+                            key={i}
+                            className="text-left text-xs px-2 py-1.5 rounded bg-surface-700/50 hover:bg-surface-600 transition-colors text-surface-300"
+                            onClick={() => handleChatMessage(suggestion)}
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Quick stats summary */}
-                  {chatProgress.total > 0 && (
-                    <div className="mt-3 pt-3 border-t border-surface-600">
-                      <div className="flex justify-between text-xs text-surface-400">
-                        <span>Responses: {chatProgress.total}</span>
-                        <span>Traits identified: {chatProgress.personality + chatProgress.sonics}</span>
-                        <span>Status: {chatProgress.total >= 3 ? 'Complete' : 'In Progress'}</span>
+
+                  {/* Compact Progress Details */}
+                  <div className="mt-4 pt-3 border-t border-surface-600">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-surface-400">Style traits:</span>
+                        <span className="text-primary-400">{chatProgress.personality}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-surface-400">Sound features:</span>
+                        <span className="text-primary-400">{chatProgress.sonics}</span>
+                      </div>
+                      
+                      {/* Progress bar */}
+                      <div className="w-full bg-surface-600 rounded-full h-1.5 mt-2">
+                        <div 
+                          className="bg-primary-500 h-1.5 rounded-full transition-all duration-300" 
+                          style={{ width: `${Math.min(100, (chatProgress.total / 3) * 100)}%` }}
+                        ></div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
               
-              <div className="h-[50vh] flex flex-col">
-                <Chat
-                  messages={chatMessages}
-                  onSendMessage={handleChatMessage}
-                  suggestions={PERSONALITY_SUGGESTIONS}
-                  className="flex-1"
-                />
-              </div>
-              
-              {/* Continue button when ready */}
+              {/* Compact Continue Section */}
               {chatProgress.total >= 3 && (
-                <div className="mt-4 bg-primary-600/10 border border-primary-600/30 rounded-xl p-4">
-                  <div className="text-center">
-                    <div className="text-sm text-primary-300 mb-2">
-                      ✓ Assessment Complete! We've captured your artistic profile.
+                <div className="mt-4 bg-primary-600/10 border border-primary-600/30 rounded-xl p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-primary-300">
+                      ✓ Assessment Complete! Ready for project planning.
                     </div>
                     <button
                       onClick={completeChatPhase}
-                      className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-primary-50 rounded-lg font-medium transition-colors shadow-lg"
+                      className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-primary-50 rounded-lg text-sm font-medium transition-colors"
                     >
-                      Continue to Project Planning →
+                      Continue →
                     </button>
                   </div>
                 </div>
@@ -683,30 +673,20 @@ export default function App() {
               
               {/* Encourage continuation for partial progress */}
               {chatProgress.total >= 1 && chatProgress.total < 3 && (
-                <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
-                  <div className="text-center">
-                    <div className="text-sm text-yellow-300 mb-2">
-                      Great start! {3 - chatProgress.total} more response{3 - chatProgress.total !== 1 ? 's' : ''} recommended for better recommendations.
+                <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-yellow-300">
+                      {3 - chatProgress.total} more response{3 - chatProgress.total !== 1 ? 's' : ''} recommended for better recommendations.
                     </div>
                     <button
                       onClick={completeChatPhase}
-                      className="px-4 py-2 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-200 rounded-lg text-sm transition-colors"
+                      className="px-3 py-1.5 bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-200 rounded-lg text-sm transition-colors"
                     >
                       Continue Anyway →
                     </button>
                   </div>
                 </div>
               )}
-              
-              {/* Skip option */}
-              <div className="mt-4 text-center">
-                <button
-                  onClick={completeChatPhase}
-                  className="text-xs text-surface-500 hover:text-surface-400 transition-colors"
-                >
-                  Skip personality assessment
-                </button>
-              </div>
             </section>
           ) : (
             // Main App Content
