@@ -3,6 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { analyzeCatalog, getTimelineData } from '../lib/catalogAnalysis';
 import type { CatalogTrack, CatalogAnalysisResult } from '../types/catalogAnalysis';
 import { getSpotifyAuthUrl, getAccessToken, fetchPlaylist, fetchAudioFeatures, convertSpotifyFeatures } from '../lib/spotifyApi';
+import { fetchSamplyPlaylist, estimateSamplyAudioFeatures } from '../lib/samplyApi';
 
 export default function CatalogAnalyzer() {
   const [tracks, setTracks] = useState<CatalogTrack[]>([]);
@@ -138,6 +139,33 @@ export default function CatalogAnalyzer() {
             artist: track.artists.join(', '),
             upload_order: index + 1,
             audio_features: convertSpotifyFeatures(features),
+          };
+        });
+        
+        setTracks(catalogTracks);
+        setPlaylistUrl('');
+        setAnalyzing(false);
+        return;
+      } else if (url.includes('samply.app')) {
+        // Samply.app integration
+        const playlistData = await fetchSamplyPlaylist(url);
+        
+        if (playlistData.tracks.length === 0) {
+          throw new Error('Samply playlist is empty or could not be accessed');
+        }
+        
+        if (playlistData.tracks.length > 20) {
+          throw new Error(`Playlist has ${playlistData.tracks.length} tracks. Maximum 20 tracks allowed. Please create a smaller playlist or select specific tracks.`);
+        }
+        
+        // Convert to CatalogTrack format with estimated audio features
+        const catalogTracks: CatalogTrack[] = playlistData.tracks.map((track, index) => {
+          return {
+            id: track.id,
+            name: track.name,
+            artist: track.artist,
+            upload_order: index + 1,
+            audio_features: estimateSamplyAudioFeatures(track),
           };
         });
         
@@ -328,16 +356,19 @@ export default function CatalogAnalyzer() {
                 type="text"
                 value={playlistUrl}
                 onChange={(e) => setPlaylistUrl(e.target.value)}
-                placeholder="https://open.spotify.com/playlist/... or bandcamp.com/album/..."
+                placeholder="https://samply.app/p/... or spotify.com/playlist/... or bandcamp.com/album/..."
                 className="w-full rounded-lg bg-surface-700/50 px-4 py-3 text-surface-100 placeholder-surface-500 focus:ring-2 focus:ring-primary-500 transition-colors"
               />
             </div>
             
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-3">
               <div className="text-xs font-medium text-blue-300 mb-2">✨ Supported Platforms</div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-blue-200">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs text-blue-200">
                 <div className="flex items-center gap-1">
                   <span>🎵</span> Spotify {spotifyConnected && <span className="text-green-400">✓</span>}
+                </div>
+                <div className="flex items-center gap-1">
+                  <span>🎹</span> Samply <span className="text-green-400">✓</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span>🎸</span> Bandcamp <span className="text-yellow-300">(Soon)</span>
@@ -351,11 +382,11 @@ export default function CatalogAnalyzer() {
               </div>
               {spotifyConnected ? (
                 <p className="text-xs text-green-300 mt-2">
-                  ✓ Spotify connected! Paste a playlist URL above to import tracks.
+                  ✓ Spotify connected! Also try Samply.app playlist URLs for your Samply content.
                 </p>
               ) : (
                 <p className="text-xs text-blue-300 mt-2">
-                  Note: Connect Spotify above to enable direct playlist imports. Other platforms coming soon.
+                  Samply.app playlists work now! Connect Spotify for additional streaming imports. Other platforms coming soon.
                 </p>
               )}
             </div>
