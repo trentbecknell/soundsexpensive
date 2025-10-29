@@ -4,57 +4,57 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Warm wood brown for primary actions
+        // Teal for primary actions and highlights
         primary: {
-          50: '#faf8f5',
-          100: '#f5f1e8',
-          200: '#e8dcc8',
-          300: '#d4c0a0',
-          400: '#b89968',
-          500: '#8B6F47', // Rich wood brown
-          600: '#765d3a',
-          700: '#5d4a2e',
-          800: '#4a3a24',
-          900: '#3a2e1c',
+          50: '#f0f9fa',
+          100: '#d9f0f2',
+          200: '#b8e3e7',
+          300: '#8bd0d6',
+          400: '#68b9c1',
+          500: '#499FA4', // Main teal
+          600: '#3d8489',
+          700: '#366b70',
+          800: '#2f595d',
+          900: '#2a4a4e',
         },
-        // Light greys and warm whites for backgrounds
+        // Charcoal to Slate for backgrounds and surfaces
         surface: {
-          50: '#FFFFFF', // Pure white
-          100: '#FAFAFA', // Off-white
-          200: '#F5F5F5', // Light grey
-          300: '#E8E8E8', // Soft grey
-          400: '#D4D4D4', // Medium grey
-          500: '#A3A3A3', // Mid grey
-          600: '#737373', // Slate grey
-          700: '#525252', // Dark grey for text
-          800: '#404040', // Almost black text
-          900: '#262626', // Text black
+          50: '#f8f9f9',
+          100: '#f1f3f3',
+          200: '#e3e6e6',
+          300: '#d4d8d7',
+          400: '#BEC6C3', // Slate for mid-tones
+          500: '#9ca5a3',
+          600: '#7a8481',
+          700: '#5e6866',
+          800: '#4a5551',
+          900: '#3D4A55', // Charcoal for dark elements
         },
-        // Soft sage/earth green accents
+        // Tangerine for accents and warm highlights
         accent: {
-          50: '#f6f8f6',
-          100: '#e8ede8',
-          200: '#d4ddd4',
-          300: '#b3c4b3',
-          400: '#8fa88f',
-          500: '#6B8E6B', // Soft sage green
-          600: '#577357',
-          700: '#455c45',
-          800: '#364836',
-          900: '#2a372a',
+          50: '#fef8f1',
+          100: '#fceede',
+          200: '#f9dcbc',
+          300: '#f4c594',
+          400: '#eeae6e',
+          500: '#E9BC8B', // Main tangerine
+          600: '#d69961',
+          700: '#b67845',
+          800: '#92603a',
+          900: '#775032',
         },
-        // Warm terracotta for high-fit matches
+        // Additional amber scale for emphasis
         amber: {
-          50: '#fdf8f6',
-          100: '#f8ede8',
-          200: '#f0d9cd',
-          300: '#e5bca8',
-          400: '#d89876',
-          500: '#C87850', // Warm terracotta
-          600: '#b05f3d',
-          700: '#924d31',
-          800: '#783f29',
-          900: '#5f3322',
+          50: '#fef8f1',
+          100: '#fceede',
+          200: '#f9dcbc',
+          300: '#f4c594',
+          400: '#eeae6e',
+          500: '#E9BC8B',
+          600: '#d69961',
+          700: '#b67845',
+          800: '#92603a',
+          900: '#775032',
         }
       }
     }
