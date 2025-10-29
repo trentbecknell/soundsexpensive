@@ -13,32 +13,41 @@ The Artist Roadmap combines AI-driven personality assessment with professional p
 
 ## ✨ Key Features
 
-### 🤖 AI-Powered Assessment System
-- **Personality Profiling**: Natural language chat interface captures artistic vision and style
-- **Sonic Analysis**: Extracts audio characteristics, genre preferences, and production style
-- **Industry Benchmarking**: Compares against genre-specific targets (Beyoncé-adjacent modeling)
-- **Success Probability**: Data-driven calculations for market alignment and recommendations
+### 🎵 Multi-Track Catalog Analysis
+- **Spotify Integration**: Import tracks directly via Spotify URL (or download & upload)
+- **Audio Feature Extraction**: Tempo, energy, danceability, acousticness, valence, and more
+- **Quality Scoring**: Professional assessment of production, mix, arrangement, and vocals
+- **Consistency Analysis**: Track-to-track quality variance and reliability metrics
+- **Trend Detection**: Quality progression over time (improving/declining/stable)
+- **Sonic Identity**: Genre fingerprint and stylistic coherence analysis
 
-### 📊 Professional Project Planning
-- **Smart Timeline Generation**: Automatically adjusts based on artist maturity stage
-- **Dynamic Budget Estimation**: Scales with project scope and includes grant support
+### 🤖 AI-Powered Strategic Planning
+- **Context-Aware Chat**: Planning conversation informed by your catalog analysis
+- **Smart Recommendations**: Project suggestions based on actual music quality and quantity
+- **Planning Focus**: Timeline, budget, and goal-oriented questions (not personality tests)
+- **Progress Tracking**: Visual indicators show planning completion status
+- **Intelligent Defaults**: Chat responses inform automatic roadmap generation
+
+### 📊 Data-Driven Roadmap Generation
+- **Smart Project Type**: Album/EP/Singles automatically suggested based on catalog metrics
+- **Adaptive Timeline**: Adjusts for artist maturity stage and project complexity
+- **Budget Estimation**: Scales with scope and includes grant funding opportunities
 - **Phase-Based Organization**: Discovery → Pre-Production → Production → Post-Production → Release → Growth
-- **Interactive Charts**: Visual timeline and budget breakdowns using Recharts
+- **Interactive Visualizations**: Timeline and budget charts using Recharts
 
-### 🎨 Comprehensive Assessment Matrix
-Six-factor maturity evaluation:
-- **Craft**: Songwriting and performance consistency
-- **Catalog**: Quality and quantity of release-ready material
-- **Brand**: Visual identity, positioning, and narrative themes
-- **Team**: Professional relationships and collaborators
-- **Audience**: Fan base engagement and platform presence
-- **Operations**: Business setup, rights, and financial organization
+### � Grant Discovery & Application Tracking
+- **500+ Real Opportunities**: Comprehensive database of music grants and funding
+- **Intelligent Matching**: AI-powered compatibility scoring (80%+ accuracy)
+- **Application Management**: Full lifecycle tracking from discovery to funding outcome
+- **Deadline Alerts**: Automated reminders and urgency indicators
+- **Eligibility Filtering**: Stage, genre, location, and amount-based search
 
-### 🔄 Data Management & Sharing
-- **Export/Import**: JSON project files and CSV budget reports
-- **Shareable URLs**: Embed complete project state in shareable links
-- **Local Persistence**: Automatic localStorage backup with manual reset options
-- **Schema Compliance**: Professional JSON schema for industry-standard data structure
+### 🔄 Returning User Experience
+- **Welcome Back Dashboard**: Personalized greeting and status overview
+- **Quick Actions**: Jump directly to Continue, Re-analyze, View Roadmap, or Explore Grants
+- **Progress Preservation**: No forced re-onboarding for users with existing data
+- **Smart Resume**: Automatically returns to your last active section
+- **Data Persistence**: Automatic localStorage backup with manual reset options
 
 ## 🚀 Quick Start
 
@@ -62,33 +71,45 @@ npm run preview
 
 ## 💡 How It Works
 
-### 1. AI Chat Assessment
-Begin with a natural conversation about your artistic vision:
-- Share your sound, inspirations, and creative approach
-- AI extracts personality traits and sonic characteristics
-- Progress tracking shows assessment completion status
-- Minimum 3 responses recommended for optimal results
+The Artist Roadmap uses an **analysis-first approach** that ensures data-driven planning:
 
-### 2. Industry Analysis
-The system maps your profile against industry benchmarks:
-- Genre-specific targets based on successful artist patterns
-- Audio profile analysis (tempo, energy, danceability, valence)
-- Brand theme extraction and positioning analysis
-- Success probability calculation with personalized recommendations
+### 1. Catalog Analysis (Analyze Your Current State)
+Start by understanding where you are today:
+- **Upload or connect your music** via Spotify URL or direct file upload
+- **Multi-track analysis** assesses quality, consistency, and sonic identity
+- **Quality progression tracking** shows improvement trends over time
+- **Genre and style consistency** reveals your sonic fingerprint
+- **Actionable insights** highlight strengths and growth opportunities
 
-### 3. Project Planning
-Generate comprehensive project roadmaps:
-- Timeline automatically adjusts for artist maturity level
-- Budget estimates scale with project scope (EP/Album/Singles)
-- Task management with phase-based kanban organization
-- Visual charts for timeline and budget analysis
+### 2. Strategic Planning Chat (Plan Your Next Move)
+Have a focused conversation about your goals:
+- **Context-aware AI** references your catalog analysis results
+- **Planning-focused questions** about timeline, budget, and goals
+- **Smart suggestions** based on your actual music quality and quantity
+- **Progress tracking** ensures comprehensive planning (minimum 3 responses)
+- **No personality tests** - just practical, forward-looking strategy
 
-### 4. Insights & Recommendations
-Receive data-driven guidance:
-- Market fit probability with confidence scoring
-- Personalized development recommendations
-- Genre positioning and brand theme analysis
-- Professional assessment insights panel
+### 3. Smart Roadmap Generation (Build Your Path Forward)
+Automatically generate an intelligent project plan:
+- **Data-driven project type** (Album/EP/Singles) based on catalog quality and quantity
+- **Realistic timeline** adjusts for your maturity level and catalog readiness
+- **Budget estimation** scales with project scope and includes grant opportunities
+- **Phase-based tasks** organized from Discovery → Release → Growth
+- **Visual charts** for timeline and budget analysis
+
+### 4. Returning User Experience
+Personalized dashboard for users with existing progress:
+- **Welcome back greeting** with time-of-day awareness
+- **Status overview** showing catalog analysis, roadmap, and grant tracking
+- **Quick actions** to continue where you left off
+- **No forced re-onboarding** - jump straight back into your work
+
+### Why This Flow Works
+1. **Real data drives decisions** - analyze actual music before planning
+2. **No wasted effort** - catalog insights inform every recommendation
+3. **Faster to value** - skip repetitive setup on return visits
+4. **Context-aware planning** - chat knows your music's strengths and gaps
+5. **Smart defaults** - roadmap suggestions based on proven patterns
 
 ## 🏗️ Technical Architecture
 
@@ -107,24 +128,33 @@ Receive data-driven guidance:
 ### Project Structure
 ```
 src/
-├── App.tsx                    # Main application orchestration
+├── App.tsx                      # Main application orchestration & flow control
 ├── components/
-│   ├── AssessmentWizard.tsx   # Guided maturity assessment
-│   ├── Chat.tsx               # AI chat interface
-│   ├── PersonalityAssessment.tsx
-│   └── Toast.tsx              # Notification system
+│   ├── OnboardingWelcome.tsx    # First-time user 3-step journey explanation
+│   ├── WelcomeBackDashboard.tsx # Returning user dashboard with quick actions
+│   ├── CatalogAnalyzer.tsx      # Multi-track analysis with Spotify integration
+│   ├── Chat.tsx                 # Planning-focused AI chat interface
+│   ├── GrantDiscovery.tsx       # Grant browsing and filtering
+│   ├── GrantApplicationTracker.tsx # Application lifecycle management
+│   ├── AssessmentWizard.tsx     # Guided maturity assessment
+│   └── Toast.tsx                # Notification system
 ├── lib/
-│   ├── artistProfiling.ts     # Core profiling algorithms
-│   ├── chatAnalysis.ts        # AI chat message analysis
-│   ├── assessmentMapping.ts   # Schema mapping utilities
-│   ├── industryBenchmarks.ts  # Genre benchmarks & calculations
-│   └── computeStage.ts        # Maturity stage computation
+│   ├── artistProfiling.ts       # Core profiling algorithms
+│   ├── chatAnalysis.ts          # AI chat message analysis
+│   ├── grantMatching.ts         # Grant recommendation engine
+│   ├── assessmentMapping.ts     # Schema mapping utilities
+│   ├── industryBenchmarks.ts    # Genre benchmarks & calculations
+│   └── computeStage.ts          # Maturity stage computation
 ├── types/
-│   └── artistAssessment.ts    # Comprehensive TypeScript interfaces
+│   ├── artistAssessment.ts      # Artist profiling interfaces
+│   ├── catalogAnalysis.ts       # Catalog analysis result types
+│   └── grants.ts                # Grant opportunity and application types
 └── data/
-    ├── assessment-questions.ts # Assessment question bank
-    ├── personality-patterns.ts # AI personality matching
-    └── reference-artists.ts   # Artist comparison database
+    ├── assessment-prompts.ts    # Chat conversation prompts
+    ├── assessment-questions.ts  # Assessment question bank
+    ├── personality-patterns.ts  # AI personality matching
+    ├── grants.ts                # Grant opportunity database (500+)
+    └── reference-artists.ts     # Artist comparison database
 ```
 
 ## 🎯 Use Cases

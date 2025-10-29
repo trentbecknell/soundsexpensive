@@ -7,6 +7,7 @@ import GrantApplicationTracker from "./components/GrantApplicationTracker";
 import MixAnalyzer from "./components/MixAnalyzer";
 import CatalogAnalyzer from "./components/CatalogAnalyzer";
 import OnboardingWelcome from "./components/OnboardingWelcome";
+import WelcomeBackDashboard from "./components/WelcomeBackDashboard";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
@@ -436,6 +437,12 @@ export default function App() {
     detailedAnalysis: { personality: {}, sonics: {} }
   });
   
+  // Welcome back dashboard visibility (for returning users)
+  const [showWelcomeBack, setShowWelcomeBack] = useState(() => {
+    // Show welcome back if user has completed onboarding AND has meaningful data
+    return app.onboardingComplete && (app.catalogAnalysisComplete || app.roadmapGenerated);
+  });
+  
   // Navigation state - use last active tab from app state
   const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer'>(() => {
     return app.lastActiveTab as 'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer';
@@ -770,11 +777,39 @@ export default function App() {
           onStart={() => {
             setApp(prev => ({...prev, onboardingComplete: true, lastActiveTab: 'catalog-analyzer'}));
             setActiveTab('catalog-analyzer');
+            setShowWelcomeBack(false);
           }}
           onSkip={() => {
             setApp(prev => ({...prev, onboardingComplete: true}));
+            setShowWelcomeBack(false);
           }}
           hasExistingData={app.profile.artistName !== "" || app.budget.length > 0}
+        />
+      ) : showWelcomeBack ? (
+        /* Show welcome back dashboard for returning users */
+        <WelcomeBackDashboard
+          catalogAnalysisData={app.catalogAnalysisData}
+          roadmapGenerated={app.roadmapGenerated}
+          projectType={app.project.projectType}
+          projectUnits={app.project.units}
+          savedGrantsCount={app.savedGrants.length}
+          applicationsCount={app.grantApplications.length}
+          onContinue={() => {
+            setShowWelcomeBack(false);
+            // activeTab already set to last active from state
+          }}
+          onReAnalyze={() => {
+            setShowWelcomeBack(false);
+            setActiveTab('catalog-analyzer');
+          }}
+          onViewRoadmap={() => {
+            setShowWelcomeBack(false);
+            setActiveTab('roadmap');
+          }}
+          onViewGrants={() => {
+            setShowWelcomeBack(false);
+            setActiveTab('grants');
+          }}
         />
       ) : (
       <div className="mx-auto max-w-7xl px-6 py-8">
