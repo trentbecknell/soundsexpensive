@@ -1098,7 +1098,7 @@ export default function App() {
             )}
 
             {activeTab === 'catalog-analyzer' && (
-              <div>
+              <div id="catalog-analysis">
                 <div className="mb-6 rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">
                   <h2 className="text-xl font-semibold text-primary-100 mb-2">📊 Catalog Analyzer</h2>
                   <p className="text-surface-300 text-sm">
@@ -1340,6 +1340,27 @@ export default function App() {
                   </span>
                 ))}
               </div>
+            </div>
+
+            {/* Continue Button */}
+            <div className="mt-6 pt-4 border-t border-surface-700/50">
+              <button
+                onClick={() => {
+                  setActiveTab('catalog-analyzer');
+                  setTimeout(() => {
+                    const catalogSection = document.getElementById('catalog-analysis');
+                    if (catalogSection) {
+                      catalogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }, 100);
+                }}
+                className="w-full md:w-auto px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                Continue to Catalog Analysis
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </button>
             </div>
           </section>
 
