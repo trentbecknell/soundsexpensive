@@ -5,6 +5,74 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2025-10-29
+
+### 🎨 Major Release: Mobile UX & Light Theme
+
+#### **Complete Design Transformation**
+- **Light Theme**: Beautiful natural aesthetic with warm wood tones, soft greys, sage green accents
+- **Color Palette**: Warm wood brown primary, pure white to soft grey surfaces, terracotta highlights
+- **Visual Design**: Light gradient backgrounds, organic feel, clean minimalist aesthetic
+- **Readability**: Dark grey to black text on light backgrounds for excellent contrast
+
+#### **Mobile-First Strategic Planning**
+- **Responsive Chat Interface**: Full-width chat on mobile, sidebar hidden on small screens
+- **Compact Desktop Sidebar**: Reduced from 320px to 272px (tablet) / 320px (large screens)
+- **Simplified Suggestions**: Streamlined from 12 to 8 most useful planning topics
+- **Mobile Optimization**: Flex layout switches from column (mobile) to row (desktop)
+- **Progress Indicator**: Compact, non-intrusive progress display
+
+#### **Complete Skip Functionality**
+- **Onboarding Skip**: Skip button available on welcome screen
+- **Profile Skip**: "Continue to Catalog Analysis" button with auto-navigation
+- **Planning Skip (Desktop)**: Always-visible skip button in header
+- **Planning Skip (Mobile)**: Prominent full-width skip button (removed message requirement)
+- **Tab Navigation**: Removed catalog analysis requirement, all tabs freely accessible
+
+#### **Navigation Improvements**
+- **Clear Paths**: Prominent navigation buttons between sections
+- **Auto-Scrolling**: Smooth scroll to relevant sections when navigating
+- **Tab Freedom**: Users can access any section in any order
+- **Mobile Buttons**: Full-width on mobile, auto-width on desktop for better UX
+
+#### **Technical Infrastructure**
+- **Tailwind Config**: Complete color system overhaul with light theme scales
+- **CSS Gradients**: Natural wood and sage glows over white base
+- **Responsive Breakpoints**: Proper md: (768px+) breakpoints throughout
+- **Component Updates**: All 20+ components automatically inherit new theme
+
+### Added
+- Light theme with natural wood, sage, and terracotta color palette
+- "Continue to Catalog Analysis" button in Profile section with smooth scrolling
+- Always-visible skip button in Strategic Planning (mobile & desktop)
+- Mobile-responsive Strategic Planning chat interface
+- Prominent navigation buttons between major sections
+- Title tooltips on skip buttons for clarity
+
+### Changed
+- **Complete color transformation** from dark slate/purple to light wood/sage theme
+- Strategic Planning sidebar: hidden on mobile (<768px), compact on desktop
+- Simplified planning suggestions from 12 items to 8 most relevant
+- Removed catalog analysis requirement for accessing AI Planning tab
+- Mobile skip button now always visible (removed 1+ message restriction)
+- Improved responsive layouts across all sections with mobile-first approach
+- Enhanced button prominence and sizing for mobile usability
+
+### Improved
+- Mobile Strategic Planning interface usability (no more "messy" layout)
+- Skip button visibility, prominence, and consistency across all flows
+- Navigation flow between Profile → Catalog → Planning sections
+- Text readability with high-contrast dark-on-light design
+- Overall visual hierarchy with clean, minimalist aesthetic
+- Responsive design patterns throughout the application
+
+### Fixed
+- Strategic Planning appearing "messy" on mobile screens
+- Missing skip button on initial planning screen (mobile)
+- Assessment section navigation being unclear
+- Tab switching restrictions preventing free navigation
+- Catalog analysis blocking access to planning features
+
 ## [1.2.0] - 2024-10-22
 
 ### 🚀 Major Release: Production Deployment Ready
