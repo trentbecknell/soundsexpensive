@@ -2,19 +2,24 @@
 
 ## Overview
 
-The Catalog Analyzer now supports importing playlists directly from **Samply.app**! Paste your Samply playlist URL to analyze your tracks without downloading files.
+The Catalog Analyzer has **beta support** for importing playlists from **Samply.app**! 
+
+⚠️ **Important Note**: Due to browser security restrictions (CORS), direct Samply URL imports may not work in all cases. If you encounter issues, use the **easy workaround** below.
 
 ## 🎹 Features
 
-- **Direct URL Import**: Paste Samply.app playlist URLs
+- **Direct URL Import (Beta)**: Paste Samply.app playlist URLs
+- **Easy Workaround**: Download and upload method always works
 - **Automatic Track Detection**: Extracts track names and artists
 - **Audio Feature Estimation**: Generates intelligent audio analysis
-- **No Downloads Needed**: Works entirely in the browser
+- **No Authentication**: Works with public playlists
 - **Up to 20 Tracks**: Analyze collections up to 20 tracks
 
-## 🚀 How to Use
+## 🚀 Two Ways to Use Samply Content
 
-### Quick Start
+### Method 1: Direct URL Import (Beta)
+
+**May work depending on browser and network:**
 
 1. Go to **Catalog Analyzer** tab
 2. Switch to **"Playlist URL"** import method
@@ -23,8 +28,22 @@ The Catalog Analyzer now supports importing playlists directly from **Samply.app
    https://samply.app/p/your-playlist-id
    ```
 4. Click **"Import from URL"**
-5. Wait for tracks to import
-6. Select your genre and click **"Analyze Catalog"**
+5. If successful, tracks will import automatically
+
+**If you see a CORS error**, use Method 2 below (recommended).
+
+### Method 2: Download & Upload (Always Works) ✅
+
+**100% reliable method:**
+
+1. Visit your Samply playlist
+2. Download your tracks from Samply (usually a download button on each track)
+3. Go to **Catalog Analyzer** tab
+4. Use **"Upload Files"** method (not URL)
+5. Upload your downloaded tracks (up to 20)
+6. Click **"Analyze Catalog"**
+
+**This method gives you full audio analysis** (not estimated)!
 
 ### Supported URL Formats
 
@@ -106,6 +125,31 @@ Since Samply doesn't provide audio analysis APIs, we intelligently estimate:
 **Recommendation**: Use Samply for quick demos and unreleased tracks. Use Spotify for released music and most accurate analysis.
 
 ## 🐛 Troubleshooting
+
+### "CORS blocked by browser security" Error
+
+**What it means**: Your browser is blocking the request for security reasons.
+
+**Solutions** (in order of recommendation):
+
+1. **✅ Use Download & Upload Method** (Easiest)
+   - Download tracks from Samply
+   - Upload directly to Catalog Analyzer
+   - Get real audio analysis (better than URL import!)
+
+2. **Try a Different Browser**
+   - Some browsers have different CORS policies
+   - Try Chrome, Firefox, or Edge
+
+3. **Use Browser Extension**
+   - Install a CORS unblocking extension
+   - Only use for development/testing
+   - Not recommended for regular use
+
+4. **Wait for Server-Side Solution**
+   - We're working on a backend proxy
+   - Will eliminate CORS issues completely
+   - Coming in future update
 
 ### "Could not fetch Samply playlist"
 

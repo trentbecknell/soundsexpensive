@@ -45,9 +45,8 @@ export function extractSamplyPlaylistId(url: string): string | null {
 /**
  * Fetch playlist data from Samply.app
  * 
- * Note: Since Samply doesn't have a public API (as of Oct 2025),
- * this uses web scraping or embedded data extraction.
- * Future: Replace with official API when available.
+ * Note: Due to CORS restrictions, direct fetching from browser may fail.
+ * This function provides helpful instructions for manual import as a fallback.
  */
 export async function fetchSamplyPlaylist(playlistIdOrUrl: string): Promise<SamplyPlaylist> {
   let playlistId = playlistIdOrUrl;
@@ -64,18 +63,37 @@ export async function fetchSamplyPlaylist(playlistIdOrUrl: string): Promise<Samp
   const playlistUrl = `https://samply.app/p/${playlistId}`;
   
   try {
-    // Fetch the playlist page
-    const response = await fetch(playlistUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; SoundsExpensive/1.3.0)',
-      },
-    });
+    // Try using a CORS proxy first
+    const corsProxies = [
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(playlistUrl)}`,
+      `https://corsproxy.io/?${encodeURIComponent(playlistUrl)}`,
+    ];
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch Samply playlist: ${response.statusText}`);
+    let html = '';
+    let lastError = null;
+    
+    for (const proxyUrl of corsProxies) {
+      try {
+        const response = await fetch(proxyUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; SoundsExpensive/1.3.1)',
+          },
+        });
+        
+        if (response.ok) {
+          html = await response.text();
+          break;
+        }
+      } catch (err) {
+        lastError = err;
+        continue;
+      }
     }
     
-    const html = await response.text();
+    // If all proxies failed, throw helpful error
+    if (!html) {
+      throw new Error('CORS_BLOCKED');
+    }
     
     // Parse playlist data from the page
     const playlist = parseSamplyPage(html, playlistId, playlistUrl);
@@ -83,11 +101,25 @@ export async function fetchSamplyPlaylist(playlistIdOrUrl: string): Promise<Samp
     return playlist;
   } catch (error) {
     console.error('Samply fetch error:', error);
+    
+    // Provide helpful error message based on error type
+    if (error instanceof Error && error.message === 'CORS_BLOCKED') {
+      throw new Error(
+        `⚠️ Direct Samply import blocked by browser security.\n\n` +
+        `**Quick workaround:**\n` +
+        `1. Download your tracks from Samply\n` +
+        `2. Use the "Upload Files" method instead\n` +
+        `3. Upload your downloaded tracks (max 20)\n\n` +
+        `We're working on a server-side solution for seamless imports!`
+      );
+    }
+    
     throw new Error(
       `Could not fetch Samply playlist. Please ensure:\n` +
       `1. The playlist URL is correct\n` +
       `2. The playlist is public\n` +
       `3. You have internet connectivity\n\n` +
+      `**Alternative:** Download tracks from Samply and use "Upload Files" method.\n\n` +
       `Format: https://samply.app/p/your-playlist-id`
     );
   }

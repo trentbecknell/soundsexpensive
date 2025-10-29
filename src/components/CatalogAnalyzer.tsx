@@ -368,7 +368,7 @@ export default function CatalogAnalyzer() {
                   <span>🎵</span> Spotify {spotifyConnected && <span className="text-green-400">✓</span>}
                 </div>
                 <div className="flex items-center gap-1">
-                  <span>🎹</span> Samply <span className="text-green-400">✓</span>
+                  <span>🎹</span> Samply <span className="text-yellow-300">(Beta)</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span>🎸</span> Bandcamp <span className="text-yellow-300">(Soon)</span>
@@ -382,11 +382,11 @@ export default function CatalogAnalyzer() {
               </div>
               {spotifyConnected ? (
                 <p className="text-xs text-green-300 mt-2">
-                  ✓ Spotify connected! Also try Samply.app playlist URLs for your Samply content.
+                  ✓ Spotify connected! Samply support is in beta - if import fails, download tracks and use "Upload Files" instead.
                 </p>
               ) : (
                 <p className="text-xs text-blue-300 mt-2">
-                  Samply.app playlists work now! Connect Spotify for additional streaming imports. Other platforms coming soon.
+                  Samply support is in beta. If URL import fails due to browser restrictions, download your tracks and use "Upload Files" method. Connect Spotify for additional streaming imports.
                 </p>
               )}
             </div>
