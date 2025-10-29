@@ -848,43 +848,47 @@ export default function App() {
               <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-surface-900/40 via-transparent to-surface-900/40"></div>
               <div className="relative h-full flex flex-col">
               {/* Header */}
-              <div className="mb-6 flex items-center justify-between border-b border-surface-700/50 pb-4">
-                <div>
-                  <h2 className="text-xl font-semibold text-surface-50">Strategic Planning</h2>
-                  <p className="text-sm text-surface-400 mt-1">
-                    {app.catalogAnalysisComplete 
-                      ? 'Based on your catalog analysis, let\'s create a data-driven release plan' 
-                      : 'Share your goals and constraints to build a customized project roadmap'}
-                  </p>
-                </div>
-                
-                {/* Progress Indicator */}
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <div className="w-10 h-10 rounded-lg bg-surface-700 border border-surface-600 flex items-center justify-center font-semibold text-surface-200">
-                      {chatProgress.total}/3
-                    </div>
-                    <div className="text-surface-400">
-                      {chatProgress.total >= 3 ? "✓ Ready to generate" : "responses needed"}
-                    </div>
+              <div className="mb-4 pb-4 border-b border-surface-700/50">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-lg md:text-xl font-semibold text-surface-50">Strategic Planning</h2>
+                    <p className="text-xs md:text-sm text-surface-400 mt-1">
+                      {app.catalogAnalysisComplete 
+                        ? 'Based on your catalog analysis, let\'s create a data-driven release plan' 
+                        : 'Share your goals and constraints to build a customized project roadmap'}
+                    </p>
                   </div>
                   
-                  {/* Skip option */}
+                  {/* Progress Indicator - Responsive */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-lg bg-surface-700 border border-surface-600 flex items-center justify-center font-semibold text-surface-200 text-sm">
+                      {chatProgress.total}/3
+                    </div>
+                    <button
+                      onClick={completeChatPhase}
+                      className="hidden md:flex text-sm text-surface-500 hover:text-surface-300 px-3 py-2 rounded-lg hover:bg-surface-700/50 transition-colors items-center gap-1"
+                    >
+                      Skip
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                {/* Mobile skip button */}
+                {chatProgress.total >= 1 && (
                   <button
                     onClick={completeChatPhase}
-                    className="text-sm text-surface-500 hover:text-surface-300 px-3 py-2 rounded-lg hover:bg-surface-700/50 transition-colors flex items-center gap-1"
+                    className="md:hidden mt-3 w-full text-center text-xs text-surface-500 hover:text-surface-300 py-2 rounded-lg hover:bg-surface-700/50 transition-colors"
                   >
-                    Skip to roadmap
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    Skip to roadmap →
                   </button>
-                </div>
+                )}
               </div>
 
               {/* Main Chat Interface */}
-              <div className="flex-1 flex gap-6">
-                {/* Chat area - Primary focus */}
+              <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
+                {/* Chat area - Full width on mobile, flexible on desktop */}
                 <div className="flex-1 flex flex-col min-w-0">
                   <Chat
                     messages={chatMessages}
@@ -893,88 +897,36 @@ export default function App() {
                   />
                 </div>
 
-                {/* Suggestions Sidebar */}
-                <div className="w-80 bg-surface-800/50 rounded-xl border border-surface-700/50 p-5 flex flex-col">
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-surface-200 mb-1">Planning Topics</h3>
-                    <p className="text-xs text-surface-400">Click to add to conversation</p>
+                {/* Suggestions Sidebar - Hidden on mobile, compact on desktop */}
+                <div className="hidden md:flex md:w-72 lg:w-80 bg-surface-800/50 rounded-xl border border-surface-700/50 p-4 flex-col flex-shrink-0 max-h-full overflow-y-auto">
+                  <div className="mb-3">
+                    <h3 className="text-sm font-semibold text-surface-200 mb-1">Quick Topics</h3>
+                    <p className="text-xs text-surface-400">Click to add</p>
                   </div>
                   
-                  {/* Suggestion categories */}
-                  <div className="space-y-4 flex-1 overflow-y-auto">
-                    <div>
-                      <div className="text-xs font-medium text-surface-400 mb-2 flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-primary-500"></div>
-                        <span>Project Scope</span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {PLANNING_SUGGESTIONS.slice(0, 4).map((suggestion, i) => (
-                          <button
-                            key={i}
-                            className="w-full text-left text-xs px-3 py-2.5 rounded-lg bg-surface-700/30 hover:bg-primary-600/20 border border-surface-600/30 hover:border-primary-500/30 transition-all text-surface-300 hover:text-surface-100"
-                            onClick={() => handleChatMessage(suggestion)}
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-xs font-medium text-surface-400 mb-2 flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-accent-500"></div>
-                        <span>Timeline & Budget</span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {PLANNING_SUGGESTIONS.slice(4, 8).map((suggestion, i) => (
-                          <button
-                            key={i}
-                            className="w-full text-left text-xs px-3 py-2.5 rounded-lg bg-surface-700/30 hover:bg-accent-600/20 border border-surface-600/30 hover:border-accent-500/30 transition-all text-surface-300 hover:text-surface-100"
-                            onClick={() => handleChatMessage(suggestion)}
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <div className="text-xs font-medium text-surface-400 mb-2 flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-green-500"></div>
-                        <span>Goals & Strategy</span>
-                      </div>
-                      <div className="space-y-1.5">
-                        {PLANNING_SUGGESTIONS.slice(8, 12).map((suggestion, i) => (
-                          <button
-                            key={i}
-                            className="w-full text-left text-xs px-3 py-2.5 rounded-lg bg-surface-700/30 hover:bg-green-600/20 border border-surface-600/30 hover:border-green-500/30 transition-all text-surface-300 hover:text-surface-100"
-                            onClick={() => handleChatMessage(suggestion)}
-                          >
-                            {suggestion}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                  {/* Simplified suggestion list - Top 8 most useful */}
+                  <div className="space-y-2 flex-1">
+                    {PLANNING_SUGGESTIONS.slice(0, 8).map((suggestion, i) => (
+                      <button
+                        key={i}
+                        className="w-full text-left text-xs px-3 py-2 rounded-lg bg-surface-700/30 hover:bg-primary-600/20 border border-surface-600/30 hover:border-primary-500/30 transition-all text-surface-300 hover:text-surface-100"
+                        onClick={() => handleChatMessage(suggestion)}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
                   </div>
 
-                  {/* Progress Summary */}
-                  <div className="mt-5 pt-4 border-t border-surface-700/50">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-surface-400">Total:</span>
-                        <span className="text-primary-400 font-semibold">{chatProgress.total} / 3</span>
-                      </div>
-                      
-                      {/* Progress bar */}
-                      <div className="w-full bg-surface-700 rounded-full h-1.5 mt-3">
-                        <div 
-                          className="bg-primary-500 h-1.5 rounded-full transition-all duration-500" 
-                          style={{ width: `${Math.min(100, (chatProgress.total / 3) * 100)}%` }}
-                        ></div>
-                      </div>
-                      <div className="text-center text-xs text-surface-400 mt-2">
-                        {chatProgress.total >= 3 ? "Ready to generate roadmap" : `${Math.max(0, 3 - chatProgress.total)} more needed`}
-                      </div>
+                  {/* Compact Progress Summary */}
+                  <div className="mt-4 pt-3 border-t border-surface-700/50">
+                    <div className="text-xs text-surface-400 mb-2">
+                      Progress: <span className="text-primary-400 font-semibold">{chatProgress.total} / 3</span>
+                    </div>
+                    <div className="w-full bg-surface-700 rounded-full h-1.5">
+                      <div 
+                        className="bg-primary-500 h-1.5 rounded-full transition-all duration-500" 
+                        style={{ width: `${Math.min(100, (chatProgress.total / 3) * 100)}%` }}
+                      ></div>
                     </div>
                   </div>
                 </div>
