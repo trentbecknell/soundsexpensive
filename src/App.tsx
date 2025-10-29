@@ -4,6 +4,7 @@ import Toast from "./components/Toast";
 import Chat, { ChatMessage } from "./components/Chat";
 import GrantDiscovery from "./components/GrantDiscovery";
 import GrantApplicationTracker from "./components/GrantApplicationTracker";
+import MixAnalyzer from "./components/MixAnalyzer";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
@@ -261,7 +262,7 @@ export default function App() {
   });
   
   // Navigation state
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications'>('roadmap');
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer'>('roadmap');
   
   const handleChatMessage = (message: string) => {
     // Add user message
@@ -748,6 +749,16 @@ export default function App() {
                   📋 Project Roadmap
                 </button>
                 <button
+                  onClick={() => setActiveTab('mix-analyzer')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'mix-analyzer'
+                      ? 'bg-primary-600 text-primary-50'
+                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                  }`}
+                >
+                  🎚️ Mix Analyzer
+                </button>
+                <button
                   onClick={() => setActiveTab('grants')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'grants'
@@ -781,6 +792,19 @@ export default function App() {
             </div>
 
             {/* Tab Content */}
+            {activeTab === 'mix-analyzer' && (
+              <div>
+                <div className="mb-6 rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">
+                  <h2 className="text-xl font-semibold text-primary-100 mb-2">🎚️ Mix Analyzer</h2>
+                  <p className="text-surface-300 text-sm">
+                    Upload your mix and get professional diagnostic feedback based on industry benchmarks for your genre. 
+                    Identify technical issues, compare against reference tracks, and get actionable recommendations to improve your sound.
+                  </p>
+                </div>
+                <MixAnalyzer />
+              </div>
+            )}
+
             {activeTab === 'grants' && (
               <GrantDiscovery
                 profile={app.profile}
