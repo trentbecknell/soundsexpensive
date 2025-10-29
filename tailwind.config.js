@@ -4,7 +4,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Sky blue primary (keeping original aesthetic)
         primary: {
           50: '#f0f9ff',
           100: '#e0f2fe',
@@ -17,20 +16,18 @@ export default {
           800: '#075985',
           900: '#0c4a6e',
         },
-        // Light surfaces (inverted from dark theme)
         surface: {
-          50: '#ffffff',
-          100: '#fafafa',
-          200: '#f4f4f5',
-          300: '#e4e4e7',
-          400: '#d4d4d8',
-          500: '#a1a1aa',
-          600: '#71717a',
-          700: '#52525b',
-          800: '#3f3f46',
-          900: '#27272a',
+          50: '#fafafa',
+          100: '#f4f4f5',
+          200: '#e4e4e7',
+          300: '#d4d4d8',
+          400: '#a1a1aa',
+          500: '#71717a',
+          600: '#52525b',
+          700: '#3f3f46',
+          800: '#27272a',
+          900: '#18181b',
         },
-        // Magenta accent (keeping original aesthetic)
         accent: {
           50: '#fdf4ff',
           100: '#fae8ff',
