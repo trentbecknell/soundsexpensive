@@ -4,57 +4,57 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Electric purple for artist data & primary actions
+        // Warm wood brown for primary actions
         primary: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#8B5CF6', // Main electric purple
-          700: '#7c3aed',
-          800: '#6d28d9',
-          900: '#5b21b6',
+          50: '#faf8f5',
+          100: '#f5f1e8',
+          200: '#e8dcc8',
+          300: '#d4c0a0',
+          400: '#b89968',
+          500: '#8B6F47', // Rich wood brown
+          600: '#765d3a',
+          700: '#5d4a2e',
+          800: '#4a3a24',
+          900: '#3a2e1c',
         },
-        // Deep slate backgrounds
+        // Light greys and warm whites for backgrounds
         surface: {
-          50: '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          400: '#94a3b8',
-          500: '#64748b',
-          600: '#475569',
-          700: '#334155',
-          800: '#1E293B', // Deep slate secondary
-          900: '#0F172A', // Deep slate primary
+          50: '#FFFFFF', // Pure white
+          100: '#FAFAFA', // Off-white
+          200: '#F5F5F5', // Light grey
+          300: '#E8E8E8', // Soft grey
+          400: '#D4D4D4', // Medium grey
+          500: '#A3A3A3', // Mid grey
+          600: '#737373', // Slate grey
+          700: '#525252', // Dark grey for text
+          800: '#404040', // Almost black text
+          900: '#262626', // Text black
         },
-        // Vibrant teal for products
+        // Soft sage/earth green accents
         accent: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14B8A6', // Vibrant teal
-          600: '#0d9488',
-          700: '#0f766e',
-          800: '#115e59',
-          900: '#134e4a',
+          50: '#f6f8f6',
+          100: '#e8ede8',
+          200: '#d4ddd4',
+          300: '#b3c4b3',
+          400: '#8fa88f',
+          500: '#6B8E6B', // Soft sage green
+          600: '#577357',
+          700: '#455c45',
+          800: '#364836',
+          900: '#2a372a',
         },
-        // Warm amber for high-fit matches
+        // Warm terracotta for high-fit matches
         amber: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#F59E0B', // Warm amber
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
+          50: '#fdf8f6',
+          100: '#f8ede8',
+          200: '#f0d9cd',
+          300: '#e5bca8',
+          400: '#d89876',
+          500: '#C87850', // Warm terracotta
+          600: '#b05f3d',
+          700: '#924d31',
+          800: '#783f29',
+          900: '#5f3322',
         }
       }
     }
