@@ -4,13 +4,8 @@ import Chat, { ChatMessage } from '../components/Chat';
 
 describe('Chat Component', () => {
   const mockMessages: ChatMessage[] = [
-    { id: '1', type: 'system', content: 'Welcome to the assessment' },
-    { id: '2', type: 'user', content: 'I need help with my project' }
-  ];
-  const mockSuggestions = [
-    'I write my own songs',
-    'I collaborate with others',
-    'I need production help'
+    { id: '1', type: 'system', content: 'Welcome to the strategic planning session' },
+    { id: '2', type: 'user', content: 'I need help planning my next release' }
   ];
   const mockOnSendMessage = vi.fn();
 
@@ -23,27 +18,12 @@ describe('Chat Component', () => {
       <Chat 
         messages={mockMessages} 
         onSendMessage={mockOnSendMessage}
-        suggestions={mockSuggestions}
       />
     );
 
     // Check if messages are displayed
-    expect(screen.getByText('Welcome to the assessment')).toBeInTheDocument();
-    expect(screen.getByText('I need help with my project')).toBeInTheDocument();
-  });
-
-  it('displays suggestion buttons', () => {
-    render(
-      <Chat 
-        messages={mockMessages} 
-        onSendMessage={mockOnSendMessage}
-        suggestions={mockSuggestions}
-      />
-    );
-
-    mockSuggestions.forEach(suggestion => {
-      expect(screen.getByText(suggestion)).toBeInTheDocument();
-    });
+    expect(screen.getByText('Welcome to the strategic planning session')).toBeInTheDocument();
+    expect(screen.getByText('I need help planning my next release')).toBeInTheDocument();
   });
 
   it('handles sending a message', () => {
@@ -51,12 +31,11 @@ describe('Chat Component', () => {
       <Chat 
         messages={mockMessages} 
         onSendMessage={mockOnSendMessage}
-        suggestions={[]}
       />
     );
 
-    const input = screen.getByPlaceholderText('Type your message...');
-    const sendButton = screen.getByText('Send');
+    const input = screen.getByPlaceholderText('Type your response or question...');
+    const sendButton = screen.getByRole('button', { name: /send/i });
 
     fireEvent.change(input, { target: { value: 'My test message' } });
     fireEvent.click(sendButton);
@@ -64,29 +43,15 @@ describe('Chat Component', () => {
     expect(mockOnSendMessage).toHaveBeenCalledWith('My test message');
   });
 
-  it('handles clicking suggestion buttons', () => {
-    render(
-      <Chat 
-        messages={mockMessages} 
-        onSendMessage={mockOnSendMessage}
-        suggestions={mockSuggestions}
-      />
-    );
-
-    fireEvent.click(screen.getByText(mockSuggestions[0]));
-    expect(mockOnSendMessage).toHaveBeenCalledWith(mockSuggestions[0]);
-  });
-
   it('prevents sending empty messages', () => {
     render(
       <Chat 
         messages={mockMessages} 
         onSendMessage={mockOnSendMessage}
-        suggestions={[]}
       />
     );
 
-    const sendButton = screen.getByText('Send');
+    const sendButton = screen.getByRole('button', { name: /send/i });
     fireEvent.click(sendButton);
 
     expect(mockOnSendMessage).not.toHaveBeenCalled();

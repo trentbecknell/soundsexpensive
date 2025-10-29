@@ -838,44 +838,47 @@ export default function App() {
 
         <div className="space-y-6">
           {!chatComplete ? (
-            // Initial Chat Interface - Sleek Conversation Design
-            <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-4 backdrop-blur h-[85vh] flex flex-col">
-              {/* Compact Header */}
-              <div className="mb-4 flex items-center justify-between">
+            // Initial Chat Interface - Professional Strategic Planning
+            <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-6 backdrop-blur h-[85vh] flex flex-col">
+              {/* Header */}
+              <div className="mb-6 flex items-center justify-between border-b border-surface-700/50 pb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-primary-100">💬 Plan Your Roadmap</h2>
-                  <p className="text-sm text-surface-400">
+                  <h2 className="text-xl font-semibold text-surface-50">Strategic Planning</h2>
+                  <p className="text-sm text-surface-400 mt-1">
                     {app.catalogAnalysisComplete 
-                      ? 'Based on your catalog analysis, let\'s create a strategic release plan' 
-                      : 'Share your goals and vision to build a personalized project plan'}
+                      ? 'Based on your catalog analysis, let\'s create a data-driven release plan' 
+                      : 'Share your goals and constraints to build a customized project roadmap'}
                   </p>
                 </div>
                 
-                {/* Compact Progress Indicator */}
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-surface-700 flex items-center justify-center text-xs font-medium">
+                {/* Progress Indicator */}
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="w-10 h-10 rounded-lg bg-surface-700 border border-surface-600 flex items-center justify-center font-semibold text-surface-200">
                       {chatProgress.total}/3
                     </div>
-                    <div className="text-xs text-surface-400">
-                      {chatProgress.total >= 3 ? "✓ Ready" : "responses"}
+                    <div className="text-surface-400">
+                      {chatProgress.total >= 3 ? "✓ Ready to generate" : "responses needed"}
                     </div>
                   </div>
                   
                   {/* Skip option */}
                   <button
                     onClick={completeChatPhase}
-                    className="text-xs text-surface-500 hover:text-surface-400 px-2 py-1 rounded transition-colors"
+                    className="text-sm text-surface-500 hover:text-surface-300 px-3 py-2 rounded-lg hover:bg-surface-700/50 transition-colors flex items-center gap-1"
                   >
-                    Skip →
+                    Skip to roadmap
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </button>
                 </div>
               </div>
 
-              {/* Main Chat Interface - Takes up most space */}
-              <div className="flex-1 flex gap-4">
+              {/* Main Chat Interface */}
+              <div className="flex-1 flex gap-6">
                 {/* Chat area - Primary focus */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col min-w-0">
                   <Chat
                     messages={chatMessages}
                     onSendMessage={handleChatMessage}
@@ -883,25 +886,25 @@ export default function App() {
                   />
                 </div>
 
-                {/* Compact Suggestions Sidebar */}
-                <div className="w-72 bg-surface-800/50 rounded-xl p-4 flex flex-col">
-                  <div className="text-center mb-4">
-                    <h3 className="text-sm font-medium text-surface-200 mb-1">Need inspiration?</h3>
-                    <p className="text-xs text-surface-400">Try these conversation starters</p>
+                {/* Suggestions Sidebar */}
+                <div className="w-80 bg-surface-800/50 rounded-xl border border-surface-700/50 p-5 flex flex-col">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-surface-200 mb-1">Planning Topics</h3>
+                    <p className="text-xs text-surface-400">Click to add to conversation</p>
                   </div>
                   
-                  {/* Compact suggestion categories */}
-                  <div className="space-y-3 flex-1">
+                  {/* Suggestion categories */}
+                  <div className="space-y-4 flex-1 overflow-y-auto">
                     <div>
-                      <div className="text-xs text-surface-400 mb-2 flex items-center gap-2">
-                        <span>📀</span>
+                      <div className="text-xs font-medium text-surface-400 mb-2 flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-primary-500"></div>
                         <span>Project Scope</span>
                       </div>
-                      <div className="grid grid-cols-1 gap-1">
+                      <div className="space-y-1.5">
                         {PLANNING_SUGGESTIONS.slice(0, 4).map((suggestion, i) => (
                           <button
                             key={i}
-                            className="text-left text-xs px-3 py-2 rounded-lg bg-surface-700/50 hover:bg-surface-600 hover:bg-primary-600/20 transition-colors text-surface-300 hover:text-surface-200"
+                            className="w-full text-left text-xs px-3 py-2.5 rounded-lg bg-surface-700/30 hover:bg-primary-600/20 border border-surface-600/30 hover:border-primary-500/30 transition-all text-surface-300 hover:text-surface-100"
                             onClick={() => handleChatMessage(suggestion)}
                           >
                             {suggestion}
@@ -911,15 +914,15 @@ export default function App() {
                     </div>
                     
                     <div>
-                      <div className="text-xs text-surface-400 mb-2 flex items-center gap-2">
-                        <span>⏰</span>
+                      <div className="text-xs font-medium text-surface-400 mb-2 flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-accent-500"></div>
                         <span>Timeline & Budget</span>
                       </div>
-                      <div className="grid grid-cols-1 gap-1">
+                      <div className="space-y-1.5">
                         {PLANNING_SUGGESTIONS.slice(4, 8).map((suggestion, i) => (
                           <button
                             key={i}
-                            className="text-left text-xs px-3 py-2 rounded-lg bg-surface-700/50 hover:bg-surface-600 hover:bg-primary-600/20 transition-colors text-surface-300 hover:text-surface-200"
+                            className="w-full text-left text-xs px-3 py-2.5 rounded-lg bg-surface-700/30 hover:bg-accent-600/20 border border-surface-600/30 hover:border-accent-500/30 transition-all text-surface-300 hover:text-surface-100"
                             onClick={() => handleChatMessage(suggestion)}
                           >
                             {suggestion}
@@ -929,15 +932,15 @@ export default function App() {
                     </div>
                     
                     <div>
-                      <div className="text-xs text-surface-400 mb-2 flex items-center gap-2">
-                        <span>🎯</span>
+                      <div className="text-xs font-medium text-surface-400 mb-2 flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-green-500"></div>
                         <span>Goals & Strategy</span>
                       </div>
-                      <div className="grid grid-cols-1 gap-1">
+                      <div className="space-y-1.5">
                         {PLANNING_SUGGESTIONS.slice(8, 12).map((suggestion, i) => (
                           <button
                             key={i}
-                            className="text-left text-xs px-3 py-2 rounded-lg bg-surface-700/50 hover:bg-surface-600 hover:bg-primary-600/20 transition-colors text-surface-300 hover:text-surface-200"
+                            className="w-full text-left text-xs px-3 py-2.5 rounded-lg bg-surface-700/30 hover:bg-green-600/20 border border-surface-600/30 hover:border-green-500/30 transition-all text-surface-300 hover:text-surface-100"
                             onClick={() => handleChatMessage(suggestion)}
                           >
                             {suggestion}
@@ -947,48 +950,45 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Compact Progress Details */}
-                  <div className="mt-4 pt-3 border-t border-surface-600">
-                    <div className="text-center mb-3">
-                      <div className="text-xs text-surface-400 mb-1">Assessment Progress</div>
-                    </div>
+                  {/* Progress Summary */}
+                  <div className="mt-5 pt-4 border-t border-surface-700/50">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-surface-400">Style traits:</span>
-                        <span className="text-primary-400 font-medium">{chatProgress.personality}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-surface-400">Sound features:</span>
-                        <span className="text-primary-400 font-medium">{chatProgress.sonics}</span>
+                        <span className="text-surface-400">Total:</span>
+                        <span className="text-primary-400 font-semibold">{chatProgress.total} / 3</span>
                       </div>
                       
                       {/* Progress bar */}
-                      <div className="w-full bg-surface-600 rounded-full h-2 mt-3">
+                      <div className="w-full bg-surface-700 rounded-full h-1.5 mt-3">
                         <div 
-                          className="bg-gradient-to-r from-primary-500 to-primary-400 h-2 rounded-full transition-all duration-300" 
+                          className="bg-primary-500 h-1.5 rounded-full transition-all duration-500" 
                           style={{ width: `${Math.min(100, (chatProgress.total / 3) * 100)}%` }}
                         ></div>
                       </div>
-                      <div className="text-center text-xs text-surface-400 mt-1">
-                        {chatProgress.total >= 3 ? "✨ Ready for next step!" : `${Math.max(0, 3 - chatProgress.total)} more to go`}
+                      <div className="text-center text-xs text-surface-400 mt-2">
+                        {chatProgress.total >= 3 ? "Ready to generate roadmap" : `${Math.max(0, 3 - chatProgress.total)} more needed`}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
               
-              {/* Compact Continue Section */}
+              {/* Continue Section */}
               {chatProgress.total >= 3 && (
-                <div className="mt-4 bg-primary-600/10 border border-primary-600/30 rounded-xl p-3">
+                <div className="mt-6 bg-primary-600/10 border border-primary-500/30 rounded-xl p-4">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-primary-300">
-                      ✓ Assessment Complete! Ready for project planning.
+                    <div>
+                      <div className="text-sm font-medium text-primary-200">Planning Complete</div>
+                      <div className="text-xs text-surface-400 mt-0.5">Ready to generate your strategic roadmap</div>
                     </div>
                     <button
                       onClick={completeChatPhase}
-                      className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-primary-50 rounded-lg text-sm font-medium transition-colors"
+                      className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                     >
-                      Continue →
+                      Generate Roadmap
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
                     </button>
                   </div>
                 </div>
