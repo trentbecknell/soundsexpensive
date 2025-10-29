@@ -2,13 +2,20 @@
 // Handles authentication and data fetching from Spotify
 
 const SPOTIFY_CLIENT_ID = (import.meta as any).env?.VITE_SPOTIFY_CLIENT_ID || '';
-const SPOTIFY_REDIRECT_URI = (import.meta as any).env?.VITE_SPOTIFY_REDIRECT_URI || window.location.origin + '/callback';
+const SPOTIFY_REDIRECT_URI = 'https://trentbecknell.github.io/soundsexpensive/';
 const SPOTIFY_SCOPES = [
   'playlist-read-private',
   'playlist-read-collaborative',
   'user-library-read',
   'user-read-email',
 ].join(' ');
+
+// Validate Client ID on load
+if (!SPOTIFY_CLIENT_ID || SPOTIFY_CLIENT_ID === 'your_client_id_here') {
+  console.error('⚠️ SPOTIFY CLIENT ID NOT CONFIGURED');
+  console.error('Please set VITE_SPOTIFY_CLIENT_ID in your .env file');
+  console.error('See SPOTIFY_INTEGRATION.md for setup instructions');
+}
 
 export interface SpotifyTrack {
   id: string;
@@ -47,6 +54,15 @@ export interface SpotifyPlaylistData {
  * Generate Spotify authorization URL
  */
 export async function getSpotifyAuthUrl(): Promise<string> {
+  // Validate Client ID
+  if (!SPOTIFY_CLIENT_ID || SPOTIFY_CLIENT_ID === 'your_client_id_here') {
+    throw new Error(
+      'Spotify Client ID not configured. Please create a Spotify Developer App at ' +
+      'https://developer.spotify.com/dashboard and set VITE_SPOTIFY_CLIENT_ID in your .env file. ' +
+      'See SPOTIFY_INTEGRATION.md for detailed setup instructions.'
+    );
+  }
+  
   const state = generateRandomString(16);
   const codeVerifier = generateRandomString(128);
   
