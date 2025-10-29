@@ -147,30 +147,16 @@ export default function CatalogAnalyzer() {
         setAnalyzing(false);
         return;
       } else if (url.includes('samply.app')) {
-        // Samply.app integration
-        const playlistData = await fetchSamplyPlaylist(url);
-        
-        if (playlistData.tracks.length === 0) {
-          throw new Error('Samply playlist is empty or could not be accessed');
-        }
-        
-        if (playlistData.tracks.length > 20) {
-          throw new Error(`Playlist has ${playlistData.tracks.length} tracks. Maximum 20 tracks allowed. Please create a smaller playlist or select specific tracks.`);
-        }
-        
-        // Convert to CatalogTrack format with estimated audio features
-        const catalogTracks: CatalogTrack[] = playlistData.tracks.map((track, index) => {
-          return {
-            id: track.id,
-            name: track.name,
-            artist: track.artist,
-            upload_order: index + 1,
-            audio_features: estimateSamplyAudioFeatures(track),
-          };
-        });
-        
-        setTracks(catalogTracks);
-        setPlaylistUrl('');
+        // Samply.app: Due to CORS restrictions, provide helpful guidance
+        setError(
+          '🎹 Samply Integration Note:\n\n' +
+          'Direct URL imports from Samply are blocked by browser security (CORS).\n\n' +
+          '✅ Easy Workaround:\n' +
+          '1. Download your tracks from Samply.app\n' +
+          '2. Switch to "Upload Files" method above\n' +
+          '3. Upload your tracks (you\'ll get REAL audio analysis!)\n\n' +
+          'This actually gives better results than URL import would! 🎉'
+        );
         setAnalyzing(false);
         return;
       } else if (url.includes('bandcamp.com')) {
@@ -356,7 +342,7 @@ export default function CatalogAnalyzer() {
                 type="text"
                 value={playlistUrl}
                 onChange={(e) => setPlaylistUrl(e.target.value)}
-                placeholder="https://samply.app/p/... or spotify.com/playlist/... or bandcamp.com/album/..."
+                placeholder="https://open.spotify.com/playlist/... (Samply: use Upload Files method)"
                 className="w-full rounded-lg bg-surface-700/50 px-4 py-3 text-surface-100 placeholder-surface-500 focus:ring-2 focus:ring-primary-500 transition-colors"
               />
             </div>
@@ -368,7 +354,7 @@ export default function CatalogAnalyzer() {
                   <span>🎵</span> Spotify {spotifyConnected && <span className="text-green-400">✓</span>}
                 </div>
                 <div className="flex items-center gap-1">
-                  <span>🎹</span> Samply <span className="text-yellow-300">(Beta)</span>
+                  <span>🎹</span> Samply <span className="text-blue-300">(Upload)</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span>🎸</span> Bandcamp <span className="text-yellow-300">(Soon)</span>
@@ -382,11 +368,11 @@ export default function CatalogAnalyzer() {
               </div>
               {spotifyConnected ? (
                 <p className="text-xs text-green-300 mt-2">
-                  ✓ Spotify connected! Samply support is in beta - if import fails, download tracks and use "Upload Files" instead.
+                  ✓ Spotify connected! For Samply tracks, download them and use "Upload Files" method.
                 </p>
               ) : (
                 <p className="text-xs text-blue-300 mt-2">
-                  Samply support is in beta. If URL import fails due to browser restrictions, download your tracks and use "Upload Files" method. Connect Spotify for additional streaming imports.
+                  💡 Pro Tip: For Samply tracks, download them from Samply.app and use "Upload Files" method for the best analysis. Connect Spotify for direct streaming imports.
                 </p>
               )}
             </div>

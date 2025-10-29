@@ -2,156 +2,147 @@
 
 ## Overview
 
-The Catalog Analyzer has **beta support** for importing playlists from **Samply.app**! 
+The Catalog Analyzer supports analyzing tracks from **Samply.app** using the **Download & Upload** method!
 
-⚠️ **Important Note**: Due to browser security restrictions (CORS), direct Samply URL imports may not work in all cases. If you encounter issues, use the **easy workaround** below.
+⚠️ **Important**: Direct URL imports from Samply are not supported due to browser security restrictions (CORS). However, the download & upload method is **easy and gives better results** because it analyzes real audio instead of estimating features!
 
-## 🎹 Features
+## 🎹 Why Download & Upload Is Better
 
-- **Direct URL Import (Beta)**: Paste Samply.app playlist URLs
-- **Easy Workaround**: Download and upload method always works
-- **Automatic Track Detection**: Extracts track names and artists
-- **Audio Feature Estimation**: Generates intelligent audio analysis
-- **No Authentication**: Works with public playlists
-- **Up to 20 Tracks**: Analyze collections up to 20 tracks
+**Advantages:**
+- ✅ **Real Audio Analysis**: Analyzes actual audio, not estimates
+- ✅ **100% Reliable**: Works every time
+- ✅ **More Accurate**: True tempo, energy, dynamics measurements
+- ✅ **No CORS Issues**: Completely avoids browser restrictions
+- ✅ **Offline Capable**: Works even without internet after download
 
-## 🚀 Two Ways to Use Samply Content
+**Bottom Line**: This method gives you professional-grade analysis of your Samply tracks!
 
-### Method 1: Direct URL Import (Beta)
+## 🚀 How to Use (Simple 4-Step Process)
 
-**May work depending on browser and network:**
+### Step 1: Download from Samply
+1. Visit your Samply.app playlist or profile
+2. Download your tracks (usually a download button/link on each track)
+3. Save them to a folder on your computer
 
-1. Go to **Catalog Analyzer** tab
-2. Switch to **"Playlist URL"** import method
-3. Paste your Samply playlist URL:
-   ```
-   https://samply.app/p/your-playlist-id
-   ```
-4. Click **"Import from URL"**
-5. If successful, tracks will import automatically
+### Step 2: Go to Catalog Analyzer
+1. Visit: https://trentbecknell.github.io/soundsexpensive/
+2. Click the **"Catalog Analyzer"** tab
+3. Select your target genre (Pop, R&B, Hip Hop, etc.)
 
-**If you see a CORS error**, use Method 2 below (recommended).
+### Step 3: Upload Your Tracks
+1. Use the **"📁 Upload Files"** method (NOT "🔗 Playlist URL")
+2. Click to upload or drag & drop your downloaded tracks
+3. Upload 2-20 tracks from your Samply collection
 
-### Method 2: Download & Upload (Always Works) ✅
+### Step 4: Analyze!
+1. Review your uploaded tracks in the list
+2. Click **"Analyze Catalog"** button
+3. Wait for analysis to complete
+4. Review your results!
 
-**100% reliable method:**
+---
 
-1. Visit your Samply playlist
-2. Download your tracks from Samply (usually a download button on each track)
-3. Go to **Catalog Analyzer** tab
-4. Use **"Upload Files"** method (not URL)
-5. Upload your downloaded tracks (up to 20)
-6. Click **"Analyze Catalog"**
+## 📊 What Gets Analyzed (Real Audio Features!)
 
-**This method gives you full audio analysis** (not estimated)!
+Unlike URL-based imports that would estimate features, uploading actual audio files gives you:
 
-### Supported URL Formats
+### Measured Audio Features:
+- ✅ **True Tempo (BPM)**: Actual beats per minute detected from audio
+- ✅ **Real Energy**: Measured intensity and dynamics
+- ✅ **Accurate Loudness**: True dB levels (LUFS)
+- ✅ **Dynamic Range**: Actual compression and headroom
+- ✅ **Frequency Balance**: Real spectral analysis
+- ✅ **Stereo Width**: Measured stereo field
+- ✅ **Commercial Readiness**: Based on actual audio quality
 
-✅ `https://samply.app/p/playlist-id`  
-✅ `https://samply.app/playlist/playlist-id`  
-✅ `https://www.samply.app/p/playlist-id`
+### Analysis Results:
+- Overall catalog score
+- Quality progression tracking
+- Sonic identity analysis
+- Genre alignment scoring
+- Regional market recommendations
+- Track-by-track breakdown
+- Best performing tracks
+- Areas for improvement
 
-## 📊 What Gets Analyzed
+---
 
-### Extracted Data:
-- **Track Names**: Song titles from your playlist
-- **Artist Names**: Creator/artist information
-- **Track Order**: Maintains playlist sequence
+## 🎯 Perfect Use Cases
 
-### Estimated Audio Features:
-Since Samply doesn't provide audio analysis APIs, we intelligently estimate:
+### Demo Collection Review
+```
+1. Download 5-10 demos from Samply
+2. Upload to Catalog Analyzer
+3. See which demos are strongest
+4. Focus mixing time on winners
+5. Plan your release strategy
+```
 
-- **Tempo (BPM)**: Estimated range 90-170 BPM
-- **Energy**: Intensity level (0-100%)
-- **Danceability**: Groove factor (0-100%)
-- **Valence**: Positivity/mood (0-100%)
-- **Loudness**: Average dB levels
-- **Commercial Readiness**: Streaming viability
-- **Genre Alignment**: Match to target genre
+### Album Planning
+```
+1. Download 15-20 rough mixes from Samply
+2. Upload all to Catalog Analyzer  
+3. Identify most cohesive tracks
+4. Select final 10-12 for album
+5. Understand your sonic identity
+```
 
-> **Note**: Estimations are based on typical music characteristics and provide useful comparative analysis for your catalog. For most accurate results, Spotify integration provides real audio analysis.
+### Progress Tracking
+```
+1. Monthly: download latest work from Samply
+2. Upload to Catalog Analyzer
+3. Track quality improvement over time
+4. See trends in your development
+5. Celebrate growth!
+```
 
-## 🎯 Use Cases
+### A/B Testing Mixes
+```
+1. Upload different versions of same track
+2. Compare quality scores
+3. See which mix has better dynamics
+4. Identify which is more commercial-ready
+5. Make confident mixing decisions
+```
 
-### Perfect For:
-- **Demo Collections**: Analyze your unreleased demos on Samply
-- **Collaborative Playlists**: Review tracks with collaborators
-- **Release Planning**: Decide which tracks to prioritize
-- **Progress Tracking**: See artistic growth over time
-- **A/B Testing**: Compare different versions
+---
 
-### Example Workflow:
-1. Upload your tracks to Samply.app
-2. Create a playlist with tracks in chronological order
-3. Import to Catalog Analyzer
-4. Get insights on quality progression
-5. Identify your strongest tracks
-6. Plan your release strategy
+## 🐛 Common Questions
 
-## ⚙️ Technical Details
+### "Why can't I paste a Samply URL?"
 
-### How It Works:
+**Answer**: Browser security (CORS) blocks direct fetching of Samply pages. This is a standard web security feature that prevents websites from accessing content from other domains. While we tried multiple workarounds, the most reliable method is download & upload.
 
-1. **URL Parsing**: Extracts playlist ID from your URL
-2. **Page Fetching**: Retrieves the Samply playlist page
-3. **Data Extraction**: Parses track information from HTML
-4. **Feature Generation**: Creates consistent audio feature estimates
-5. **Analysis**: Runs full catalog analysis with scoring
+**The Good News**: Downloading and uploading gives you BETTER analysis anyway!
 
-### Data Sources:
-- **Track Metadata**: Scraped from public Samply pages
-- **Audio Features**: Estimated using deterministic algorithms
-- **Consistency**: Same track always gets same estimates
+### "Is this a lot of work?"
 
-### Limitations:
-- ❌ **No Real Audio Analysis**: Features are estimated, not measured
-- ❌ **Public Playlists Only**: Private playlists not accessible
-- ❌ **20 Track Limit**: Maximum 20 tracks per analysis
-- ❌ **No Audio Playback**: Can't play tracks in the analyzer
-- ⚠️ **Page Structure Dependency**: May break if Samply updates their site
+**Answer**: Nope! It's actually quite fast:
+1. Download tracks: ~30 seconds
+2. Upload to analyzer: ~15 seconds  
+3. Run analysis: ~10 seconds
 
-## 🆚 Samply vs Spotify Integration
+Total: About 1 minute for a full catalog analysis!
 
-| Feature | Samply | Spotify |
-|---------|--------|---------|
-| **Auth Required** | ❌ No | ✅ Yes (OAuth) |
-| **Real Audio Analysis** | ❌ Estimated | ✅ Yes |
-| **Private Playlists** | ❌ No | ✅ Yes |
-| **Track Limit** | 20 | 20 |
-| **Audio Playback** | ❌ No | ✅ Preview clips |
-| **Setup Complexity** | ⭐ Simple | ⭐⭐⭐ Moderate |
-| **Accuracy** | ⭐⭐⭐ Good | ⭐⭐⭐⭐⭐ Excellent |
+### "What about Spotify integration?"
 
-**Recommendation**: Use Samply for quick demos and unreleased tracks. Use Spotify for released music and most accurate analysis.
+**Answer**: Spotify works differently:
+- **Spotify**: Direct URL import ✅ (uses official API)
+- **Samply**: Download & upload ✅ (better audio analysis)
 
-## 🐛 Troubleshooting
+Both methods work great - use what fits your workflow!
 
-### "CORS blocked by browser security" Error
+### "Can I analyze tracks I haven't released yet?"
 
-**What it means**: Your browser is blocking the request for security reasons.
+**Answer**: Absolutely! That's the perfect use case for Samply tracks:
+- Upload demos and WIP tracks
+- Get professional analysis
+- Make informed decisions about which to release
+- Track your progress over time
 
-**Solutions** (in order of recommendation):
+---
 
-1. **✅ Use Download & Upload Method** (Easiest)
-   - Download tracks from Samply
-   - Upload directly to Catalog Analyzer
-   - Get real audio analysis (better than URL import!)
-
-2. **Try a Different Browser**
-   - Some browsers have different CORS policies
-   - Try Chrome, Firefox, or Edge
-
-3. **Use Browser Extension**
-   - Install a CORS unblocking extension
-   - Only use for development/testing
-   - Not recommended for regular use
-
-4. **Wait for Server-Side Solution**
-   - We're working on a backend proxy
-   - Will eliminate CORS issues completely
-   - Coming in future update
-
-### "Could not fetch Samply playlist"
+## 💡 Pro Tips
 
 **Possible Causes**:
 1. Invalid URL format
@@ -176,109 +167,72 @@ Since Samply doesn't provide audio analysis APIs, we intelligently estimate:
 **Possible Causes**:
 - Samply updated their page structure
 - Playlist format is non-standard
-- JavaScript-heavy page loading
-
-**Solutions**:
-- ✅ Try a different playlist
-- ✅ Report the issue on GitHub
-- ✅ Download tracks and upload manually as workaround
-
-### Tracks Import But Show Generic Names
-
-**Cause**: Page scraping couldn't find track metadata
-
-**Solution**: 
-- Ensure Samply page fully loaded before copying URL
-- Try refreshing the Samply page
-- Check that track names are visible on the Samply page
-
-## 💡 Pro Tips
-
-### Getting Best Results:
-
-1. **Organize Chronologically**: Order tracks by creation date to see progression
-2. **Group by Era**: Create separate playlists for different creative phases
-3. **Compare Versions**: Import different mixes of same track to compare
-4. **Track Progress**: Re-import monthly to track improvement over time
-5. **Use Consistent Genres**: Analyze similar styles together
-
-### Combining With Other Tools:
-
-- **Spotify for Released Tracks**: Use Spotify integration for published music
-- **Samply for Demos**: Use Samply for unreleased/demo content
-- **Mix Analyzer for Singles**: Deep dive on individual tracks
-- **Catalog Analyzer for Collections**: Overall pattern analysis
-
-## 🔮 Future Enhancements
-
-Planned improvements:
-
-- [ ] Official Samply API integration (when available)
-- [ ] Real audio analysis for uploaded files
-- [ ] Support for Samply track comments/notes
-- [ ] Collaborative playlist features
-- [ ] Export analyzed data back to Samply
-- [ ] Integration with Samply waveforms
-- [ ] Direct audio playback in analyzer
-
-## 🤝 Samply.app Compatibility
-
-**Current Status**: ✅ Working (as of October 2025)
-
-The integration uses web scraping to access public Samply playlists. This approach:
-- ✅ Requires no authentication
-- ✅ Works with public playlists
-- ✅ Updates automatically if page structure stable
-- ⚠️ May need updates if Samply changes their site
-
-**Official API**: When Samply releases an official API, we'll integrate it for improved reliability and features.
-
-## 📝 Example Playlists to Try
-
-Test the integration with these example workflows:
-
-### Workflow 1: Demo Collection
-```
-1. Upload 5-10 demos to Samply
-2. Create playlist: "2025 Demo Reel"
-3. Import to Catalog Analyzer
-4. Identify strongest tracks
-5. Focus mixing time on winners
-```
-
-### Workflow 2: Album Planning
-```
-1. Upload 15-20 rough mixes to Samply
-2. Share with collaborators for feedback
-3. Import to Catalog Analyzer
-4. See which tracks are most cohesive
-5. Select 10-12 for final album
-```
-
-### Workflow 3: Progress Tracking
-```
-1. Monthly: upload best tracks to Samply
-2. Create "2025 Progress" playlist
-3. Import quarterly to Catalog Analyzer
-4. Track quality improvement over time
-5. Celebrate growth!
-```
-
-## 🆘 Need Help?
-
-- 📖 **Setup Issues**: See main SPOTIFY_INTEGRATION.md
-- 🐛 **Bugs**: Report on GitHub Issues
-- 💬 **Questions**: Check existing GitHub Discussions
-- 📧 **Feature Requests**: Open a GitHub Issue
-
-## 🙏 Credits
-
-- **Samply.app**: For providing an excellent platform for music creators
-- **Community**: For requesting this integration
-- **Beta Testers**: For helping improve the feature
 
 ---
 
-**Happy Analyzing!** 🎵
+## 💡 Pro Tips
 
-*This integration is unofficial and not affiliated with Samply.app. For official Samply support, visit samply.app*
+### 🎯 Best Practices:
+1. **Keep Playlist Organized**: Name tracks clearly so they're easy to identify
+2. **Download Regularly**: Save your Samply tracks locally as backup
+3. **Batch Analysis**: Download multiple playlists at once for efficiency
+4. **Compare Over Time**: Re-analyze after making changes to see improvement
+5. **Mix Formats**: Combine Samply uploads with Spotify imports for complete picture
+
+### 🚀 Power User Workflows:
+
+**Pre-Release Testing**:
+1. Upload demos to Samply for safekeeping
+2. Download and analyze in Catalog Analyzer
+3. Compare to reference artists
+4. Decide which tracks to finish/release
+
+**Portfolio Building**:
+1. Organize your best unreleased work on Samply
+2. Download and run full catalog analysis
+3. Identify your signature sound patterns
+4. Use data for grant applications or label pitches
+
+**A/B Testing**:
+1. Upload different mixes of same track to Samply
+2. Download all versions
+3. Analyze to see objective differences
+4. Make informed mastering decisions
+
+---
+
+## 📚 Use Cases
+
+### For Independent Artists:
+- Analyze unreleased demos and decide which to finish
+- Compare your sound to reference artists
+- Track your production improvement over time
+- Prepare data for grant applications
+
+### For Producers:
+- Test different mix/master versions objectively
+- Compare your productions to industry standards
+- Identify your signature sound characteristics
+- Build case studies for client work
+
+### For Labels/A&R:
+- Quick analysis of demo submissions
+- Compare artist catalog consistency
+- Identify unique characteristics in submissions
+- Make data-informed signing decisions
+
+---
+
+## 🆘 Need Help?
+
+- 📖 **General Setup**: See [TESTING_GUIDE.md](./TESTING_GUIDE.md)
+- 📖 **Spotify Integration**: See main documentation
+- 🐛 **Bugs**: Report on GitHub Issues
+- 💬 **Questions**: Check existing GitHub Discussions
+
+---
+
+**Happy Analyzing! 🎵**
+
+*This tool is not affiliated with Samply.app. For Samply platform support, visit samply.app*
+
