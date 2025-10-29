@@ -1362,24 +1362,31 @@ export default function App() {
             </div>
 
             <div className="mt-6">
-                <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-base font-semibold">Maturity self‑assessment</h3>
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-semibold">Maturity self‑assessment</h3>
+                  <p className="text-xs text-surface-400 mt-0.5">Optional — used to calibrate timelines and budgets</p>
+                </div>
                 <div className="flex items-center gap-2">
-                  <span className="rounded-lg bg-surface-700 px-2 py-1 text-xs">{app.profile.stage}</span>
-                  <button className="text-xs rounded px-2 py-1 border border-primary-600 text-primary-100" onClick={() => { setShowWizard(true); }}>Guided assessment</button>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-surface-700/60 px-2 py-1 text-xs text-surface-200 border border-surface-600">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary-400"></span>
+                    Stage: {app.profile.stage}
+                  </span>
+                  <button
+                    className="text-xs rounded px-2 py-1 border border-primary-600 text-primary-100 hover:bg-primary-700/30 transition-colors"
+                    onClick={() => { setShowWizard(true); }}
+                  >
+                    Refine assessment
+                  </button>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                  {ASSESSMENT_QUESTIONS.map(q => (
-                    <div key={q.key}>
-                      <div className="mb-1 flex items-center justify-between text-sm">
-                        <span>{q.title}</span>
-                        <span className="text-surface-300">{app.profile.stageScores[q.key]}/5</span>
-                      </div>
-                      <input type="range" min={1} max={5} step={1} value={app.profile.stageScores[q.key]} onChange={e => setApp({...app, profile:{...app.profile, stageScores:{...app.profile.stageScores, [q.key]: parseInt(e.target.value)}}})} className="w-full" />
-                      <div className="mt-1 text-xs text-surface-400">{q.help}</div>
-                    </div>
-                  ))}
+              {/* Compact summary chips for quick glance on mobile */}
+              <div className="flex flex-wrap gap-2">
+                {(['craft','catalog','brand','team','audience','ops'] as const).map((k) => (
+                  <span key={k} className="text-xs rounded-md border border-surface-700 bg-surface-800/60 px-2 py-1 text-surface-300">
+                    {k}: {app.profile.stageScores[k]}/5
+                  </span>
+                ))}
               </div>
             </div>
           </section>
