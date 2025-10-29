@@ -769,7 +769,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-surface-900">
+    <div className="relative min-h-screen w-full">
+      {/* Global studio background (color-only) */}
+      <div aria-hidden className="fixed inset-0 -z-10 bg-studio"></div>
       {/* Show onboarding welcome for first-time users */}
       {!app.onboardingComplete ? (
         <OnboardingWelcome
@@ -812,12 +814,15 @@ export default function App() {
         />
       ) : (
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-surface-50">Artist Roadmap <span className="text-surface-400">PRO</span></h1>
-            <p className="text-sm text-surface-400">Professional A&R tool for baseline assessment, strategic planning, and career development.</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+        {/* Studio banner header */}
+        <header className="mb-6 relative overflow-hidden rounded-2xl border border-surface-700 p-5 banner-studio">
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-surface-900/60 via-surface-900/40 to-transparent"></div>
+          <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-surface-50">Artist Roadmap <span className="text-surface-400">PRO</span></h1>
+              <p className="text-sm text-surface-300">Professional A&R tool for baseline assessment, strategic planning, and career development.</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={shareUrl}>Share</button>
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportCSV}>Export CSV</button>
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportJSON}>Export Data</button>
@@ -832,6 +837,7 @@ export default function App() {
             >
               Clear All Data
             </button>
+            </div>
           </div>
         </header>
 

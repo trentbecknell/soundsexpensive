@@ -34,3 +34,21 @@ input, select, textarea {
 ::-webkit-scrollbar-thumb {
   @apply bg-surface-700 rounded-full;
 }
+
+/* Studio theme: color-first, no photos */
+.bg-studio {
+  /* Layer soft color glows over a dark surface base */
+  background:
+    radial-gradient(700px 700px at 0% 0%, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0) 60%),
+    radial-gradient(900px 900px at 100% 0%, rgba(217, 70, 239, 0.10), rgba(217, 70, 239, 0) 60%),
+    linear-gradient(180deg, rgba(24, 24, 27, 0.98) 0%, rgba(24, 24, 27, 1) 60%);
+}
+
+.banner-studio {
+  /* Subtle banner mesh with gentle color accents */
+  background:
+    radial-gradient(400px 400px at 10% 50%, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0) 55%),
+    radial-gradient(450px 450px at 90% 50%, rgba(217, 70, 239, 0.10), rgba(217, 70, 239, 0) 55%),
+    rgba(39, 39, 42, 0.5);
+  backdrop-filter: blur(6px);
+}
