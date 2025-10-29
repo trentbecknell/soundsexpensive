@@ -10,8 +10,9 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-6">
       <div className="max-w-3xl w-full">
-        {/* Main Welcome Card */}
-        <div className="rounded-2xl border border-surface-700 bg-gradient-to-br from-surface-800/90 to-surface-900/90 backdrop-blur p-8 md:p-12 shadow-2xl">
+        {/* Main Welcome Card - Studio banner styling */}
+        <div className="relative overflow-hidden rounded-2xl border border-surface-700 banner-studio p-8 md:p-12 shadow-2xl">
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-surface-900/40 via-transparent to-surface-900/40"></div>
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 mb-6 shadow-lg">

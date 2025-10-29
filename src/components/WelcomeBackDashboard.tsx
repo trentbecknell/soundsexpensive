@@ -37,14 +37,13 @@ export default function WelcomeBackDashboard({
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-6">
       <div className="max-w-5xl w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-surface-50 mb-3">
-            {getGreeting()}
-          </h1>
-          <p className="text-lg text-surface-300">
-            Artist Development Session
-          </p>
+        {/* Header - Studio banner styling */}
+        <div className="relative overflow-hidden rounded-2xl border border-surface-700 p-6 mb-8 banner-studio text-center">
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-surface-900/50 via-surface-900/30 to-transparent"></div>
+          <div className="relative">
+            <h1 className="text-4xl font-bold text-surface-50 mb-2">{getGreeting()}</h1>
+            <p className="text-sm text-surface-300">Artist Development Session</p>
+          </div>
         </div>
 
         {/* Status Overview */}
