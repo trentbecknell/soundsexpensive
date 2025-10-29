@@ -118,6 +118,23 @@ export interface MixScore {
   };
 }
 
+export interface ChecklistItem {
+  id: string;
+  category: DiagnosticCategory;
+  title: string;
+  priority: 'high' | 'medium' | 'low';
+  completed: boolean;
+  notes?: string;
+}
+
+export interface MixVersion {
+  id: string;
+  version_number: number;
+  analysis: MixAnalysisResult;
+  checklist: ChecklistItem[];
+  uploaded_at: string;
+}
+
 export interface MixAnalysisResult {
   file_info: {
     name: string;
@@ -136,6 +153,7 @@ export interface MixAnalysisResult {
   next_steps: string[];
   stage_appropriate_tips: string[]; // Context-aware tips for current stage
   similar_reference_tracks?: string[];
+  regional_analysis?: any; // Will be populated from regionalAnalysis.ts
   analysis_timestamp: string;
 }
 

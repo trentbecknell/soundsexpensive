@@ -2,6 +2,7 @@
 // Provides diagnostic feedback on uploaded mixes based on genre, artist, and industry benchmarks
 
 import { INDUSTRY_BENCHMARKS } from './industryBenchmarks';
+import { analyzeRegionalMarkets } from './regionalAnalysis';
 import type {
   AudioFeatures,
   MixBenchmarks,
@@ -11,6 +12,7 @@ import type {
   ComparisonResult,
   FrequencyBalance,
   MixingStage,
+  ChecklistItem,
 } from '../types/mixAnalysis';
 
 // Genre-specific mix benchmarks (extends industry benchmarks with technical specs)
@@ -784,6 +786,92 @@ function filterIssuesForStage(
 }
 
 /**
+ * Generate checklist items from diagnostic issues
+ */
+export function generateChecklist(issues: DiagnosticIssue[]): ChecklistItem[] {
+  return issues.map((issue, index) => ({
+    id: `checklist-${Date.now()}-${index}`,
+    category: issue.category,
+    title: issue.title,
+    priority: issue.severity === 'critical' ? 'high' : issue.severity === 'warning' ? 'medium' : 'low',
+    completed: false,
+    notes: issue.recommendations.slice(0, 2).join('; '), // Include first 2 recommendations as notes
+  }));
+}
+
+/**
+ * Compare two mix versions and generate improvement report
+ */
+export function compareVersions(
+  previousVersion: MixAnalysisResult,
+  currentVersion: MixAnalysisResult
+): {
+  score_improvement: number;
+  improved_categories: string[];
+  regressed_categories: string[];
+  resolved_issues: string[];
+  new_issues: string[];
+  summary: string;
+} {
+  const scoreImprovement = currentVersion.score.overall - previousVersion.score.overall;
+  
+  // Compare category scores
+  const improved: string[] = [];
+  const regressed: string[] = [];
+  
+  Object.keys(currentVersion.score.breakdown).forEach((category) => {
+    const prevScore = previousVersion.score.breakdown[category as keyof typeof previousVersion.score.breakdown];
+    const currScore = currentVersion.score.breakdown[category as keyof typeof currentVersion.score.breakdown];
+    
+    if (currScore > prevScore + 0.05) {
+      improved.push(category);
+    } else if (currScore < prevScore - 0.05) {
+      regressed.push(category);
+    }
+  });
+  
+  // Compare issues
+  const prevIssueCategories = previousVersion.issues.map(i => i.category);
+  const currIssueCategories = currentVersion.issues.map(i => i.category);
+  
+  const resolved = prevIssueCategories.filter(cat => !currIssueCategories.includes(cat));
+  const newIssues = currIssueCategories.filter(cat => !prevIssueCategories.includes(cat));
+  
+  // Generate summary
+  let summary = '';
+  if (scoreImprovement > 5) {
+    summary = `Great progress! Your overall score improved by ${scoreImprovement.toFixed(0)} points. `;
+  } else if (scoreImprovement > 0) {
+    summary = `Good work! Small improvements adding up to +${scoreImprovement.toFixed(0)} points. `;
+  } else if (scoreImprovement < -5) {
+    summary = `Score decreased by ${Math.abs(scoreImprovement).toFixed(0)} points. Review recent changes. `;
+  } else if (scoreImprovement < 0) {
+    summary = `Slight decrease of ${Math.abs(scoreImprovement).toFixed(0)} points. `;
+  } else {
+    summary = 'Score remained stable. ';
+  }
+  
+  if (improved.length > 0) {
+    summary += `Improvements in: ${improved.join(', ')}. `;
+  }
+  if (resolved.length > 0) {
+    summary += `Resolved ${resolved.length} issue${resolved.length > 1 ? 's' : ''}! `;
+  }
+  if (regressed.length > 0) {
+    summary += `Watch out for: ${regressed.join(', ')}. `;
+  }
+  
+  return {
+    score_improvement: scoreImprovement,
+    improved_categories: improved,
+    regressed_categories: regressed,
+    resolved_issues: resolved,
+    new_issues: newIssues,
+    summary: summary.trim(),
+  };
+}
+
+/**
  * Main analysis function - combines all analyses
  */
 export async function analyzeMix(
@@ -822,6 +910,9 @@ export async function analyzeMix(
   // Generate stage-appropriate tips
   const stage_appropriate_tips = generateStageAppropriateTips(mixingStage, issues, score);
   
+  // Generate regional market analysis
+  const regional_analysis = analyzeRegionalMarkets(features, targetGenre);
+  
   return {
     file_info: {
       name: file.name,
@@ -838,6 +929,7 @@ export async function analyzeMix(
     next_steps,
     stage_appropriate_tips,
     similar_reference_tracks: benchmarks.reference_tracks,
+    regional_analysis,
     analysis_timestamp: new Date().toISOString(),
   };
 }

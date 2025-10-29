@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import { analyzeMix, MIX_BENCHMARKS } from '../lib/mixAnalysis';
-import type { MixAnalysisResult, DiagnosticIssue, MixingStage } from '../types/mixAnalysis';
+import React, { useState, useCallback, useEffect } from 'react';
+import { analyzeMix, MIX_BENCHMARKS, generateChecklist, compareVersions } from '../lib/mixAnalysis';
+import type { MixAnalysisResult, DiagnosticIssue, MixingStage, ChecklistItem, MixVersion } from '../types/mixAnalysis';
 
 interface MixAnalyzerProps {
   onAnalysisComplete?: (result: MixAnalysisResult) => void;
@@ -14,6 +14,12 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<MixAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastAnalyzedFile, setLastAnalyzedFile] = useState<File | null>(null);
+  
+  // Version tracking
+  const [versions, setVersions] = useState<MixVersion[]>([]);
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [showVersionComparison, setShowVersionComparison] = useState(false);
 
   const availableGenres = Object.keys(MIX_BENCHMARKS);
   
@@ -25,6 +31,25 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
     { value: 'mastered', label: '✨ Mastered', description: 'After mastering' },
     { value: 'not-sure', label: '❓ Not Sure', description: 'Let us determine' },
   ];
+  
+  // Load versions from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('mix-analyzer-versions');
+    if (stored) {
+      try {
+        setVersions(JSON.parse(stored));
+      } catch (e) {
+        console.error('Failed to load versions:', e);
+      }
+    }
+  }, []);
+  
+  // Save versions to localStorage
+  useEffect(() => {
+    if (versions.length > 0) {
+      localStorage.setItem('mix-analyzer-versions', JSON.stringify(versions));
+    }
+  }, [versions]);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,9 +62,9 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
       return;
     }
 
-    // Check file size (max 100MB)
-    if (file.size > 100 * 1024 * 1024) {
-      setError('File size must be less than 100MB');
+    // Check file size (max 500MB for high-quality masters)
+    if (file.size > 500 * 1024 * 1024) {
+      setError('File size must be less than 500MB. For best results, use high-quality WAV or FLAC files.');
       return;
     }
 
@@ -57,6 +82,28 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
     try {
       const analysisResult = await analyzeMix(selectedFile, targetGenre, mixingStage);
       setResult(analysisResult);
+      setLastAnalyzedFile(selectedFile);
+      
+      // Generate checklist from issues
+      const newChecklist = generateChecklist(analysisResult.issues);
+      setChecklist(newChecklist);
+      
+      // Save as new version
+      const newVersion: MixVersion = {
+        id: `version-${Date.now()}`,
+        version_number: versions.length + 1,
+        analysis: analysisResult,
+        checklist: newChecklist,
+        uploaded_at: new Date().toISOString(),
+      };
+      
+      setVersions(prev => [...prev, newVersion]);
+      
+      // Show comparison if there's a previous version
+      if (versions.length > 0) {
+        setShowVersionComparison(true);
+      }
+      
       onAnalysisComplete?.(analysisResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed. Please try again.');
@@ -64,7 +111,47 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
     } finally {
       setAnalyzing(false);
     }
-  }, [selectedFile, targetGenre, mixingStage, onAnalysisComplete]);
+  }, [selectedFile, targetGenre, mixingStage, onAnalysisComplete, versions.length]);
+  
+  const handleGenreChange = useCallback(async (newGenre: string) => {
+    setTargetGenre(newGenre);
+    
+    // If we have a previously analyzed file, re-analyze with new genre
+    if (lastAnalyzedFile && result) {
+      setAnalyzing(true);
+      try {
+        const reanalysis = await analyzeMix(lastAnalyzedFile, newGenre, mixingStage);
+        setResult(reanalysis);
+        
+        // Update checklist for new genre
+        const newChecklist = generateChecklist(reanalysis.issues);
+        setChecklist(newChecklist);
+        
+        onAnalysisComplete?.(reanalysis);
+      } catch (err) {
+        console.error('Re-analysis failed:', err);
+        setError(err instanceof Error ? err.message : 'Failed to re-analyze with new genre');
+      } finally {
+        setAnalyzing(false);
+      }
+    }
+  }, [lastAnalyzedFile, result, mixingStage, onAnalysisComplete]);
+  
+  const toggleChecklistItem = (itemId: string) => {
+    setChecklist(prev => 
+      prev.map(item => 
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+      )
+    );
+  };
+  
+  const clearVersions = () => {
+    if (confirm('Clear all version history? This cannot be undone.')) {
+      setVersions([]);
+      localStorage.removeItem('mix-analyzer-versions');
+      setShowVersionComparison(false);
+    }
+  };
 
   const getSeverityColor = (severity: DiagnosticIssue['severity']) => {
     switch (severity) {
@@ -105,7 +192,7 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
               <label className="block text-sm text-surface-300 mb-2">Target Genre</label>
               <select
                 value={targetGenre}
-                onChange={(e) => setTargetGenre(e.target.value)}
+                onChange={(e) => handleGenreChange(e.target.value)}
                 className="w-full rounded-lg bg-surface-700/50 px-3 py-2 text-surface-100 focus:ring-2 focus:ring-primary-500 transition-colors"
               >
                 {availableGenres.map((genre) => (
@@ -115,7 +202,7 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
                 ))}
               </select>
               <p className="mt-1 text-xs text-surface-400">
-                Select your genre for accurate benchmarking
+                {result ? '💡 Switching genre will re-analyze instantly' : 'Select your genre for accurate benchmarking'}
               </p>
             </div>
 
@@ -161,7 +248,10 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
                   <span className="font-semibold">Click to upload</span> or drag and drop
                 </p>
                 <p className="text-xs text-surface-400">
-                  MP3, WAV, AAC, OGG, FLAC, M4A (Max 100MB)
+                  MP3, WAV, AAC, OGG, FLAC, M4A (Max 500MB)
+                </p>
+                <p className="text-xs text-surface-500 mt-1">
+                  💡 High-quality WAV/FLAC files recommended for accurate analysis
                 </p>
               </div>
               <input
@@ -227,8 +317,92 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
               '🎵 Analyze Mix'
             )}
           </button>
+          
+          {/* Version History Info */}
+          {versions.length > 0 && (
+            <div className="flex items-center justify-between text-sm text-surface-400 pt-2">
+              <span>Version history: {versions.length} upload{versions.length > 1 ? 's' : ''}</span>
+              <button
+                onClick={clearVersions}
+                className="text-red-400 hover:text-red-300 transition-colors"
+              >
+                Clear history
+              </button>
+            </div>
+          )}
         </div>
       </section>
+
+      {/* Version Comparison */}
+      {result && versions.length > 1 && showVersionComparison && (
+        <section className="rounded-2xl border border-purple-700/50 bg-purple-900/20 p-6 backdrop-blur">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-purple-100">📊 Version Comparison</h3>
+            <button
+              onClick={() => setShowVersionComparison(false)}
+              className="text-surface-400 hover:text-surface-200"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+          
+          {(() => {
+            const previousVersion = versions[versions.length - 2].analysis;
+            const comparison = compareVersions(previousVersion, result);
+            
+            return (
+              <div className="space-y-4">
+                <div className="bg-purple-500/10 rounded-lg p-4">
+                  <p className="text-sm text-purple-200">{comparison.summary}</p>
+                </div>
+                
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="bg-surface-800/50 rounded-lg p-4">
+                    <div className="text-xs text-surface-400 mb-1">Score Change</div>
+                    <div className={`text-2xl font-bold ${
+                      comparison.score_improvement > 0 ? 'text-green-400' : 
+                      comparison.score_improvement < 0 ? 'text-red-400' : 'text-surface-300'
+                    }`}>
+                      {comparison.score_improvement > 0 ? '+' : ''}{comparison.score_improvement.toFixed(0)}
+                    </div>
+                    <div className="text-xs text-surface-400 mt-1">
+                      v{versions.length - 1}: {previousVersion.score.overall} → v{versions.length}: {result.score.overall}
+                    </div>
+                  </div>
+                  
+                  {comparison.improved_categories.length > 0 && (
+                    <div className="bg-surface-800/50 rounded-lg p-4">
+                      <div className="text-xs text-green-400 mb-2">✓ Improved</div>
+                      <div className="space-y-1">
+                        {comparison.improved_categories.map(cat => (
+                          <div key={cat} className="text-xs text-surface-300 capitalize">
+                            {cat.replace('_', ' ')}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {comparison.regressed_categories.length > 0 && (
+                    <div className="bg-surface-800/50 rounded-lg p-4">
+                      <div className="text-xs text-red-400 mb-2">⚠ Watch</div>
+                      <div className="space-y-1">
+                        {comparison.regressed_categories.map(cat => (
+                          <div key={cat} className="text-xs text-surface-300 capitalize">
+                            {cat.replace('_', ' ')}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+        </section>
+      )}
 
       {/* Results Section */}
       {result && (
@@ -239,12 +413,32 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
               <div>
                 <h2 className="text-lg font-semibold text-primary-100 mb-1">Analysis Complete</h2>
                 <p className="text-sm text-surface-400">
-                  {result.file_info.name} • {result.benchmarks_used.genre}
+                  {result.file_info.name}
                 </p>
-                <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full">
-                  <span className="text-xs text-blue-300">
-                    {mixingStages.find(s => s.value === result.mixing_stage)?.label || result.mixing_stage}
-                  </span>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full">
+                    <span className="text-xs text-blue-300">
+                      {mixingStages.find(s => s.value === result.mixing_stage)?.label || result.mixing_stage}
+                    </span>
+                  </div>
+                  
+                  {/* Genre Toggle Buttons */}
+                  <div className="inline-flex items-center gap-1 bg-surface-900/50 rounded-full p-1">
+                    {availableGenres.map((genre) => (
+                      <button
+                        key={genre}
+                        onClick={() => handleGenreChange(genre)}
+                        disabled={analyzing}
+                        className={`px-3 py-1 text-xs rounded-full transition-all ${
+                          targetGenre === genre
+                            ? 'bg-primary-500 text-white font-medium'
+                            : 'text-surface-400 hover:text-surface-200 hover:bg-surface-800'
+                        } ${analyzing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {genre}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div className="text-center">
@@ -259,6 +453,60 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
               <p className="text-sm text-surface-200 leading-relaxed">{result.overall_assessment}</p>
             </div>
           </section>
+
+          {/* Action Checklist */}
+          {checklist.length > 0 && (
+            <section className="rounded-2xl border border-blue-700/50 bg-blue-900/20 p-6 backdrop-blur">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-blue-100">✓ Action Checklist</h3>
+                <div className="text-sm text-surface-400">
+                  {checklist.filter(item => item.completed).length} / {checklist.length} completed
+                </div>
+              </div>
+              <div className="space-y-3">
+                {checklist.map(item => (
+                  <div
+                    key={item.id}
+                    className={`bg-surface-800/50 rounded-lg p-4 transition-opacity ${
+                      item.completed ? 'opacity-60' : ''
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={item.completed}
+                        onChange={() => toggleChecklistItem(item.id)}
+                        className="mt-1 w-5 h-5 rounded border-surface-600 bg-surface-700 text-blue-500 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-sm font-medium capitalize ${
+                            item.completed ? 'line-through text-surface-400' : 'text-surface-200'
+                          }`}>
+                            {item.title}
+                          </span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            item.priority === 'high' ? 'bg-red-500/20 text-red-300' :
+                            item.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                            'bg-surface-600 text-surface-300'
+                          }`}>
+                            {item.priority}
+                          </span>
+                        </div>
+                        {item.notes && (
+                          <p className={`text-sm ${
+                            item.completed ? 'text-surface-500' : 'text-surface-400'
+                          }`}>
+                            {item.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Score Breakdown */}
           <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-6 backdrop-blur">
@@ -419,6 +667,231 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
               <p className="mt-4 text-xs text-surface-400">
                 A/B compare your mix with these tracks to identify differences in loudness, frequency balance, and stereo width.
               </p>
+            </section>
+          )}
+
+          {/* Regional Market Analysis */}
+          {result.regional_analysis && (
+            <section className="rounded-2xl border border-green-700/50 bg-green-900/20 p-6 backdrop-blur">
+              <h3 className="text-lg font-semibold text-green-100 mb-4">🌍 Target Markets & Regions</h3>
+              
+              {/* Global Appeal Score */}
+              <div className="bg-surface-800/50 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-surface-400 mb-1">Global Appeal Score</div>
+                    <div className={`text-3xl font-bold ${
+                      result.regional_analysis.global_appeal_score >= 75 ? 'text-green-400' :
+                      result.regional_analysis.global_appeal_score >= 60 ? 'text-yellow-400' :
+                      'text-orange-400'
+                    }`}>
+                      {result.regional_analysis.global_appeal_score}/100
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-surface-400 mb-1">Recommended Territories</div>
+                    <div className="text-sm text-surface-200">
+                      {result.regional_analysis.recommended_territories.slice(0, 3).join(', ')}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Strategy Insights */}
+              {result.regional_analysis.market_strategy_insights.length > 0 && (
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                  <div className="space-y-2">
+                    {result.regional_analysis.market_strategy_insights.map((insight: string, idx: number) => (
+                      <div key={idx} className="flex items-start gap-2 text-sm text-blue-200">
+                        <span className="mt-0.5">→</span>
+                        <span>{insight}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Primary Markets */}
+              <div className="mb-6">
+                <h4 className="text-md font-semibold text-green-200 mb-3">🎯 Primary Target Markets</h4>
+                <div className="grid gap-4 md:grid-cols-3">
+                  {result.regional_analysis.primary_markets.map((market: any, idx: number) => (
+                    <div key={market.region} className="bg-surface-800/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium text-surface-200">{market.region}</span>
+                        <span className={`text-lg font-bold ${
+                          market.match_score >= 80 ? 'text-green-400' :
+                          market.match_score >= 65 ? 'text-yellow-400' :
+                          'text-orange-400'
+                        }`}>
+                          {market.match_score}
+                        </span>
+                      </div>
+                      
+                      {/* Match Factors */}
+                      <div className="space-y-2 mb-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-surface-400">Genre Fit</span>
+                          <span className="text-surface-300">{market.match_factors.genre_fit}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-surface-400">Sonic Fit</span>
+                          <span className="text-surface-300">{market.match_factors.sonic_fit}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-surface-400">Market Size</span>
+                          <span className="text-surface-300">{market.match_factors.market_opportunity}</span>
+                        </div>
+                      </div>
+
+                      {/* Strengths */}
+                      {market.strengths.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-xs text-green-400 mb-1">✓ Strengths</div>
+                          {market.strengths.slice(0, 2).map((strength: string, idx: number) => (
+                            <div key={idx} className="text-xs text-surface-300 mb-1">• {strength}</div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Strategy */}
+                      {market.recommended_strategy.length > 0 && (
+                        <div className="border-t border-surface-700 pt-2 mt-2">
+                          <div className="text-xs text-blue-400 mb-1">📋 Strategy</div>
+                          <div className="text-xs text-surface-400">{market.recommended_strategy[0]}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Secondary Markets */}
+              <details className="border-t border-surface-700 pt-4">
+                <summary className="cursor-pointer text-sm font-medium text-surface-300 hover:text-surface-100 transition-colors">
+                  View Secondary Markets →
+                </summary>
+                <div className="grid gap-3 md:grid-cols-3 mt-4">
+                  {result.regional_analysis.secondary_markets.map((market: any) => (
+                    <div key={market.region} className="bg-surface-900/30 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-surface-300">{market.region}</span>
+                        <span className="text-sm font-bold text-surface-400">{market.match_score}</span>
+                      </div>
+                      {market.considerations.length > 0 && (
+                        <div className="text-xs text-surface-500">
+                          {market.considerations[0]}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </details>
+
+              {/* Playlist Targeting */}
+              {result.regional_analysis.playlist_targeting.length > 0 && (
+                <div className="border-t border-surface-700 pt-4 mt-4">
+                  <h4 className="text-sm font-semibold text-green-200 mb-3">🎵 Playlist Targeting Strategy</h4>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {result.regional_analysis.playlist_targeting.map((target: any) => (
+                      <div key={target.region} className="bg-surface-900/30 rounded-lg p-3">
+                        <div className="text-xs font-medium text-surface-300 mb-2">{target.region}</div>
+                        <div className="space-y-1">
+                          {target.playlist_types.slice(0, 3).map((type: string, idx: number) => (
+                            <div key={idx} className="text-xs text-surface-400">• {type}</div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Sub-Regional Analysis (US Cities) */}
+          {result.regional_analysis?.subregional_analysis && result.regional_analysis.subregional_analysis.length > 0 && (
+            <section className="rounded-2xl border border-purple-700/50 bg-purple-900/20 p-6 backdrop-blur">
+              <h3 className="text-lg font-semibold text-purple-100 mb-4">
+                🎯 {result.regional_analysis.subregional_analysis[0].country} - City-Level Targeting
+              </h3>
+              
+              <p className="text-sm text-surface-300 mb-6">
+                {result.regional_analysis.subregional_analysis[0].market_overview}
+              </p>
+
+              <div className="space-y-4">
+                {result.regional_analysis.subregional_analysis[0].top_subregions.map((city: any, idx: number) => (
+                  <div 
+                    key={city.region} 
+                    className={`bg-surface-800/50 rounded-lg p-5 border ${
+                      idx === 0 ? 'border-purple-500/50' : 'border-surface-700'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-lg font-semibold text-surface-100">{city.region}</h4>
+                          {idx === 0 && (
+                            <span className="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">
+                              Top Match
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-surface-400 mt-1">{city.strengths[0]}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className={`text-2xl font-bold ${
+                          city.match_score >= 85 ? 'text-green-400' :
+                          city.match_score >= 70 ? 'text-yellow-400' :
+                          'text-orange-400'
+                        }`}>
+                          {city.match_score}
+                        </div>
+                        <div className="text-xs text-surface-400">Match</div>
+                      </div>
+                    </div>
+
+                    {/* Key Venues */}
+                    {city.key_venues.length > 0 && (
+                      <div className="mb-3">
+                        <div className="text-xs font-medium text-purple-300 mb-2">🎪 Key Venues</div>
+                        <div className="flex flex-wrap gap-2">
+                          {city.key_venues.map((venue: string) => (
+                            <span 
+                              key={venue} 
+                              className="text-xs bg-surface-700/50 text-surface-300 px-2 py-1 rounded"
+                            >
+                              {venue}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Recommended Actions */}
+                    {city.recommended_actions.length > 0 && (
+                      <div className="border-t border-surface-700 pt-3 mt-3">
+                        <div className="text-xs font-medium text-blue-300 mb-2">📋 Recommended Actions</div>
+                        <div className="space-y-2">
+                          {city.recommended_actions.map((action: string, actionIdx: number) => (
+                            <div key={actionIdx} className="flex items-start gap-2 text-sm text-surface-300">
+                              <span className="text-blue-400 mt-0.5">→</span>
+                              <span>{action}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                <p className="text-xs text-purple-200">
+                  💡 <strong>Pro Tip:</strong> Focus your initial marketing budget on the top 2-3 cities. Build momentum locally before expanding to other markets.
+                </p>
+              </div>
             </section>
           )}
 
