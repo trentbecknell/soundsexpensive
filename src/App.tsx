@@ -6,12 +6,14 @@ import GrantDiscovery from "./components/GrantDiscovery";
 import GrantApplicationTracker from "./components/GrantApplicationTracker";
 import MixAnalyzer from "./components/MixAnalyzer";
 import CatalogAnalyzer from "./components/CatalogAnalyzer";
+import OnboardingWelcome from "./components/OnboardingWelcome";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
 import { ArtistSelfAssessment, PartialAssessment } from './types/artistAssessment';
 import { GrantOpportunity, GrantApplication, ApplicationStatus } from './types/grants';
 import { GRANT_OPPORTUNITIES } from './data/grants';
+import { CatalogAnalysisResult } from './types/catalogAnalysis';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LineChart, Line } from "recharts";
 
 import computeStageFromScores, { Stage } from "./lib/computeStage";
@@ -62,6 +64,14 @@ interface AppState {
   assessment?: PartialAssessment; // New schema-based assessment
   savedGrants: string[]; // Grant IDs that user has saved
   grantApplications: GrantApplication[]; // User's grant applications
+  // Onboarding & Flow State
+  onboardingComplete: boolean; // Has user completed initial flow?
+  catalogAnalysisComplete: boolean; // Has user analyzed their catalog?
+  chatPlanningComplete: boolean; // Has user done planning chat?
+  roadmapGenerated: boolean; // Has initial roadmap been generated?
+  lastActiveTab: string; // Remember user's last active tab
+  firstVisitDate?: string; // ISO date of first visit
+  catalogAnalysisData?: CatalogAnalysisResult; // Store catalog analysis results for chat context
 }
 
 const PHASE_ORDER: PhaseKey[] = ["Discovery","Pre‑Production","Production","Post‑Production","Release","Growth"];
@@ -100,37 +110,75 @@ const sum = (arr: number[]) => arr.reduce((a,b)=>a+b,0);
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 const currency = (n: number) => n.toLocaleString(undefined,{style:"currency",currency:"USD", maximumFractionDigits:0});
 
-// Initial chat messages to understand artist personality with diva flair
+// Generate planning-focused chat messages based on catalog analysis
+const generatePlanningMessages = (catalogData?: CatalogAnalysisResult): ChatMessage[] => {
+  if (catalogData) {
+    // User has completed catalog analysis - personalized planning
+    const avgScore = catalogData.average_score.toFixed(0);
+    const consistency = catalogData.sonic_identity.consistency_score.toFixed(0);
+    const trackCount = catalogData.total_tracks;
+    const trend = catalogData.score_trend === 'improving' ? '📈 improving' : catalogData.score_trend === 'declining' ? '📉 declining' : '→ steady';
+    
+    return [
+      { 
+        id: uid(), 
+        type: 'system', 
+        content: `Hey! ✨ I just reviewed your catalog analysis - ${trackCount} tracks with a ${avgScore}/100 average score and ${consistency}% sonic consistency. Quality trend: ${trend}. Impressive work!`
+      },
+      { 
+        id: uid(), 
+        type: 'system', 
+        content: `Based on your data, let's plan your next move strategically. What are you thinking: a focused EP to showcase your best sound, or a full album to tell a complete story? And what's your timeline - aiming for a quick release or taking time to build hype? 🎯`
+      }
+    ];
+  } else {
+    // No catalog analysis yet - generic planning
+    return [
+      { 
+        id: uid(), 
+        type: 'system', 
+        content: "Hey gorgeous! ✨ I'm your personal roadmap mentor, here to help you plan your next release strategically. Let's create a timeline and budget that actually works for YOU."
+      },
+      { 
+        id: uid(), 
+        type: 'system', 
+        content: "What's your vision? Are you releasing an EP, album, or singles? What's your timeline looking like? Tell me about your goals and we'll build a smart plan together! 🎯💫"
+      }
+    ];
+  }
+};
+
+// Default welcome messages (will be replaced with planning messages)
 const WELCOME_MESSAGES: ChatMessage[] = [
   { id: uid(), type: 'system', content: "Hey gorgeous! ✨ I'm your personal diva mentor, and I'm here to help you create a roadmap that's as unique and fabulous as you are! First, let's dive deep into your artistic soul - this helps me craft a plan that truly captures your essence." },
   { id: uid(), type: 'system', content: "Tell me about your sound, your inspirations, and what sets your heart on fire as an artist. What feelings do you want to ignite in your listeners? Paint me that picture, darling! 🎨💫" }
 ];
 
-// Personality-focused suggestions aligned with assessment schema and diva energy
-const PERSONALITY_SUGGESTIONS = [
-  // Genre-specific style descriptors with flair
-  "My music is a sultry blend of R&B with soulful depth",
-  "I create infectious pop with electronic sparkle", 
-  "My sound pulses with hip-hop energy and urban storytelling",
-  "I'm channeling alternative vibes with indie authenticity",
+// Planning-focused suggestions for roadmap building
+const PLANNING_SUGGESTIONS = [
+  // Project scope & format
+  "I'm planning a 4-5 track EP to showcase my strongest work",
+  "I want to release a full album (10-12 tracks) to tell a complete story", 
+  "I'm thinking singles strategy - release one track every 6-8 weeks",
+  "I want to do a mixtape / beat tape with quick turnaround",
   
-  // Audio profile descriptors with emotion
-  "My tracks are pure fire - high-energy and irresistibly danceable",
-  "I craft mid-tempo grooves that move both body and soul",
-  "My music is a gentle embrace - mellow and deeply introspective",
-  "I create sonic sunshine that lifts spirits and spreads joy",
+  // Timeline & urgency
+  "I need to release in the next 3-4 months (fast timeline)",
+  "I'm planning 6-9 months out to build proper buzz",
+  "I want to take my time - 12+ months for maximum quality",
+  "I have a specific deadline (festival, sync opportunity, etc.)",
   
-  // Brand and themes with personality
-  "My art is all about empowerment and radical self-love",
-  "I pour my heart out - telling raw, vulnerable stories",
-  "My mission is healing hearts and uplifting souls",
-  "I use my voice to spark conversations about what matters",
+  // Budget & resources
+  "I'm working with a modest budget ($2-5k total)",
+  "I have a solid budget to invest ($10-20k range)",
+  "I'm DIY and keeping costs minimal",
+  "I want to know what realistic costs look like for my project",
   
-  // Production style with artistic vision
-  "I love that polished, radio-ready shine",
-  "I'm all about keeping it real with authentic, raw recordings",
-  "I experiment fearlessly with unconventional arrangements",
-  "I weave magic by blending organic instruments with electronic elements"
+  // Goals & strategy
+  "My goal is to build streaming presence and playlists",
+  "I want to focus on live shows and touring momentum",
+  "I'm targeting sync licensing and film/TV placements",
+  "I want to create something that attracts label interest"
 ];
 
 function computeStage(profile: ArtistProfile): Stage {
@@ -172,6 +220,103 @@ const DEFAULT_TASKS = (units: number): RoadTask[] => [
   { id: uid(), phase: "Release", title: "DSP delivery & pre‑save setup", owner: "Mgmt", weeks: 1 },
   { id: uid(), phase: "Growth", title: "PR, content calendar, ad flights", owner: "Marketing", weeks: 4 },
 ];
+
+// Smart Roadmap Generator - Creates intelligent defaults based on catalog analysis and chat
+interface RoadmapSuggestion {
+  projectType: "EP" | "Album" | "Singles";
+  units: number;
+  targetWeeks: number;
+  estimatedBudget: number;
+  rationale: string;
+}
+
+const generateSmartRoadmap = (
+  catalogData?: CatalogAnalysisResult,
+  chatMessages?: ChatMessage[]
+): RoadmapSuggestion => {
+  let projectType: "EP" | "Album" | "Singles" = "EP";
+  let units = 3;
+  let targetWeeks = 16;
+  let rationale = "Default configuration for emerging artists";
+
+  // Analyze chat messages for explicit preferences
+  const chatText = chatMessages?.map(m => m.content.toLowerCase()).join(' ') || '';
+  
+  // Detect project type from chat
+  if (chatText.includes('album') || chatText.includes('10-12 tracks') || chatText.includes('full album')) {
+    projectType = "Album";
+    units = 10;
+    targetWeeks = 24;
+  } else if (chatText.includes('singles') || chatText.includes('single strategy') || chatText.includes('one track')) {
+    projectType = "Singles";
+    units = 1;
+    targetWeeks = 12;
+  } else if (chatText.includes('ep') || chatText.includes('4-5 track')) {
+    projectType = "EP";
+    units = 4;
+    targetWeeks = 16;
+  }
+
+  // Detect timeline from chat
+  if (chatText.includes('3-4 months') || chatText.includes('fast timeline') || chatText.includes('quick')) {
+    targetWeeks = Math.min(targetWeeks, 16);
+  } else if (chatText.includes('6-9 months')) {
+    targetWeeks = clamp(targetWeeks, 20, 36);
+  } else if (chatText.includes('12+ months') || chatText.includes('take my time')) {
+    targetWeeks = Math.max(targetWeeks, 40);
+  }
+
+  // Use catalog data to refine suggestions if available
+  if (catalogData) {
+    const avgScore = catalogData.average_score;
+    const totalTracks = catalogData.total_tracks;
+    const consistency = catalogData.sonic_identity.consistency_score;
+    const trend = catalogData.score_trend;
+
+    // High quality + many tracks = suggest album
+    if (avgScore >= 75 && totalTracks >= 8 && consistency >= 70 && projectType === "EP") {
+      projectType = "Album";
+      units = Math.min(totalTracks, 12);
+      rationale = `Your catalog shows ${totalTracks} high-quality tracks (${avgScore.toFixed(0)}/100) with ${consistency.toFixed(0)}% consistency. Perfect for an album!`;
+    }
+    // Good quality + few tracks = suggest EP
+    else if (avgScore >= 65 && totalTracks >= 3 && totalTracks <= 6) {
+      projectType = "EP";
+      units = Math.min(totalTracks, 5);
+      rationale = `Your ${totalTracks} tracks (${avgScore.toFixed(0)}/100 avg) are strong - ideal for a focused EP showcasing your best work.`;
+    }
+    // Lower quality or inconsistent = suggest singles
+    else if (avgScore < 65 || consistency < 60) {
+      projectType = "Singles";
+      units = 1;
+      targetWeeks = 12;
+      rationale = `Based on your catalog analysis, starting with singles lets you test and refine your sound before a larger release.`;
+    }
+    // Improving trend = encourage bigger project
+    else if (trend === 'improving' && totalTracks >= 5) {
+      projectType = totalTracks >= 8 ? "Album" : "EP";
+      units = totalTracks >= 8 ? 10 : 5;
+      rationale = `Your quality is improving (${trend}) - capitalize on this momentum with a ${projectType.toLowerCase()}!`;
+    }
+    // Default to EP with catalog-informed units
+    else {
+      units = clamp(totalTracks, 3, 6);
+      rationale = `Based on your ${totalTracks}-track catalog with ${avgScore.toFixed(0)}/100 quality, starting with a ${units}-track EP.`;
+    }
+  }
+
+  // Calculate budget estimate
+  const budget = BUDGET_PRESETS(units);
+  const estimatedBudget = budget.reduce((sum, item) => sum + (item.qty * item.unitCost), 0);
+
+  return {
+    projectType,
+    units,
+    targetWeeks,
+    estimatedBudget,
+    rationale
+  };
+};
 
 const LS_KEY = "artist-roadmap-vite-v1";
 
@@ -219,9 +364,16 @@ export default function App() {
     // First check URL state
     const fromUrl = decodeStateFromUrl(); 
     if (fromUrl) {
-      // Ensure grant properties exist even in URL state
+      // Ensure all required properties exist in URL state
       if (!fromUrl.savedGrants) fromUrl.savedGrants = [];
       if (!fromUrl.grantApplications) fromUrl.grantApplications = [];
+      if (fromUrl.onboardingComplete === undefined) fromUrl.onboardingComplete = true;
+      if (fromUrl.catalogAnalysisComplete === undefined) fromUrl.catalogAnalysisComplete = false;
+      if (fromUrl.chatPlanningComplete === undefined) fromUrl.chatPlanningComplete = false;
+      if (fromUrl.roadmapGenerated === undefined) fromUrl.roadmapGenerated = true;
+      if (!fromUrl.lastActiveTab) fromUrl.lastActiveTab = 'roadmap';
+      if (!fromUrl.firstVisitDate) fromUrl.firstVisitDate = new Date().toISOString();
+      if (fromUrl.catalogAnalysisData === undefined) fromUrl.catalogAnalysisData = undefined;
       return fromUrl;
     }
     
@@ -233,15 +385,34 @@ export default function App() {
       budget: BUDGET_PRESETS(DEFAULT_PROJECT.units),
       tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units),
       savedGrants: [],
-      grantApplications: []
+      grantApplications: [],
+      // New onboarding fields
+      onboardingComplete: false,
+      catalogAnalysisComplete: false,
+      chatPlanningComplete: false,
+      roadmapGenerated: false,
+      lastActiveTab: 'catalog-analyzer', // Start with catalog analyzer
+      firstVisitDate: new Date().toISOString(),
+      catalogAnalysisData: undefined
     };
     
-    // Ensure grant properties exist (migration for existing users)
+    // Migration for existing users - add new fields if missing
     if (!baseState.savedGrants) {
       baseState.savedGrants = [];
     }
     if (!baseState.grantApplications) {
       baseState.grantApplications = [];
+    }
+    if (baseState.onboardingComplete === undefined) {
+      // Existing users with data = already onboarded
+      const hasExistingData = baseState.profile.artistName || baseState.budget.length > 0;
+      baseState.onboardingComplete = hasExistingData;
+      baseState.catalogAnalysisComplete = false;
+      baseState.chatPlanningComplete = hasExistingData; // If they have data, they've done planning
+      baseState.roadmapGenerated = hasExistingData;
+      baseState.lastActiveTab = hasExistingData ? 'roadmap' : 'catalog-analyzer';
+      baseState.firstVisitDate = new Date().toISOString();
+      baseState.catalogAnalysisData = undefined;
     }
     
     // Initialize assessment from legacy profile if not present
@@ -252,9 +423,12 @@ export default function App() {
     return baseState;
   });
 
-  // Chat state for personality capture
+  // Chat state for planning (now context-aware based on catalog analysis)
   const [chatComplete, setChatComplete] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(WELCOME_MESSAGES);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
+    // Initialize with planning-focused messages based on catalog data
+    return generatePlanningMessages(app.catalogAnalysisData);
+  });
   const [chatProgress, setChatProgress] = useState({ 
     personality: 0, 
     sonics: 0, 
@@ -262,8 +436,17 @@ export default function App() {
     detailedAnalysis: { personality: {}, sonics: {} }
   });
   
-  // Navigation state
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer'>('roadmap');
+  // Navigation state - use last active tab from app state
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer'>(() => {
+    return app.lastActiveTab as 'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer';
+  });
+  
+  // Update lastActiveTab in app state when tab changes
+  useEffect(() => {
+    if (app.lastActiveTab !== activeTab) {
+      setApp(prev => ({...prev, lastActiveTab: activeTab}));
+    }
+  }, [activeTab]);
   
   const handleChatMessage = (message: string) => {
     // Add user message
@@ -373,7 +556,10 @@ export default function App() {
       app.profile
     );
     
-    // Update app state with new assessment data
+    // Generate smart roadmap based on catalog + chat
+    const roadmapSuggestion = generateSmartRoadmap(app.catalogAnalysisData, chatMessages);
+    
+    // Update app state with new assessment data + smart roadmap
     setApp(prev => ({
       ...prev,
       assessment: { ...prev.assessment, ...updatedAssessment },
@@ -382,10 +568,29 @@ export default function App() {
         ...prev.profile,
         genres: updatedAssessment.identity.primary_genres?.join(', ') || prev.profile.genres,
         elevatorPitch: updatedAssessment.brand_narrative?.positioning || prev.profile.elevatorPitch
-      }
+      },
+      // Apply smart roadmap suggestions
+      project: {
+        ...prev.project,
+        projectType: roadmapSuggestion.projectType,
+        units: roadmapSuggestion.units,
+        targetWeeks: roadmapSuggestion.targetWeeks
+      },
+      // Regenerate budget and tasks with new units
+      budget: BUDGET_PRESETS(roadmapSuggestion.units),
+      tasks: DEFAULT_TASKS(roadmapSuggestion.units),
+      // Mark planning as complete and roadmap as generated
+      chatPlanningComplete: true,
+      roadmapGenerated: true
     }));
     
     setChatComplete(true);
+    
+    // Show success message with rationale
+    pushToast(`✓ Roadmap generated: ${roadmapSuggestion.projectType} (${roadmapSuggestion.units} tracks, ${roadmapSuggestion.targetWeeks} weeks, ~${currency(roadmapSuggestion.estimatedBudget)})`);
+    
+    // Auto-navigate to roadmap tab
+    setActiveTab('roadmap');
   };
 
   useEffect(()=> { localStorage.setItem(LS_KEY, JSON.stringify(app)); }, [app]);
@@ -508,6 +713,20 @@ export default function App() {
     pushToast('Reminder added successfully');
   };
 
+  // Catalog Analysis handler
+  const handleCatalogAnalysisComplete = (result: CatalogAnalysisResult) => {
+    setApp(prev => ({
+      ...prev,
+      catalogAnalysisComplete: true,
+      catalogAnalysisData: result
+    }));
+    
+    // Update chat messages with personalized planning context
+    setChatMessages(generatePlanningMessages(result));
+    
+    pushToast(`✓ Catalog analyzed: ${result.total_tracks} tracks with ${result.average_score.toFixed(0)}/100 average score`);
+  };
+
   const exportJSON = () => download(`${(app.profile.artistName || "artist").replaceAll(" ", "-")}-roadmap.json`, JSON.stringify(app, null, 2), "application/json");
   const importJSON = (file: File) => {
     const reader = new FileReader();
@@ -530,7 +749,14 @@ export default function App() {
       tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units),
       assessment: convertLegacyProfileToAssessment({ profile: DEFAULT_PROFILE, project: DEFAULT_PROJECT }),
       savedGrants: [],
-      grantApplications: []
+      grantApplications: [],
+      onboardingComplete: false,
+      catalogAnalysisComplete: false,
+      chatPlanningComplete: false,
+      roadmapGenerated: false,
+      lastActiveTab: 'catalog-analyzer' as const,
+      firstVisitDate: new Date().toISOString(),
+      catalogAnalysisData: undefined
     };
     setApp(newState); 
     window.history.replaceState({}, "", window.location.pathname); 
@@ -538,6 +764,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full bg-surface-900">
+      {/* Show onboarding welcome for first-time users */}
+      {!app.onboardingComplete ? (
+        <OnboardingWelcome
+          onStart={() => {
+            setApp(prev => ({...prev, onboardingComplete: true, lastActiveTab: 'catalog-analyzer'}));
+            setActiveTab('catalog-analyzer');
+          }}
+          onSkip={() => {
+            setApp(prev => ({...prev, onboardingComplete: true}));
+          }}
+          hasExistingData={app.profile.artistName !== "" || app.budget.length > 0}
+        />
+      ) : (
       <div className="mx-auto max-w-7xl px-6 py-8">
         <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
@@ -569,8 +808,12 @@ export default function App() {
               {/* Compact Header */}
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-semibold text-primary-100">Let's Get to Know Your Sound</h2>
-                  <p className="text-sm text-surface-400">Share your artistic vision to get personalized recommendations</p>
+                  <h2 className="text-lg font-semibold text-primary-100">💬 Plan Your Roadmap</h2>
+                  <p className="text-sm text-surface-400">
+                    {app.catalogAnalysisComplete 
+                      ? 'Based on your catalog analysis, let\'s create a strategic release plan' 
+                      : 'Share your goals and vision to build a personalized project plan'}
+                  </p>
                 </div>
                 
                 {/* Compact Progress Indicator */}
@@ -616,11 +859,11 @@ export default function App() {
                   <div className="space-y-3 flex-1">
                     <div>
                       <div className="text-xs text-surface-400 mb-2 flex items-center gap-2">
-                        <span>🎵</span>
-                        <span>Musical Style</span>
+                        <span>📀</span>
+                        <span>Project Scope</span>
                       </div>
                       <div className="grid grid-cols-1 gap-1">
-                        {PERSONALITY_SUGGESTIONS.slice(0, 4).map((suggestion, i) => (
+                        {PLANNING_SUGGESTIONS.slice(0, 4).map((suggestion, i) => (
                           <button
                             key={i}
                             className="text-left text-xs px-3 py-2 rounded-lg bg-surface-700/50 hover:bg-surface-600 hover:bg-primary-600/20 transition-colors text-surface-300 hover:text-surface-200"
@@ -634,11 +877,11 @@ export default function App() {
                     
                     <div>
                       <div className="text-xs text-surface-400 mb-2 flex items-center gap-2">
-                        <span>⚡</span>
-                        <span>Energy & Vibe</span>
+                        <span>⏰</span>
+                        <span>Timeline & Budget</span>
                       </div>
                       <div className="grid grid-cols-1 gap-1">
-                        {PERSONALITY_SUGGESTIONS.slice(4, 8).map((suggestion, i) => (
+                        {PLANNING_SUGGESTIONS.slice(4, 8).map((suggestion, i) => (
                           <button
                             key={i}
                             className="text-left text-xs px-3 py-2 rounded-lg bg-surface-700/50 hover:bg-surface-600 hover:bg-primary-600/20 transition-colors text-surface-300 hover:text-surface-200"
@@ -652,11 +895,11 @@ export default function App() {
                     
                     <div>
                       <div className="text-xs text-surface-400 mb-2 flex items-center gap-2">
-                        <span>💭</span>
-                        <span>Themes & Message</span>
+                        <span>🎯</span>
+                        <span>Goals & Strategy</span>
                       </div>
                       <div className="grid grid-cols-1 gap-1">
-                        {PERSONALITY_SUGGESTIONS.slice(8, 12).map((suggestion, i) => (
+                        {PLANNING_SUGGESTIONS.slice(8, 12).map((suggestion, i) => (
                           <button
                             key={i}
                             className="text-left text-xs px-3 py-2 rounded-lg bg-surface-700/50 hover:bg-surface-600 hover:bg-primary-600/20 transition-colors text-surface-300 hover:text-surface-200"
@@ -739,16 +982,65 @@ export default function App() {
             {/* Navigation Tabs */}
             <div className="mb-6">
               <div className="flex flex-wrap gap-2 p-1 bg-surface-800/50 rounded-xl border border-surface-700">
+                {/* Step 1: Catalog Analyzer */}
+                <button
+                  onClick={() => setActiveTab('catalog-analyzer')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                    activeTab === 'catalog-analyzer'
+                      ? 'bg-primary-600 text-primary-50'
+                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    {app.catalogAnalysisComplete ? '✓' : '1.'} 📊 Catalog Analysis
+                  </span>
+                  {app.catalogAnalysisComplete && !activeTab.includes('catalog') && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                  )}
+                </button>
+
+                {/* Step 2: AI Planning Chat - Only show after catalog analysis or if already done */}
+                <button
+                  onClick={() => {
+                    if (!chatComplete && !app.chatPlanningComplete) {
+                      setChatComplete(false); // Show chat interface
+                    }
+                    setActiveTab('roadmap'); // We'll handle this better later
+                  }}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                    !chatComplete && !app.chatPlanningComplete
+                      ? (!app.catalogAnalysisComplete ? 'opacity-50 cursor-not-allowed' : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700')
+                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                  }`}
+                  disabled={!app.catalogAnalysisComplete && !app.chatPlanningComplete}
+                  title={!app.catalogAnalysisComplete && !app.chatPlanningComplete ? "Complete catalog analysis first" : ""}
+                >
+                  <span className="flex items-center gap-2">
+                    {app.chatPlanningComplete ? '✓' : '2.'} 💬 AI Planning
+                  </span>
+                  {app.chatPlanningComplete && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                  )}
+                </button>
+
+                {/* Step 3: Project Roadmap */}
                 <button
                   onClick={() => setActiveTab('roadmap')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
                     activeTab === 'roadmap'
                       ? 'bg-primary-600 text-primary-50'
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
                   }`}
                 >
-                  📋 Project Roadmap
+                  <span className="flex items-center gap-2">
+                    {app.roadmapGenerated ? '✓' : '3.'} 📋 Roadmap
+                  </span>
+                  {app.roadmapGenerated && activeTab !== 'roadmap' && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+                  )}
                 </button>
+
+                {/* Step 4: Mix Analyzer - Refine individual tracks */}
                 <button
                   onClick={() => setActiveTab('mix-analyzer')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -759,16 +1051,8 @@ export default function App() {
                 >
                   🎚️ Mix Analyzer
                 </button>
-                <button
-                  onClick={() => setActiveTab('catalog-analyzer')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    activeTab === 'catalog-analyzer'
-                      ? 'bg-primary-600 text-primary-50'
-                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
-                  }`}
-                >
-                  📊 Catalog Analyzer
-                </button>
+
+                {/* Step 5: Grant Discovery */}
                 <button
                   onClick={() => setActiveTab('grants')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -777,13 +1061,15 @@ export default function App() {
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
                   }`}
                 >
-                  🎯 Grant Discovery
+                  🎯 Grants
                   {app.savedGrants.length > 0 && (
                     <span className="ml-1 px-1.5 py-0.5 bg-primary-500/30 text-primary-200 rounded text-xs">
                       {app.savedGrants.length}
                     </span>
                   )}
                 </button>
+
+                {/* Step 6: Applications */}
                 <button
                   onClick={() => setActiveTab('applications')}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -824,8 +1110,15 @@ export default function App() {
                     Upload multiple released tracks to analyze your artistic growth and consistency over time. 
                     Get insights on quality progression, sonic identity, genre consistency, and recommendations for your next release.
                   </p>
+                  {app.catalogAnalysisComplete && app.catalogAnalysisData && (
+                    <div className="mt-4 p-3 rounded-lg bg-green-600/10 border border-green-600/30">
+                      <div className="text-sm text-green-300">
+                        ✓ Last analysis: {app.catalogAnalysisData.total_tracks} tracks • {app.catalogAnalysisData.average_score.toFixed(0)}/100 avg score • {app.catalogAnalysisData.sonic_identity.consistency_score.toFixed(0)}% consistency
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <CatalogAnalyzer />
+                <CatalogAnalyzer onAnalysisComplete={handleCatalogAnalysisComplete} />
               </div>
             )}
 
@@ -852,6 +1145,47 @@ export default function App() {
 
             {activeTab === 'roadmap' && (
               <>
+            {/* Smart Roadmap Banner */}
+            {app.roadmapGenerated && app.catalogAnalysisData && (
+              <section className="mb-6 rounded-2xl border border-accent-700 bg-accent-900/20 p-6 backdrop-blur">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-accent-600/20 flex items-center justify-center">
+                    <span className="text-2xl">✨</span>
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold text-accent-100 mb-2">Smart Roadmap Generated</h2>
+                    <p className="text-surface-300 text-sm leading-relaxed">
+                      {(() => {
+                        const suggestion = generateSmartRoadmap(app.catalogAnalysisData, chatMessages);
+                        return suggestion.rationale;
+                      })()}
+                    </p>
+                    <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                      <div className="px-3 py-1.5 rounded-lg bg-surface-800/50 border border-surface-700">
+                        <span className="text-surface-400">Project: </span>
+                        <span className="text-surface-100 font-medium">{app.project.projectType}</span>
+                      </div>
+                      <div className="px-3 py-1.5 rounded-lg bg-surface-800/50 border border-surface-700">
+                        <span className="text-surface-400">Tracks: </span>
+                        <span className="text-surface-100 font-medium">{app.project.units}</span>
+                      </div>
+                      <div className="px-3 py-1.5 rounded-lg bg-surface-800/50 border border-surface-700">
+                        <span className="text-surface-400">Timeline: </span>
+                        <span className="text-surface-100 font-medium">{app.project.targetWeeks} weeks</span>
+                      </div>
+                      <div className="px-3 py-1.5 rounded-lg bg-surface-800/50 border border-surface-700">
+                        <span className="text-surface-400">Est. Budget: </span>
+                        <span className="text-surface-100 font-medium">{currency(totals.grand)}</span>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-xs text-surface-400">
+                      💡 These are smart defaults based on your data. Feel free to customize below!
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
+            
             {/* Assessment Insights */}
             {app.assessment && (
               <section className="rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">
@@ -1190,6 +1524,7 @@ export default function App() {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }

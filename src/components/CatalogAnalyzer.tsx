@@ -5,7 +5,11 @@ import type { CatalogTrack, CatalogAnalysisResult } from '../types/catalogAnalys
 import { getSpotifyAuthUrl, getAccessToken, fetchPlaylist, fetchAudioFeatures, convertSpotifyFeatures } from '../lib/spotifyApi';
 import { fetchSamplyPlaylist, estimateSamplyAudioFeatures } from '../lib/samplyApi';
 
-export default function CatalogAnalyzer() {
+interface CatalogAnalyzerProps {
+  onAnalysisComplete?: (result: CatalogAnalysisResult) => void;
+}
+
+export default function CatalogAnalyzer({ onAnalysisComplete }: CatalogAnalyzerProps = {}) {
   const [tracks, setTracks] = useState<CatalogTrack[]>([]);
   const [targetGenre, setTargetGenre] = useState<string>('Pop');
   const [analyzing, setAnalyzing] = useState(false);
@@ -196,13 +200,18 @@ export default function CatalogAnalyzer() {
     try {
       const analysis = await analyzeCatalog(tracks, targetGenre);
       setResult(analysis);
+      
+      // Notify parent component of completed analysis
+      if (onAnalysisComplete) {
+        onAnalysisComplete(analysis);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed');
       console.error('Catalog analysis error:', err);
     } finally {
       setAnalyzing(false);
     }
-  }, [tracks, targetGenre]);
+  }, [tracks, targetGenre, onAnalysisComplete]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-400';
