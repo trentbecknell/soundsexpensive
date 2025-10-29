@@ -1,9 +1,18 @@
 // TypeScript interfaces for audio mix analysis and diagnostics
 
+export type MixingStage = 
+  | 'rough-mix'      // Initial balance, basic processing
+  | 'mixing'         // Active mixing, EQ, compression, effects
+  | 'mix-review'     // Near-final mix, refinement stage
+  | 'pre-master'     // Final mix, ready for mastering
+  | 'mastered'       // After mastering, final product
+  | 'not-sure';      // Let the system determine
+
 export interface MixAnalysisRequest {
   file: File;
   targetGenre?: string;
   referenceArtist?: string;
+  mixingStage?: MixingStage;
   customBenchmarks?: Partial<MixBenchmarks>;
 }
 
@@ -117,6 +126,7 @@ export interface MixAnalysisResult {
     sample_rate?: number;
     bit_depth?: number;
   };
+  mixing_stage: MixingStage;
   audio_features: AudioFeatures;
   benchmarks_used: MixBenchmarks;
   score: MixScore;
@@ -124,6 +134,7 @@ export interface MixAnalysisResult {
   strengths: string[];
   overall_assessment: string;
   next_steps: string[];
+  stage_appropriate_tips: string[]; // Context-aware tips for current stage
   similar_reference_tracks?: string[];
   analysis_timestamp: string;
 }

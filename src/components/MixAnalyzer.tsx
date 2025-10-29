@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { analyzeMix, MIX_BENCHMARKS } from '../lib/mixAnalysis';
-import type { MixAnalysisResult, DiagnosticIssue } from '../types/mixAnalysis';
+import type { MixAnalysisResult, DiagnosticIssue, MixingStage } from '../types/mixAnalysis';
 
 interface MixAnalyzerProps {
   onAnalysisComplete?: (result: MixAnalysisResult) => void;
@@ -10,11 +10,21 @@ interface MixAnalyzerProps {
 export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixAnalyzerProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [targetGenre, setTargetGenre] = useState<string>('Pop');
+  const [mixingStage, setMixingStage] = useState<MixingStage>('not-sure');
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<MixAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const availableGenres = Object.keys(MIX_BENCHMARKS);
+  
+  const mixingStages: { value: MixingStage; label: string; description: string }[] = [
+    { value: 'rough-mix', label: '🎚️ Rough Mix', description: 'Initial balance, basic levels' },
+    { value: 'mixing', label: '🎛️ Active Mixing', description: 'EQ, compression, effects' },
+    { value: 'mix-review', label: '✅ Mix Review', description: 'Near-final, refinement' },
+    { value: 'pre-master', label: '🎯 Pre-Master', description: 'Final mix, ready for mastering' },
+    { value: 'mastered', label: '✨ Mastered', description: 'After mastering' },
+    { value: 'not-sure', label: '❓ Not Sure', description: 'Let us determine' },
+  ];
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,7 +55,7 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
     setError(null);
 
     try {
-      const analysisResult = await analyzeMix(selectedFile, targetGenre);
+      const analysisResult = await analyzeMix(selectedFile, targetGenre, mixingStage);
       setResult(analysisResult);
       onAnalysisComplete?.(analysisResult);
     } catch (err) {
@@ -54,7 +64,7 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
     } finally {
       setAnalyzing(false);
     }
-  }, [selectedFile, targetGenre, onAnalysisComplete]);
+  }, [selectedFile, targetGenre, mixingStage, onAnalysisComplete]);
 
   const getSeverityColor = (severity: DiagnosticIssue['severity']) => {
     switch (severity) {
@@ -90,22 +100,42 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
         <h2 className="mb-4 text-lg font-semibold text-primary-100">Upload Your Mix</h2>
         
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm text-surface-300 mb-2">Target Genre</label>
-            <select
-              value={targetGenre}
-              onChange={(e) => setTargetGenre(e.target.value)}
-              className="w-full md:w-64 rounded-lg bg-surface-700/50 px-3 py-2 text-surface-100 focus:ring-2 focus:ring-primary-500 transition-colors"
-            >
-              {availableGenres.map((genre) => (
-                <option key={genre} value={genre}>
-                  {genre}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-surface-400">
-              Select your genre for accurate benchmarking
-            </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm text-surface-300 mb-2">Target Genre</label>
+              <select
+                value={targetGenre}
+                onChange={(e) => setTargetGenre(e.target.value)}
+                className="w-full rounded-lg bg-surface-700/50 px-3 py-2 text-surface-100 focus:ring-2 focus:ring-primary-500 transition-colors"
+              >
+                {availableGenres.map((genre) => (
+                  <option key={genre} value={genre}>
+                    {genre}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-surface-400">
+                Select your genre for accurate benchmarking
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm text-surface-300 mb-2">Mixing Stage</label>
+              <select
+                value={mixingStage}
+                onChange={(e) => setMixingStage(e.target.value as MixingStage)}
+                className="w-full rounded-lg bg-surface-700/50 px-3 py-2 text-surface-100 focus:ring-2 focus:ring-primary-500 transition-colors"
+              >
+                {mixingStages.map((stage) => (
+                  <option key={stage.value} value={stage.value}>
+                    {stage.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-surface-400">
+                {mixingStages.find(s => s.value === mixingStage)?.description}
+              </p>
+            </div>
           </div>
 
           <div>
@@ -211,6 +241,11 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
                 <p className="text-sm text-surface-400">
                   {result.file_info.name} • {result.benchmarks_used.genre}
                 </p>
+                <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full">
+                  <span className="text-xs text-blue-300">
+                    {mixingStages.find(s => s.value === result.mixing_stage)?.label || result.mixing_stage}
+                  </span>
+                </div>
               </div>
               <div className="text-center">
                 <div className={`text-5xl font-bold ${getScoreColor(result.score.overall)}`}>
@@ -259,6 +294,23 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
                   <div key={idx} className="flex items-start gap-2 text-sm text-green-200">
                     <span className="mt-0.5">•</span>
                     <span>{strength}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Stage-Appropriate Tips */}
+          {result.stage_appropriate_tips.length > 0 && (
+            <section className="rounded-2xl border border-blue-700/50 bg-blue-900/20 p-6 backdrop-blur">
+              <h3 className="text-lg font-semibold text-blue-100 mb-4">
+                💡 Tips for {mixingStages.find(s => s.value === result.mixing_stage)?.label || 'Your Stage'}
+              </h3>
+              <div className="space-y-2">
+                {result.stage_appropriate_tips.map((tip, idx) => (
+                  <div key={idx} className="flex items-start gap-3 text-sm text-blue-200">
+                    <span className="text-blue-400 font-semibold flex-shrink-0">{idx + 1}.</span>
+                    <span>{tip}</span>
                   </div>
                 ))}
               </div>

@@ -10,6 +10,7 @@ import type {
   MixScore,
   ComparisonResult,
   FrequencyBalance,
+  MixingStage,
 } from '../types/mixAnalysis';
 
 // Genre-specific mix benchmarks (extends industry benchmarks with technical specs)
@@ -659,11 +660,136 @@ export function generateNextSteps(
 }
 
 /**
+ * Generate stage-appropriate tips based on where user is in mixing process
+ */
+function generateStageAppropriateTips(
+  stage: MixingStage,
+  issues: DiagnosticIssue[],
+  score: MixScore
+): string[] {
+  const tips: string[] = [];
+  
+  switch (stage) {
+    case 'rough-mix':
+      tips.push('🎚️ Focus on getting a balanced level for all tracks first');
+      tips.push('🎯 Set rough panning positions to create space');
+      tips.push('✂️ Use high-pass filters to clean up low-end mud');
+      tips.push('⏸️ Don\'t worry about perfection yet - rough balance is the goal');
+      if (issues.some(i => i.category === 'loudness')) {
+        tips.push('💡 Loudness will be addressed in mastering - focus on balance and clarity for now');
+      }
+      break;
+      
+    case 'mixing':
+      tips.push('🎛️ Now is the time for EQ, compression, and creative effects');
+      tips.push('🔊 Check your mix at different volumes to ensure translation');
+      tips.push('📐 Use automation to bring out important elements');
+      tips.push('🎨 Add depth with reverb and delay, but don\'t overdo it');
+      if (issues.some(i => i.category === 'frequency_balance')) {
+        tips.push('🎚️ Address frequency issues now - they\'ll be harder to fix in mastering');
+      }
+      break;
+      
+    case 'mix-review':
+      tips.push('👂 Listen on multiple systems: headphones, car, phone, studio monitors');
+      tips.push('⏰ Take a 24-hour break and return with fresh ears');
+      tips.push('📊 Compare against reference tracks at matched volumes');
+      tips.push('✅ Make final tweaks but avoid over-analyzing');
+      tips.push('💾 Save multiple versions before moving to mastering');
+      break;
+      
+    case 'pre-master':
+      tips.push('🎯 Ensure your mix has appropriate headroom (-6 to -3 dBFS peak)');
+      tips.push('🔍 Check for any clicks, pops, or digital artifacts');
+      tips.push('✂️ Verify fade-ins/fade-outs are clean');
+      tips.push('📝 Document any specific mastering requests');
+      if (score.breakdown.dynamics < 0.7) {
+        tips.push('⚠️ Your mix may be over-compressed - consider backing off before mastering');
+      }
+      break;
+      
+    case 'mastered':
+      tips.push('🎧 Verify the master translates well across all playback systems');
+      tips.push('📊 Check loudness against streaming platform targets (-14 LUFS for most)');
+      tips.push('✅ Ensure no clipping or distortion was introduced');
+      tips.push('💾 Keep your pre-master mix file in case revisions are needed');
+      break;
+      
+    case 'not-sure':
+      tips.push('📍 Identify your current stage to get more specific recommendations');
+      tips.push('🎯 If you\'re still adjusting levels and EQ, you\'re likely in mixing stage');
+      tips.push('🔊 If you\'re happy with the mix and want it louder, you\'re ready for mastering');
+      break;
+  }
+  
+  return tips;
+}
+
+/**
+ * Filter diagnostic issues based on mixing stage
+ */
+function filterIssuesForStage(
+  issues: DiagnosticIssue[],
+  stage: MixingStage
+): DiagnosticIssue[] {
+  // Don't show mastering-related issues if user hasn't mastered yet
+  const masteringCategories = ['loudness', 'mastering'];
+  const mixingCategories = ['frequency_balance', 'dynamics', 'stereo_imaging'];
+  
+  switch (stage) {
+    case 'rough-mix':
+    case 'mixing':
+      // Filter out loudness warnings if not mastered yet
+      return issues.map(issue => {
+        if (issue.category === 'loudness' && issue.severity !== 'critical') {
+          return {
+            ...issue,
+            severity: 'suggestion' as const,
+            description: issue.description + ' (Note: Final loudness will be addressed in mastering)',
+          };
+        }
+        return issue;
+      });
+      
+    case 'mix-review':
+    case 'pre-master':
+      // Show all mixing issues but note that loudness is for mastering
+      return issues.map(issue => {
+        if (issue.category === 'loudness') {
+          return {
+            ...issue,
+            description: issue.description + ' (Will be addressed in mastering stage)',
+          };
+        }
+        return issue;
+      });
+      
+    case 'mastered':
+      // Show all issues as they should all be addressed by now
+      return issues;
+      
+    case 'not-sure':
+    default:
+      // Show all issues but add context
+      return issues.map(issue => {
+        if (masteringCategories.includes(issue.category)) {
+          return {
+            ...issue,
+            description: issue.description + ' (If not yet mastered, this will be addressed in that stage)',
+          };
+        }
+        return issue;
+      });
+  }
+}
+
+/**
  * Main analysis function - combines all analyses
  */
 export async function analyzeMix(
   file: File,
   targetGenre: string = 'Pop',
+  mixingStage: MixingStage = 'not-sure',
   customBenchmarks?: Partial<MixBenchmarks>
 ): Promise<MixAnalysisResult> {
   // Extract audio features
@@ -679,7 +805,10 @@ export async function analyzeMix(
   const score = calculateMixScore(features, benchmarks);
   
   // Generate diagnostics
-  const issues = generateDiagnostics(features, benchmarks);
+  const allIssues = generateDiagnostics(features, benchmarks);
+  
+  // Filter issues based on mixing stage
+  const issues = filterIssuesForStage(allIssues, mixingStage);
   
   // Identify strengths
   const strengths = identifyStrengths(features, benchmarks, score);
@@ -690,12 +819,16 @@ export async function analyzeMix(
   // Generate next steps
   const next_steps = generateNextSteps(issues, score);
   
+  // Generate stage-appropriate tips
+  const stage_appropriate_tips = generateStageAppropriateTips(mixingStage, issues, score);
+  
   return {
     file_info: {
       name: file.name,
       size_bytes: file.size,
       format: file.type,
     },
+    mixing_stage: mixingStage,
     audio_features: features,
     benchmarks_used: benchmarks,
     score,
@@ -703,6 +836,7 @@ export async function analyzeMix(
     strengths,
     overall_assessment,
     next_steps,
+    stage_appropriate_tips,
     similar_reference_tracks: benchmarks.reference_tracks,
     analysis_timestamp: new Date().toISOString(),
   };
