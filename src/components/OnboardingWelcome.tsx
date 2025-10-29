@@ -12,7 +12,7 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
       <div className="max-w-3xl w-full">
         {/* Main Welcome Card - Studio banner styling */}
         <div className="relative overflow-hidden rounded-2xl border border-surface-700 banner-studio p-8 md:p-12 shadow-2xl">
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-surface-900/40 via-transparent to-surface-900/40"></div>
+          <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-surface-900/40 via-transparent to-surface-900/40"></div>
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 mb-6 shadow-lg">
