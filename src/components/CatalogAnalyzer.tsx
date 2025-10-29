@@ -287,13 +287,13 @@ export default function CatalogAnalyzer({ onAnalysisComplete }: CatalogAnalyzerP
                 <p className="text-sm text-surface-300">
                   <span className="font-semibold">Click to upload</span> or drag and drop
                 </p>
-                <p className="text-xs text-surface-400">Multiple files (2-20 tracks, Max 500MB each)</p>
+                <p className="text-xs text-surface-400">MP3, WAV, M4A, AAC (including Voice Memos) • 2-20 tracks • Max 500MB each</p>
               </div>
               <input
                 id="catalog-upload"
                 type="file"
                 className="hidden"
-                accept="audio/*"
+                accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma"
                 multiple
                 onChange={handleFilesSelect}
               />

@@ -114,36 +114,36 @@ const currency = (n: number) => n.toLocaleString(undefined,{style:"currency",cur
 // Generate planning-focused chat messages based on catalog analysis
 const generatePlanningMessages = (catalogData?: CatalogAnalysisResult): ChatMessage[] => {
   if (catalogData) {
-    // User has completed catalog analysis - personalized planning
+    // User has completed catalog analysis - professional data-driven planning
     const avgScore = catalogData.average_score.toFixed(0);
     const consistency = catalogData.sonic_identity.consistency_score.toFixed(0);
     const trackCount = catalogData.total_tracks;
-    const trend = catalogData.score_trend === 'improving' ? '📈 improving' : catalogData.score_trend === 'declining' ? '📉 declining' : '→ steady';
+    const trend = catalogData.score_trend === 'improving' ? 'improving' : catalogData.score_trend === 'declining' ? 'declining' : 'stable';
     
     return [
       { 
         id: uid(), 
         type: 'system', 
-        content: `Hey! ✨ I just reviewed your catalog analysis - ${trackCount} tracks with a ${avgScore}/100 average score and ${consistency}% sonic consistency. Quality trend: ${trend}. Impressive work!`
+        content: `Catalog analysis complete. We've assessed ${trackCount} tracks with an average quality score of ${avgScore}/100 and ${consistency}% sonic consistency. Quality trend: ${trend}.`
       },
       { 
         id: uid(), 
         type: 'system', 
-        content: `Based on your data, let's plan your next move strategically. What are you thinking: a focused EP to showcase your best sound, or a full album to tell a complete story? And what's your timeline - aiming for a quick release or taking time to build hype? 🎯`
+        content: `Let's build a strategic roadmap. Consider: What's the optimal release format given this catalog strength? What timeline aligns with the artist's current momentum? What budget constraints should we account for?`
       }
     ];
   } else {
-    // No catalog analysis yet - generic planning
+    // No catalog analysis yet - professional planning intro
     return [
       { 
         id: uid(), 
         type: 'system', 
-        content: "Hey gorgeous! ✨ I'm your personal roadmap mentor, here to help you plan your next release strategically. Let's create a timeline and budget that actually works for YOU."
+        content: "Welcome to the Artist Roadmap Builder. This tool helps A&R professionals and label teams create data-driven release strategies for emerging artists."
       },
       { 
         id: uid(), 
         type: 'system', 
-        content: "What's your vision? Are you releasing an EP, album, or singles? What's your timeline looking like? Tell me about your goals and we'll build a smart plan together! 🎯💫"
+        content: "To begin: What's the artist's release format? (EP, Album, Singles) What's their timeline constraint? What are their primary career goals at this stage?"
       }
     ];
   }
@@ -151,35 +151,35 @@ const generatePlanningMessages = (catalogData?: CatalogAnalysisResult): ChatMess
 
 // Default welcome messages (will be replaced with planning messages)
 const WELCOME_MESSAGES: ChatMessage[] = [
-  { id: uid(), type: 'system', content: "Hey gorgeous! ✨ I'm your personal diva mentor, and I'm here to help you create a roadmap that's as unique and fabulous as you are! First, let's dive deep into your artistic soul - this helps me craft a plan that truly captures your essence." },
-  { id: uid(), type: 'system', content: "Tell me about your sound, your inspirations, and what sets your heart on fire as an artist. What feelings do you want to ignite in your listeners? Paint me that picture, darling! 🎨💫" }
+  { id: uid(), type: 'system', content: "Artist Development Planning Tool - This platform helps label professionals assess artist readiness and create evidence-based career roadmaps." },
+  { id: uid(), type: 'system', content: "Start by analyzing the artist's current catalog to establish baseline metrics. Then use the strategic planning module to build a customized release strategy with realistic timelines and budgets." }
 ];
 
 // Planning-focused suggestions for roadmap building
 const PLANNING_SUGGESTIONS = [
   // Project scope & format
-  "I'm planning a 4-5 track EP to showcase my strongest work",
-  "I want to release a full album (10-12 tracks) to tell a complete story", 
-  "I'm thinking singles strategy - release one track every 6-8 weeks",
-  "I want to do a mixtape / beat tape with quick turnaround",
+  "Planning a 4-5 track EP to showcase the artist's core sound",
+  "Considering a full album (10-12 tracks) for comprehensive market positioning", 
+  "Singles release strategy - one track every 6-8 weeks to build momentum",
+  "Mixtape/compilation format for rapid market testing",
   
   // Timeline & urgency
-  "I need to release in the next 3-4 months (fast timeline)",
-  "I'm planning 6-9 months out to build proper buzz",
-  "I want to take my time - 12+ months for maximum quality",
-  "I have a specific deadline (festival, sync opportunity, etc.)",
+  "Artist needs to release within 3-4 months (fast-track timeline)",
+  "Standard 6-9 month development cycle for optimal marketing build",
+  "Extended 12+ month timeline for maximum quality and positioning",
+  "Specific deadline tied to tour, sync opportunity, or label milestone",
   
   // Budget & resources
-  "I'm working with a modest budget ($2-5k total)",
-  "I have a solid budget to invest ($10-20k range)",
-  "I'm DIY and keeping costs minimal",
-  "I want to know what realistic costs look like for my project",
+  "Working with limited budget ($2-5K total investment)",
+  "Mid-tier budget available ($10-20K for professional production)",
+  "DIY/lean approach to minimize risk and maximize learning",
+  "Need budget recommendations based on industry standards",
   
   // Goals & strategy
-  "My goal is to build streaming presence and playlists",
-  "I want to focus on live shows and touring momentum",
-  "I'm targeting sync licensing and film/TV placements",
-  "I want to create something that attracts label interest"
+  "Priority: Build streaming presence and playlist placement",
+  "Focus: Live performance and touring to develop fanbase",
+  "Target: Sync licensing opportunities for film/TV placement",
+  "Goal: Position artist for label interest and A&R attention"
 ];
 
 function computeStage(profile: ArtistProfile): Stage {
@@ -483,16 +483,15 @@ export default function App() {
     setTimeout(() => {
       let response: ChatMessage;
       
-      const divaResponses = [
-        "Honey, that's exactly the kind of authenticity that sets stars apart! ✨",
-        "Ooh, I'm getting major vibes from that! Tell me more, darling! 💫",
-        "Now THAT'S what I'm talking about! You've got that special something! 🎤",
-        "Beautiful! I can already hear your unique voice shining through! 🌟",
-        "Yasss! That's the kind of vision that creates magic! Keep going! ✨",
-        "Love it! You're painting such a vivid picture of your artistry! 🎨",
-        "Oh honey, you're speaking my language! That's pure artistry! 💎",
-        "Gorgeous! I can feel the passion in your words! 🔥",
-        "Perfect! That's the kind of depth that connects with souls! 💖"
+      const professionalResponses = [
+        "Noted. This information helps establish baseline positioning.",
+        "Good data point. This clarifies the strategic direction.",
+        "Understood. This informs the resource allocation model.",
+        "Acknowledged. This helps calibrate timeline expectations.",
+        "Recorded. This provides context for budget planning.",
+        "Clear. This shapes the go-to-market approach.",
+        "Confirmed. This influences the development strategy.",
+        "Captured. This affects the launch positioning."
       ];
       
       if (hasSubstantialData) {
@@ -500,54 +499,54 @@ export default function App() {
         if (matches.length > 0) {
           const match = matches[0];
           const followups = suggestFollowupQuestions(analysis);
-          const nextQuestion = followups.length > 0 ? followups[0] : "What other magical aspects of your music would you like to explore, superstar?";
+          const nextQuestion = followups.length > 0 ? followups[0] : "What additional factors should we consider in the strategic planning?";
           
           response = {
             id: uid(),
             type: 'system',
-            content: `Stunning! Based on your vibe, you remind me of ${match.name} - that's some serious artistic DNA! ${nextQuestion} 💫`
+            content: `Artist profile shows alignment with ${match.name}'s positioning strategy. ${nextQuestion}`
           };
         } else {
           const followups = suggestFollowupQuestions(analysis);
-          const nextQuestion = followups.length > 0 ? followups[0] : "Tell me more about your creative magic, darling.";
-          const randomDivaResponse = divaResponses[Math.floor(Math.random() * divaResponses.length)];
+          const nextQuestion = followups.length > 0 ? followups[0] : "What other strategic factors should inform this roadmap?";
+          const randomResponse = professionalResponses[Math.floor(Math.random() * professionalResponses.length)];
           
           response = {
             id: uid(),
             type: 'system',
-            content: `${randomDivaResponse} ${nextQuestion}`
+            content: `${randomResponse} ${nextQuestion}`
           };
         }
       } else if (hasMinimumData) {
-        // Encourage more specific details with diva flair
-        const encouragements = [
-          "Mmm, I'm loving this energy! Can you tell me more about your production style or the emotional energy of your music? 🎵",
-          "Beautiful start, gorgeous! Now paint me a picture - are you more electronic magic or acoustic soul? High-energy fire or mellow vibes? ✨",
-          "I'm feeling your essence! Help me understand - what's the heartbeat of your sound? Fast and fierce or slow and sultry? 💖"
+        // Request more specific strategic details
+        const detailRequests = [
+          "Please clarify: What's the production approach? What's the intended emotional impact on the target audience?",
+          "Additional context needed: Is this artist positioned as electronic/digital or organic/acoustic? What's the energy profile?",
+          "For accurate planning: What's the sonic identity? What's the tempo and intensity range we're working with?"
         ];
         
         response = {
           id: uid(),
           type: 'system',
-          content: encouragements[Math.floor(Math.random() * encouragements.length)]
+          content: detailRequests[Math.floor(Math.random() * detailRequests.length)]
         };
       } else {
-        // First response with diva personality
-        const firstResponses = [
-          "That's a gorgeous start, darling! Tell me more about your specific sound - are you electronic sparkle or acoustic soul? High-energy fire or mellow magic? 🌟",
-          "Ooh, I'm already getting inspired! Help me feel your vibe - are you more dance floor energy or intimate storytelling? What's your sonic signature? ✨",
-          "Love what I'm hearing so far! Now let's go deeper - what's the energy of your music? Are you bringing the party or touching hearts? 💫"
+        // First response - establish professional tone
+        const initialResponses = [
+          "Initial input received. For strategic planning: What's the core sonic identity? What production style defines this artist?",
+          "Processing artist profile. Clarify: What's the primary genre positioning? What's the energy and tempo range?",
+          "Beginning assessment. Define: What's the production aesthetic? What's the intended audience emotional response?"
         ];
         
         response = {
           id: uid(),
           type: 'system',
-          content: firstResponses[Math.floor(Math.random() * firstResponses.length)]
+          content: initialResponses[Math.floor(Math.random() * initialResponses.length)]
         };
       }
 
       setChatMessages(prev => [...prev, response]);
-    }, 1200 + Math.random() * 600); // More dramatic timing for diva effect
+    }, 800 + Math.random() * 400); // Professional response timing
   };
 
   // Function to complete chat manually or automatically
@@ -815,23 +814,23 @@ export default function App() {
       <div className="mx-auto max-w-7xl px-6 py-8">
         <header className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-surface-50">Artist Roadmap <span className="text-surface-400">v1</span></h1>
-            <p className="text-sm text-surface-400">Plan projects, estimate budgets, discover grants, and track applications.</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-surface-50">Artist Roadmap <span className="text-surface-400">PRO</span></h1>
+            <p className="text-sm text-surface-400">Professional A&R tool for baseline assessment, strategic planning, and career development.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={shareUrl}>Share</button>
-            <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportCSV}>CSV</button>
-            <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportJSON}>Export</button>
+            <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportCSV}>Export CSV</button>
+            <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportJSON}>Export Data</button>
             <label className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors cursor-pointer">
-              Import JSON
+              Import Data
               <input type="file" accept="application/json" className="hidden" onChange={e => e.target.files && importJSON(e.target.files[0])}/>
             </label>
-            <button className="rounded-lg border border-accent-600 px-3 py-2 text-sm text-accent-100 hover:bg-accent-800/50 transition-colors" onClick={reset}>Reset</button>
+            <button className="rounded-lg border border-accent-600 px-3 py-2 text-sm text-accent-100 hover:bg-accent-800/50 transition-colors" onClick={reset}>New Artist</button>
             <button
               className="rounded-lg border border-red-600 px-3 py-2 text-sm text-red-100 hover:bg-red-800/50 transition-colors"
               onClick={() => { localStorage.removeItem('artist-roadmap-vite-v1'); window.location.reload(); }}
             >
-              Clear Local State
+              Clear All Data
             </button>
           </div>
         </header>

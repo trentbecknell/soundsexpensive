@@ -56,9 +56,9 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
     if (!file) return;
 
     // Validate audio file
-    const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave', 'audio/x-wav', 'audio/aac', 'audio/ogg', 'audio/flac'];
+    const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/wave', 'audio/x-wav', 'audio/x-m4a', 'audio/m4a', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/flac'];
     if (!validTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|aac|ogg|flac|m4a)$/i)) {
-      setError('Please upload a valid audio file (MP3, WAV, AAC, OGG, FLAC, M4A)');
+      setError('Please upload a valid audio file (MP3, WAV, M4A, AAC, OGG, FLAC)');
       return;
     }
 
@@ -248,7 +248,7 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
                   <span className="font-semibold">Click to upload</span> or drag and drop
                 </p>
                 <p className="text-xs text-surface-400">
-                  MP3, WAV, AAC, OGG, FLAC, M4A (Max 500MB)
+                  MP3, WAV, M4A (including Voice Memos), AAC, OGG, FLAC (Max 500MB)
                 </p>
                 <p className="text-xs text-surface-500 mt-1">
                   💡 High-quality WAV/FLAC files recommended for accurate analysis
@@ -258,7 +258,7 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
                 id="audio-upload"
                 type="file"
                 className="hidden"
-                accept="audio/*"
+                accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma"
                 onChange={handleFileSelect}
               />
             </label>

@@ -40,10 +40,10 @@ export default function WelcomeBackDashboard({
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-surface-50 mb-3">
-            {getGreeting()}! 👋
+            {getGreeting()}
           </h1>
           <p className="text-lg text-surface-300">
-            Welcome back to your Artist Roadmap
+            Artist Development Session
           </p>
         </div>
 
@@ -66,7 +66,9 @@ export default function WelcomeBackDashboard({
                 </div>
               </div>
               <div className="w-12 h-12 rounded-full bg-primary-600/20 flex items-center justify-center">
-                <span className="text-2xl">📊</span>
+                <svg className="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
               </div>
             </div>
             {catalogAnalysisData && (
@@ -86,8 +88,8 @@ export default function WelcomeBackDashboard({
                     catalogAnalysisData.score_trend === 'declining' ? 'text-orange-400' :
                     'text-surface-300'
                   }`}>
-                    {catalogAnalysisData.score_trend === 'improving' ? '📈 Improving' :
-                     catalogAnalysisData.score_trend === 'declining' ? '📉 Declining' :
+                    {catalogAnalysisData.score_trend === 'improving' ? '↗ Improving' :
+                     catalogAnalysisData.score_trend === 'declining' ? '↘ Declining' :
                      '→ Stable'}
                   </span>
                 </div>
@@ -145,7 +147,9 @@ export default function WelcomeBackDashboard({
                 </div>
               </div>
               <div className="w-12 h-12 rounded-full bg-green-600/20 flex items-center justify-center">
-                <span className="text-2xl">🎯</span>
+                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
             </div>
             <div className="space-y-1 text-sm">
@@ -165,8 +169,8 @@ export default function WelcomeBackDashboard({
 
         {/* Quick Actions */}
         <div className="rounded-2xl border border-surface-700 bg-surface-800/50 p-8 backdrop-blur mb-6">
-          <h2 className="text-xl font-semibold text-surface-100 mb-6 flex items-center gap-2">
-            <span>⚡</span> Quick Actions
+          <h2 className="text-xl font-semibold text-surface-100 mb-6">
+            Actions
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -176,16 +180,20 @@ export default function WelcomeBackDashboard({
               className="group p-6 rounded-xl border-2 border-primary-600 bg-primary-600/10 hover:bg-primary-600/20 transition-all text-left"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="text-3xl">🚀</div>
+                <div className="w-12 h-12 rounded-full bg-primary-600/30 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-primary-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
                 <div className="text-xs px-2 py-1 rounded bg-primary-600/30 text-primary-200">
-                  Recommended
+                  Resume
                 </div>
               </div>
               <h3 className="text-lg font-semibold text-surface-100 mb-2 group-hover:text-primary-200 transition-colors">
-                Continue Where You Left Off
+                Continue Session
               </h3>
               <p className="text-sm text-surface-400">
-                Jump back to your last active section and keep building
+                Resume artist development planning from last checkpoint
               </p>
             </button>
 
@@ -194,9 +202,13 @@ export default function WelcomeBackDashboard({
               onClick={onViewRoadmap}
               className="group p-6 rounded-xl border border-surface-600 hover:border-accent-600 bg-surface-800/30 hover:bg-accent-600/10 transition-all text-left"
             >
-              <div className="text-3xl mb-3">📋</div>
+              <div className="w-12 h-12 rounded-full bg-accent-600/20 flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-accent-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
               <h3 className="text-lg font-semibold text-surface-100 mb-2 group-hover:text-accent-200 transition-colors">
-                {roadmapGenerated ? 'View & Edit Roadmap' : 'Create Your Roadmap'}
+                {roadmapGenerated ? 'View Roadmap' : 'Generate Roadmap'}
               </h3>
               <p className="text-sm text-surface-400">
                 {roadmapGenerated 
@@ -226,24 +238,30 @@ export default function WelcomeBackDashboard({
               onClick={onViewGrants}
               className="group p-6 rounded-xl border border-surface-600 hover:border-green-600 bg-surface-800/30 hover:bg-green-600/10 transition-all text-left"
             >
-              <div className="text-3xl mb-3">💰</div>
+              <div className="w-12 h-12 rounded-full bg-green-600/20 flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
               <h3 className="text-lg font-semibold text-surface-100 mb-2 group-hover:text-green-200 transition-colors">
                 Explore Grant Opportunities
               </h3>
               <p className="text-sm text-surface-400">
                 {savedGrantsCount > 0
-                  ? `View your ${savedGrantsCount} saved grants`
-                  : 'Find funding for your music projects'}
+                  ? `${savedGrantsCount} saved funding opportunities`
+                  : 'Identify funding opportunities for artist development'}
               </p>
             </button>
           </div>
         </div>
 
-        {/* Helpful Tip */}
+        {/* System Status */}
         <div className="text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-800/50 border border-surface-700 text-sm text-surface-400">
-            <span>💡</span>
-            <span>Your progress is automatically saved. Pick up exactly where you left off!</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>All data is automatically saved. Resume artist development planning anytime.</span>
           </div>
         </div>
       </div>
