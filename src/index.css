@@ -5,14 +5,14 @@
 * { box-sizing: border-box; }
 :root { 
   color-scheme: dark;
-  background: linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(88, 28, 135) 100%);
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
   min-height: 100vh;
 }
 
 body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
-  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 100%);
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0) 100%);
   min-height: 100vh;
 }
 
@@ -35,20 +35,20 @@ input, select, textarea {
   @apply bg-surface-700 rounded-full;
 }
 
-/* Studio theme: color-first, no photos */
+/* Studio theme: Deep slate with electric purple and teal accents */
 .bg-studio {
-  /* Layer soft color glows over a dark surface base */
+  /* Layer soft purple and teal glows over deep slate base */
   background:
-    radial-gradient(700px 700px at 0% 0%, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0) 60%),
-    radial-gradient(900px 900px at 100% 0%, rgba(217, 70, 239, 0.10), rgba(217, 70, 239, 0) 60%),
-    linear-gradient(180deg, rgba(24, 24, 27, 0.98) 0%, rgba(24, 24, 27, 1) 60%);
+    radial-gradient(700px 700px at 0% 0%, rgba(139, 92, 246, 0.10), rgba(139, 92, 246, 0) 60%),
+    radial-gradient(900px 900px at 100% 0%, rgba(20, 184, 166, 0.08), rgba(20, 184, 166, 0) 60%),
+    linear-gradient(180deg, #1E293B 0%, #0F172A 60%);
 }
 
 .banner-studio {
-  /* Subtle banner mesh with gentle color accents */
+  /* Subtle banner mesh with electric purple and teal accents */
   background:
-    radial-gradient(400px 400px at 10% 50%, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0) 55%),
-    radial-gradient(450px 450px at 90% 50%, rgba(217, 70, 239, 0.10), rgba(217, 70, 239, 0) 55%),
-    rgba(39, 39, 42, 0.5);
+    radial-gradient(400px 400px at 10% 50%, rgba(139, 92, 246, 0.12), rgba(139, 92, 246, 0) 55%),
+    radial-gradient(450px 450px at 90% 50%, rgba(20, 184, 166, 0.10), rgba(20, 184, 166, 0) 55%),
+    rgba(30, 41, 59, 0.5);
   backdrop-filter: blur(6px);
 }
