@@ -867,6 +867,7 @@ export default function App() {
                     <button
                       onClick={completeChatPhase}
                       className="hidden md:flex text-sm text-surface-500 hover:text-surface-300 px-3 py-2 rounded-lg hover:bg-surface-700/50 transition-colors items-center gap-1"
+                      title="Skip to roadmap generation"
                     >
                       Skip
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -875,15 +876,14 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-                {/* Mobile skip button */}
-                {chatProgress.total >= 1 && (
-                  <button
-                    onClick={completeChatPhase}
-                    className="md:hidden mt-3 w-full text-center text-xs text-surface-500 hover:text-surface-300 py-2 rounded-lg hover:bg-surface-700/50 transition-colors"
-                  >
-                    Skip to roadmap →
-                  </button>
-                )}
+                {/* Mobile skip button - Always visible */}
+                <button
+                  onClick={completeChatPhase}
+                  className="md:hidden mt-3 w-full text-center text-sm text-surface-500 hover:text-surface-300 py-2.5 rounded-lg hover:bg-surface-700/50 transition-colors border border-surface-700/50"
+                  title="Skip to roadmap generation"
+                >
+                  Skip to roadmap →
+                </button>
               </div>
 
               {/* Main Chat Interface */}
@@ -994,7 +994,7 @@ export default function App() {
                   )}
                 </button>
 
-                {/* Step 2: AI Planning Chat - Only show after catalog analysis or if already done */}
+                {/* Step 2: AI Planning Chat */}
                 <button
                   onClick={() => {
                     if (!chatComplete && !app.chatPlanningComplete) {
@@ -1004,11 +1004,9 @@ export default function App() {
                   }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
                     !chatComplete && !app.chatPlanningComplete
-                      ? (!app.catalogAnalysisComplete ? 'opacity-50 cursor-not-allowed' : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700')
+                      ? 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
                   }`}
-                  disabled={!app.catalogAnalysisComplete && !app.chatPlanningComplete}
-                  title={!app.catalogAnalysisComplete && !app.chatPlanningComplete ? "Complete catalog analysis first" : ""}
                 >
                   <span className="flex items-center gap-2">
                     {app.chatPlanningComplete ? '✓' : '2.'} 💬 AI Planning
