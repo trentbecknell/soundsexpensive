@@ -844,7 +844,9 @@ export default function App() {
         <div className="space-y-6">
           {!chatComplete ? (
             // Initial Chat Interface - Professional Strategic Planning
-            <section className="rounded-2xl border border-surface-700 bg-surface-800/80 p-6 backdrop-blur h-[85vh] flex flex-col">
+            <section className="relative overflow-hidden rounded-2xl border border-surface-700 banner-studio p-6 h-[85vh] flex flex-col">
+              <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-surface-900/40 via-transparent to-surface-900/40"></div>
+              <div className="relative h-full flex flex-col">
               {/* Header */}
               <div className="mb-6 flex items-center justify-between border-b border-surface-700/50 pb-4">
                 <div>
@@ -1015,6 +1017,7 @@ export default function App() {
                   </div>
                 </div>
               )}
+              </div>
             </section>
           ) : (
             // Main App Content
