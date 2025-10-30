@@ -73,7 +73,7 @@ export default function ArtistSwitcher({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-lg border border-surface-700 bg-surface-900 shadow-2xl z-50">
+        <div className="absolute top-full left-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-lg border border-surface-700 bg-surface-900 shadow-2xl z-[9999]">
           {/* Current Artist Section */}
           {activeArtist && (
             <div className="p-3 border-b border-surface-700 bg-primary-600/10">
