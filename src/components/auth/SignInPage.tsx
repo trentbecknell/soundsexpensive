@@ -32,8 +32,7 @@ export default function SignInPage() {
                 identityPreviewEditButton: 'text-primary-400',
               },
             }}
-            routing="path"
-            path="/sign-in"
+            routing="hash"
             signUpUrl="/sign-up"
             afterSignInUrl="/"
             afterSignUpUrl="/"

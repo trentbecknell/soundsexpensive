@@ -1,4 +1,6 @@
+// TEMPORARILY DISABLED - Clerk auth not active
 // Dedicated logout button using Clerk signOut
+/*
 function LogoutButton() {
   const { signOut } = useClerk();
   return (
@@ -15,9 +17,12 @@ function LogoutButton() {
     </button>
   );
 }
+*/
 import React, { useEffect, useMemo, useState } from "react";
-import { UserButton, OrganizationSwitcher } from "@clerk/clerk-react";
-import { useClerk } from "@clerk/clerk-react";
+import { useLocation, useNavigate } from "react-router-dom";
+// TEMPORARILY DISABLED - Clerk components
+// import { UserButton, OrganizationSwitcher } from "@clerk/clerk-react";
+// import { useClerk } from "@clerk/clerk-react";
 
 
 import AssessmentWizard from "./components/AssessmentWizard";
@@ -396,6 +401,9 @@ function decodeStateFromUrl(): AppState | null {
 }
 
 export default function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   // Portfolio Management - Multi-Artist Support
   const [portfolio, setPortfolio] = useState<Portfolio>(() => loadPortfolio());
   
@@ -434,8 +442,8 @@ export default function App() {
       tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units),
       savedGrants: [],
       grantApplications: [],
-      // New onboarding fields
-      onboardingComplete: false,
+      // New onboarding fields - default to true to allow free navigation
+      onboardingComplete: true,
       catalogAnalysisComplete: false,
       chatPlanningComplete: false,
       roadmapGenerated: false,
@@ -490,8 +498,15 @@ export default function App() {
     return app.onboardingComplete && (app.catalogAnalysisComplete || app.roadmapGenerated);
   });
   
-  // Navigation state - use last active tab from app state
+  // Navigation state - sync with URL hash
   const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio'>(() => {
+    // Check URL hash first (e.g., #/roadmap, #/grants, etc.)
+    const hash = location.pathname.replace('/', '') || location.hash.replace('#/', '');
+    const validTabs = ['roadmap', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio'];
+    if (validTabs.includes(hash)) {
+      return hash as any;
+    }
+    // Fall back to last active tab from app state
     return app.lastActiveTab as 'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio';
   });
 
@@ -500,12 +515,22 @@ export default function App() {
   const [comparisonArtistIds, setComparisonArtistIds] = useState<string[]>([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
   
-  // Update lastActiveTab in app state when tab changes
+  // Sync activeTab with URL hash
+  useEffect(() => {
+    const hash = location.pathname.replace('/', '');
+    const validTabs = ['roadmap', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio'];
+    if (hash && validTabs.includes(hash)) {
+      setActiveTab(hash as any);
+    }
+  }, [location]);
+  
+  // Update URL and lastActiveTab when tab changes
   useEffect(() => {
     if (app.lastActiveTab !== activeTab) {
       setApp(prev => ({...prev, lastActiveTab: activeTab}));
+      navigate(`/${activeTab}`, { replace: true });
     }
-  }, [activeTab]);
+  }, [activeTab, navigate]);
   
   const handleChatMessage = (message: string) => {
     // Add user message
@@ -999,7 +1024,7 @@ export default function App() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-            {/* Organization Switcher - Team Management */}
+            {/* TEMPORARILY DISABLED - Organization Switcher (Clerk auth not active)
             <OrganizationSwitcher
               appearance={{
                 elements: {
@@ -1023,6 +1048,7 @@ export default function App() {
               afterSelectPersonalUrl="/"
               hidePersonal={false}
             />
+            */}
             
             {/* Artist Switcher - Multi-Artist Management */}
             <ArtistSwitcher
@@ -1033,7 +1059,7 @@ export default function App() {
               currentArtistName={getCurrentArtistName()}
             />
             
-            {/* User Profile Button - Clerk */}
+            {/* TEMPORARILY DISABLED - User Profile & Logout (Clerk auth not active)
             <div className="flex items-center">
               <UserButton
                 appearance={{
@@ -1046,9 +1072,9 @@ export default function App() {
                   },
                 }}
               />
-              {/* Explicit Log out button */}
               <LogoutButton />
             </div>
+            */}
 
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={shareUrl}>Share</button>
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportCSV}>Export CSV</button>

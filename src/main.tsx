@@ -1,7 +1,19 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { ClerkProvider, SignedIn, SignedOut, useClerk } from '@clerk/clerk-react'
+// Prevent rendering until Clerk is fully loaded
+function ClerkLoader({ children }: { children: React.ReactNode }) {
+  const { loaded } = useClerk();
+  if (!loaded) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#18181b' }}>
+        <div style={{ color: '#a1a1aa', fontSize: 20 }}>Loading authentication...</div>
+      </div>
+    );
+  }
+  return <>{children}</>;
+}
 import App from './App'
 import SignInPage from './components/auth/SignInPage'
 import SignUpPage from './components/auth/SignUpPage'
@@ -14,7 +26,10 @@ import './index.css'
 // Import Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
-if (!CLERK_PUBLISHABLE_KEY) {
+// TEMPORARY: Disable Clerk auth until flow is fixed
+const ENABLE_CLERK = false;
+
+if (!CLERK_PUBLISHABLE_KEY && ENABLE_CLERK) {
   console.warn('Missing Clerk Publishable Key. Auth features will not work.')
   console.warn('Add VITE_CLERK_PUBLISHABLE_KEY to your .env.local file')
   console.warn('See CLERK_SETUP.md for instructions')
@@ -25,84 +40,29 @@ const isSpotifyCallback = window.location.pathname.includes('/callback') ||
                           (window.location.search.includes('code=') && window.location.search.includes('state='));
 
 const AppRoutes = () => (
-  <BrowserRouter>
+  <HashRouter>
     <Routes>
-      {/* Auth routes - accessible when signed out */}
-      <Route path="/sign-in/*" element={<SignInPage />} />
-      <Route path="/sign-up/*" element={<SignUpPage />} />
-      
-      {/* Organization routes - protected, requires authentication */}
-      <Route
-        path="/create-organization/*"
-        element={
-          <>
-            <SignedIn>
-              <CreateOrganization />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-      <Route
-        path="/organizations/*"
-        element={
-          <>
-            <SignedIn>
-              <OrganizationList />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-      <Route
-        path="/organization-profile/*"
-        element={
-          <>
-            <SignedIn>
-              <OrganizationProfile />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
-      
       {/* Spotify callback - always accessible */}
       <Route path="/callback" element={<SpotifyCallback />} />
       
-      {/* Main app - protected, requires authentication */}
-      <Route
-        path="/*"
-        element={
-          <>
-            <SignedIn>
-              <App />
-            </SignedIn>
-            <SignedOut>
-              <Navigate to="/sign-in" replace />
-            </SignedOut>
-          </>
-        }
-      />
+      {/* Main app - accessible to all when Clerk is disabled */}
+      <Route path="/*" element={<App />} />
     </Routes>
-  </BrowserRouter>
+  </HashRouter>
 );
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    {CLERK_PUBLISHABLE_KEY ? (
+    {CLERK_PUBLISHABLE_KEY && ENABLE_CLERK ? (
       <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-        {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutes />}
+        <ClerkLoader>
+          {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutes />}
+        </ClerkLoader>
       </ClerkProvider>
     ) : (
-      // Fallback: run without auth if Clerk not configured
+      // Run without auth
       <>
-        {isSpotifyCallback ? <SpotifyCallback /> : <App />}
+        {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutes />}
       </>
     )}
   </React.StrictMode>
