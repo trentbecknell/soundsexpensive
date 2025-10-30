@@ -3,15 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Redirecting...</title>
-  <meta http-equiv="refresh" content="0; url=/soundsexpensive/">
   <script>
-    // For client-side routing: redirect to the correct path under /soundsexpensive/
+    // SPA redirect for GitHub Pages: preserve path as hash for React Router
     (function() {
-      var path = window.location.pathname.replace(/^\/soundsexpensive/, '');
-      var search = window.location.search || '';
-      var hash = window.location.hash || '';
-      var newUrl = '/soundsexpensive/' + path.replace(/^\//, '') + search + hash;
-      window.location.replace(newUrl);
+      var l = window.location;
+      var p = l.pathname.replace(/^\/soundsexpensive/, '');
+      window.location.replace('/soundsexpensive/#' + p + l.search + l.hash);
     })();
   </script>
   <style>
