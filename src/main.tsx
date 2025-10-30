@@ -18,6 +18,7 @@ import App from './App'
 import AuthenticatedApp from './components/AuthenticatedApp'
 import SignInPage from './components/auth/SignInPage'
 import SignUpPage from './components/auth/SignUpPage'
+import SignOutPage from './components/auth/SignOutPage'
 import { CreateOrganization } from './components/org/CreateOrganization'
 import { OrganizationList } from './components/org/OrganizationList'
 import { OrganizationProfile } from './components/org/OrganizationProfile'
@@ -27,8 +28,31 @@ import './index.css'
 // Import Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
-// Enable Clerk authentication (both dev and production)
-const ENABLE_CLERK = !!CLERK_PUBLISHABLE_KEY;
+// Read runtime auth-bypass flag from URL or localStorage
+function getRuntimeAnonFlag(): boolean {
+  try {
+    const search = window.location.search || '';
+    const hash = window.location.hash || '';
+
+    // Support both ?anon=1 before the hash and inside the hash (e.g. #/route?anon=1)
+    const hasAnonInSearch = /[?&]anon=1(?!\d)/.test(search);
+    const hashQuery = hash.includes('?') ? hash.substring(hash.indexOf('?')) : '';
+    const hasAnonInHash = /[?&]anon=1(?!\d)/.test(hashQuery);
+
+    if (hasAnonInSearch || hasAnonInHash) {
+      // Persist for this session so reloads stay anonymous until cleared
+      localStorage.setItem('artist-roadmap-force-anon', '1');
+      return true;
+    }
+
+    return localStorage.getItem('artist-roadmap-force-anon') === '1';
+  } catch {
+    return false;
+  }
+}
+
+// Enable Clerk authentication (both dev and production) unless bypassed at runtime
+const ENABLE_CLERK = !!CLERK_PUBLISHABLE_KEY && !getRuntimeAnonFlag();
 
 if (!CLERK_PUBLISHABLE_KEY) {
   console.warn('Missing Clerk Publishable Key. Running in anonymous mode.')
@@ -58,6 +82,21 @@ const AppRoutesWithAuth = () => (
           <SignedOut>
             <SignUpPage />
           </SignedOut>
+        } 
+      />
+
+      {/* Sign out route - requires auth to execute signOut */}
+      <Route 
+        path="/sign-out" 
+        element={
+          <>
+            <SignedIn>
+              <SignOutPage />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
         } 
       />
       

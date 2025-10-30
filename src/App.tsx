@@ -1090,6 +1090,17 @@ export default function App({ userId }: AppProps = {}) {
             </div>
             */}
 
+            {/* Render Sign out only when authenticated (userId present) */}
+            {userId && (
+              <button
+                className="rounded-lg border border-red-600 px-3 py-2 text-sm text-red-100 hover:bg-red-800/50 transition-colors"
+                onClick={() => navigate('/sign-out')}
+                title="Log out of this account"
+              >
+                Sign out
+              </button>
+            )}
+
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={shareUrl}>Share</button>
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportCSV}>Export CSV</button>
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportJSON}>Export Data</button>
