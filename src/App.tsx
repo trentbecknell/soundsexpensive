@@ -968,7 +968,7 @@ export default function App() {
       ) : (
       <div className="mx-auto max-w-7xl px-6 py-8">
         {/* Studio banner header */}
-        <header className="mb-6 relative rounded-2xl border border-surface-700 p-5 banner-studio">
+        <header className="mb-6 relative rounded-2xl border border-surface-700 p-5 banner-studio z-50">
           <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-surface-900/60 via-surface-900/40 to-transparent rounded-2xl overflow-hidden"></div>
           <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
