@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { UserButton } from "@clerk/clerk-react";
 import AssessmentWizard from "./components/AssessmentWizard";
 import Toast from "./components/Toast";
 import Chat, { ChatMessage } from "./components/Chat";
@@ -986,6 +987,22 @@ export default function App() {
               onDeleteArtist={handleDeleteArtist}
               currentArtistName={getCurrentArtistName()}
             />
+            
+            {/* User Profile Button - Clerk */}
+            <div className="flex items-center">
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: 'w-9 h-9',
+                    userButtonPopoverCard: 'bg-surface-900 border border-surface-700',
+                    userButtonPopoverActionButton: 'text-surface-200 hover:bg-surface-800',
+                    userButtonPopoverActionButtonText: 'text-surface-200',
+                    userButtonPopoverFooter: 'hidden',
+                  },
+                }}
+              />
+            </div>
+
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={shareUrl}>Share</button>
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportCSV}>Export CSV</button>
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportJSON}>Export Data</button>
