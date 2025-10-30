@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { UserButton } from "@clerk/clerk-react";
+import { UserButton, OrganizationSwitcher } from "@clerk/clerk-react";
 import AssessmentWizard from "./components/AssessmentWizard";
 import Toast from "./components/Toast";
 import Chat, { ChatMessage } from "./components/Chat";
@@ -979,6 +979,31 @@ export default function App() {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+            {/* Organization Switcher - Team Management */}
+            <OrganizationSwitcher
+              appearance={{
+                elements: {
+                  rootBox: 'flex items-center',
+                  organizationSwitcherTrigger: 'bg-surface-800 border border-surface-600 text-surface-100 hover:bg-surface-700 rounded-lg px-3 py-2 text-sm transition-colors',
+                  organizationSwitcherTriggerIcon: 'text-primary-400',
+                  organizationPreview: 'text-surface-100',
+                  organizationPreviewTextContainer: 'text-surface-100',
+                  organizationPreviewAvatarBox: 'border-primary-600',
+                  organizationSwitcherPopoverCard: 'bg-surface-900 border border-surface-700',
+                  organizationSwitcherPopoverActionButton: 'text-surface-200 hover:bg-surface-800',
+                  organizationSwitcherPopoverActionButtonText: 'text-surface-200',
+                },
+              }}
+              createOrganizationMode="navigation"
+              createOrganizationUrl="/create-organization"
+              organizationProfileMode="navigation"
+              organizationProfileUrl="/organization-profile"
+              afterCreateOrganizationUrl="/"
+              afterSelectOrganizationUrl="/"
+              afterSelectPersonalUrl="/"
+              hidePersonal={false}
+            />
+            
             {/* Artist Switcher - Multi-Artist Management */}
             <ArtistSwitcher
               portfolio={portfolio}

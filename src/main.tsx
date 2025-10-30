@@ -5,6 +5,9 @@ import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react'
 import App from './App'
 import SignInPage from './components/auth/SignInPage'
 import SignUpPage from './components/auth/SignUpPage'
+import { CreateOrganization } from './components/org/CreateOrganization'
+import { OrganizationList } from './components/org/OrganizationList'
+import { OrganizationProfile } from './components/org/OrganizationProfile'
 import SpotifyCallback from './components/SpotifyCallback'
 import './index.css'
 
@@ -27,6 +30,47 @@ const AppRoutes = () => (
       {/* Auth routes - accessible when signed out */}
       <Route path="/sign-in/*" element={<SignInPage />} />
       <Route path="/sign-up/*" element={<SignUpPage />} />
+      
+      {/* Organization routes - protected, requires authentication */}
+      <Route
+        path="/create-organization/*"
+        element={
+          <>
+            <SignedIn>
+              <CreateOrganization />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
+        }
+      />
+      <Route
+        path="/organizations/*"
+        element={
+          <>
+            <SignedIn>
+              <OrganizationList />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
+        }
+      />
+      <Route
+        path="/organization-profile/*"
+        element={
+          <>
+            <SignedIn>
+              <OrganizationProfile />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
+        }
+      />
       
       {/* Spotify callback - always accessible */}
       <Route path="/callback" element={<SpotifyCallback />} />
