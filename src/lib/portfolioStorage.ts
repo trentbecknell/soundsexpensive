@@ -16,6 +16,38 @@ export function loadPortfolio(): Portfolio {
     const portfolioData = localStorage.getItem(PORTFOLIO_KEY);
     if (portfolioData) {
       const portfolio: Portfolio = JSON.parse(portfolioData);
+      
+      // Migrate old artist states - fix lastActiveTab and onboardingComplete
+      let needsSave = false;
+      portfolio.artists = portfolio.artists.map(artist => {
+        let migrated = false;
+        
+        // Fix old catalog-analyzer default
+        if (artist.state.lastActiveTab === 'catalog-analyzer') {
+          artist.state.lastActiveTab = 'roadmap';
+          migrated = true;
+        }
+        
+        // Ensure onboardingComplete is true (assessment is optional)
+        if (artist.state.onboardingComplete === false || artist.state.onboardingComplete === undefined) {
+          artist.state.onboardingComplete = true;
+          migrated = true;
+        }
+        
+        if (migrated) {
+          needsSave = true;
+          artist.lastModified = new Date().toISOString();
+        }
+        
+        return artist;
+      });
+      
+      // Save migrated portfolio
+      if (needsSave) {
+        console.log('🔄 Migrated portfolio artist states to make assessment optional');
+        savePortfolio(portfolio);
+      }
+      
       return portfolio;
     }
 
