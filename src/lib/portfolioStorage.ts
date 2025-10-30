@@ -34,6 +34,12 @@ export function loadPortfolio(): Portfolio {
           migrated = true;
         }
         
+        // Ensure chatPlanningComplete has a value (used for badge display)
+        if (artist.state.chatPlanningComplete === undefined) {
+          artist.state.chatPlanningComplete = false;
+          migrated = true;
+        }
+        
         if (migrated) {
           needsSave = true;
           artist.lastModified = new Date().toISOString();
@@ -44,7 +50,7 @@ export function loadPortfolio(): Portfolio {
       
       // Save migrated portfolio
       if (needsSave) {
-        console.log('🔄 Migrated portfolio artist states to make assessment optional');
+        console.log('🔄 Migrated portfolio: assessment optional, chat planning skipped by default');
         savePortfolio(portfolio);
       }
       

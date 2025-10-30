@@ -476,6 +476,11 @@ export default function App() {
       baseState.lastActiveTab = 'roadmap';
     }
     
+    // Migrate chatComplete - ensure it defaults to true (skip chat planning)
+    if (baseState.chatPlanningComplete === undefined) {
+      baseState.chatPlanningComplete = false;
+    }
+    
     // Initialize assessment from legacy profile if not present
     if (!baseState.assessment) {
       baseState.assessment = convertLegacyProfileToAssessment(baseState);
@@ -485,7 +490,7 @@ export default function App() {
   });
 
   // Chat state for planning (now context-aware based on catalog analysis)
-  const [chatComplete, setChatComplete] = useState(false);
+  const [chatComplete, setChatComplete] = useState(true); // Skip chat planning by default - make it optional
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
     // Initialize with planning-focused messages based on catalog data
     return generatePlanningMessages(app.catalogAnalysisData);
