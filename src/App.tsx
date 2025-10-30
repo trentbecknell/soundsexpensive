@@ -1,5 +1,25 @@
+// Dedicated logout button using Clerk signOut
+function LogoutButton() {
+  const { signOut } = useClerk();
+  return (
+    <button
+      className="ml-2 rounded-lg border border-red-600 px-3 py-2 text-sm text-red-100 hover:bg-red-800/50 transition-colors"
+      onClick={async () => {
+        await signOut();
+        localStorage.removeItem('artist-roadmap-vite-v1');
+        window.location.href = '/soundsexpensive/sign-in';
+      }}
+      title="Log out of this account"
+    >
+      Log out
+    </button>
+  );
+}
 import React, { useEffect, useMemo, useState } from "react";
 import { UserButton, OrganizationSwitcher } from "@clerk/clerk-react";
+import { useClerk } from "@clerk/clerk-react";
+
+
 import AssessmentWizard from "./components/AssessmentWizard";
 import Toast from "./components/Toast";
 import Chat, { ChatMessage } from "./components/Chat";
@@ -1026,6 +1046,8 @@ export default function App() {
                   },
                 }}
               />
+              {/* Explicit Log out button */}
+              <LogoutButton />
             </div>
 
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={shareUrl}>Share</button>
