@@ -27,11 +27,11 @@ import './index.css'
 // Import Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
-// Enable Clerk only in development mode for testing
-const ENABLE_CLERK = import.meta.env.DEV && CLERK_PUBLISHABLE_KEY;
+// Enable Clerk authentication (both dev and production)
+const ENABLE_CLERK = !!CLERK_PUBLISHABLE_KEY;
 
-if (!CLERK_PUBLISHABLE_KEY && import.meta.env.DEV) {
-  console.warn('Missing Clerk Publishable Key. Auth features will not work.')
+if (!CLERK_PUBLISHABLE_KEY) {
+  console.warn('Missing Clerk Publishable Key. Running in anonymous mode.')
   console.warn('Add VITE_CLERK_PUBLISHABLE_KEY to your .env.local file')
   console.warn('See CLERK_SETUP.md for instructions')
 }
