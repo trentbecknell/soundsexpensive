@@ -33,9 +33,7 @@ export default function SignInPage() {
               },
             }}
             routing="hash"
-            signUpUrl="/sign-up"
-            afterSignInUrl="/"
-            afterSignUpUrl="/"
+            signUpUrl="#/sign-up"
           />
         </div>
 
