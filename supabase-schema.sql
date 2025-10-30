@@ -26,11 +26,11 @@ CREATE TABLE IF NOT EXISTS artists (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   created_by TEXT NOT NULL, -- Clerk user ID who created
-  updated_by TEXT NOT NULL, -- Clerk user ID who last updated
-  
-  -- Index for faster queries
-  CONSTRAINT artists_portfolio_id_fkey FOREIGN KEY (portfolio_id) REFERENCES portfolios(id) ON DELETE CASCADE
+  updated_by TEXT NOT NULL -- Clerk user ID who last updated
 );
+
+-- Indexes for faster queries on artists table
+CREATE INDEX IF NOT EXISTS idx_artists_portfolio_id ON artists(portfolio_id);
 
 -- Activity log table - track all changes for team collaboration
 CREATE TABLE IF NOT EXISTS activity_log (
@@ -43,15 +43,12 @@ CREATE TABLE IF NOT EXISTS activity_log (
   entity_id TEXT NOT NULL, -- ID of the entity affected
   entity_name TEXT NOT NULL, -- Name of the entity for display
   details JSONB, -- Additional details about the change
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  
-  CONSTRAINT activity_log_portfolio_id_fkey FOREIGN KEY (portfolio_id) REFERENCES portfolios(id) ON DELETE CASCADE
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_portfolios_user_id ON portfolios(user_id);
 CREATE INDEX IF NOT EXISTS idx_portfolios_org_id ON portfolios(org_id);
-CREATE INDEX IF NOT EXISTS idx_artists_portfolio_id ON artists(portfolio_id);
 CREATE INDEX IF NOT EXISTS idx_activity_log_portfolio_id ON activity_log(portfolio_id);
 CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON activity_log(created_at DESC);
 
