@@ -447,7 +447,7 @@ export default function App() {
       catalogAnalysisComplete: false,
       chatPlanningComplete: false,
       roadmapGenerated: false,
-      lastActiveTab: 'catalog-analyzer', // Start with catalog analyzer
+      lastActiveTab: 'roadmap', // Start at roadmap - assessment is optional
       firstVisitDate: new Date().toISOString(),
       catalogAnalysisData: undefined
     };
@@ -462,11 +462,11 @@ export default function App() {
     if (baseState.onboardingComplete === undefined) {
       // Existing users with data = already onboarded
       const hasExistingData = baseState.profile.artistName || baseState.budget.length > 0;
-      baseState.onboardingComplete = hasExistingData;
+      baseState.onboardingComplete = true; // Always allow free navigation
       baseState.catalogAnalysisComplete = false;
       baseState.chatPlanningComplete = hasExistingData; // If they have data, they've done planning
       baseState.roadmapGenerated = hasExistingData;
-      baseState.lastActiveTab = hasExistingData ? 'roadmap' : 'catalog-analyzer';
+      baseState.lastActiveTab = 'roadmap'; // Always start at roadmap - assessment is optional
       baseState.firstVisitDate = new Date().toISOString();
       baseState.catalogAnalysisData = undefined;
     }
@@ -849,11 +849,11 @@ export default function App() {
       assessment: convertLegacyProfileToAssessment({ profile: DEFAULT_PROFILE, project: DEFAULT_PROJECT }),
       savedGrants: [],
       grantApplications: [],
-      onboardingComplete: false,
+      onboardingComplete: true, // Allow free navigation - assessment is optional
       catalogAnalysisComplete: false,
       chatPlanningComplete: false,
       roadmapGenerated: false,
-      lastActiveTab: 'catalog-analyzer' as const,
+      lastActiveTab: 'roadmap' as const, // Start at roadmap, not forced assessment
       firstVisitDate: new Date().toISOString(),
       catalogAnalysisData: undefined
     };
@@ -872,11 +872,11 @@ export default function App() {
       assessment: convertLegacyProfileToAssessment({ profile: DEFAULT_PROFILE, project: DEFAULT_PROJECT }),
       savedGrants: [],
       grantApplications: [],
-      onboardingComplete: false,
+      onboardingComplete: true, // Allow free navigation - assessment is optional
       catalogAnalysisComplete: false,
       chatPlanningComplete: false,
       roadmapGenerated: false,
-      lastActiveTab: 'catalog-analyzer' as const,
+      lastActiveTab: 'roadmap' as const, // Start at roadmap, not forced assessment
       firstVisitDate: new Date().toISOString(),
       catalogAnalysisData: undefined
     };
@@ -1085,7 +1085,12 @@ export default function App() {
             </label>
             <button
               className="rounded-lg border border-red-600 px-3 py-2 text-sm text-red-100 hover:bg-red-800/50 transition-colors"
-              onClick={() => { localStorage.removeItem('artist-roadmap-vite-v1'); window.location.reload(); }}
+              onClick={() => { 
+                if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                  localStorage.removeItem('artist-roadmap-vite-v1'); 
+                  reset(); // Use reset function to set proper defaults
+                }
+              }}
             >
               Clear All Data
             </button>
