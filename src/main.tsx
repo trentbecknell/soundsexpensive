@@ -15,6 +15,7 @@ function ClerkLoader({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 import App from './App'
+import AuthenticatedApp from './components/AuthenticatedApp'
 import SignInPage from './components/auth/SignInPage'
 import SignUpPage from './components/auth/SignUpPage'
 import { CreateOrganization } from './components/org/CreateOrganization'
@@ -45,8 +46,8 @@ const AppRoutes = () => (
       {/* Spotify callback - always accessible */}
       <Route path="/callback" element={<SpotifyCallback />} />
       
-      {/* Main app - accessible to all when Clerk is disabled */}
-      <Route path="/*" element={<App />} />
+      {/* Main app - uses AuthenticatedApp wrapper for future auth support */}
+      <Route path="/*" element={<AuthenticatedApp />} />
     </Routes>
   </HashRouter>
 );

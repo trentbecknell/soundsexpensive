@@ -3,14 +3,34 @@
 
 import { Portfolio, DEFAULT_PORTFOLIO, ArtistRecord, createArtistRecord } from '../types/portfolio';
 
-const PORTFOLIO_KEY = 'artist-roadmap-portfolio';
-const LEGACY_KEY = 'artist-roadmap-vite-v1';
+/**
+ * Get user-scoped localStorage key
+ * If no userId provided, uses 'anonymous' for backward compatibility
+ */
+export function getPortfolioKey(userId?: string): string {
+  const id = userId || 'anonymous';
+  return `artist-roadmap-portfolio-${id}`;
+}
+
+export function getLegacyKey(userId?: string): string {
+  const id = userId || 'anonymous';
+  // Legacy key didn't have user scoping, so only anonymous users have it
+  return id === 'anonymous' ? 'artist-roadmap-vite-v1' : `artist-roadmap-vite-v1-${id}`;
+}
+
+// Backward compatibility: Check for old non-scoped keys
+const PORTFOLIO_KEY_OLD = 'artist-roadmap-portfolio';
+const LEGACY_KEY_OLD = 'artist-roadmap-vite-v1';
 
 /**
  * Load portfolio from localStorage
  * Handles migration from legacy single-artist format
+ * @param userId - Optional Clerk user ID for scoping data
  */
-export function loadPortfolio(): Portfolio {
+export function loadPortfolio(userId?: string): Portfolio {
+  const PORTFOLIO_KEY = getPortfolioKey(userId);
+  const LEGACY_KEY = getLegacyKey(userId);
+  
   try {
     // First, check for existing portfolio
     const portfolioData = localStorage.getItem(PORTFOLIO_KEY);
@@ -51,7 +71,7 @@ export function loadPortfolio(): Portfolio {
       // Save migrated portfolio
       if (needsSave) {
         console.log('🔄 Migrated portfolio: assessment optional, chat planning skipped by default');
-        savePortfolio(portfolio);
+        savePortfolio(portfolio, userId);
       }
       
       return portfolio;
@@ -72,7 +92,7 @@ export function loadPortfolio(): Portfolio {
       };
       
       // Save migrated portfolio
-      savePortfolio(newPortfolio);
+      savePortfolio(newPortfolio, userId);
       
       // Keep legacy data for safety (user can clear it manually)
       console.log('✅ Migration complete! Legacy data preserved as backup.');
@@ -90,8 +110,12 @@ export function loadPortfolio(): Portfolio {
 
 /**
  * Save portfolio to localStorage
+ * @param portfolio - Portfolio to save
+ * @param userId - Optional Clerk user ID for scoping data
  */
-export function savePortfolio(portfolio: Portfolio): void {
+export function savePortfolio(portfolio: Portfolio, userId?: string): void {
+  const PORTFOLIO_KEY = getPortfolioKey(userId);
+  
   try {
     portfolio.lastSync = new Date().toISOString();
     localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(portfolio));
@@ -262,8 +286,18 @@ export function importPortfolio(jsonString: string): Portfolio {
 
 /**
  * Clear all portfolio data (dangerous!)
+ * @param userId - Optional Clerk user ID for scoping data
  */
-export function clearAllData(): void {
+export function clearAllData(userId?: string): void {
+  const PORTFOLIO_KEY = getPortfolioKey(userId);
+  const LEGACY_KEY = getLegacyKey(userId);
+  
   localStorage.removeItem(PORTFOLIO_KEY);
   localStorage.removeItem(LEGACY_KEY);
+  
+  // Also clear old non-scoped keys if this is anonymous user
+  if (!userId || userId === 'anonymous') {
+    localStorage.removeItem(PORTFOLIO_KEY_OLD);
+    localStorage.removeItem(LEGACY_KEY_OLD);
+  }
 }

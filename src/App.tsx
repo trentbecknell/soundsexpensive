@@ -400,12 +400,16 @@ function decodeStateFromUrl(): AppState | null {
   } catch { return null; }
 }
 
-export default function App() {
+export interface AppProps {
+  userId?: string; // Clerk user ID for data scoping (undefined = anonymous)
+}
+
+export default function App({ userId }: AppProps = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   
   // Portfolio Management - Multi-Artist Support
-  const [portfolio, setPortfolio] = useState<Portfolio>(() => loadPortfolio());
+  const [portfolio, setPortfolio] = useState<Portfolio>(() => loadPortfolio(userId));
   
   // Get current active artist state
   const activeArtistRecord = getActiveArtist(portfolio);
@@ -695,14 +699,14 @@ export default function App() {
     if (portfolio.activeArtistId) {
       const updatedPortfolio = updateArtist(portfolio, portfolio.activeArtistId, app);
       setPortfolio(updatedPortfolio);
-      savePortfolio(updatedPortfolio);
+      savePortfolio(updatedPortfolio, userId);
     }
-  }, [app]);
+  }, [app, userId]);
   
   // Save portfolio when it changes (but not when triggered by app state change)
   useEffect(() => {
-    savePortfolio(portfolio);
-  }, [portfolio.artists.length, portfolio.activeArtistId, portfolio.settings]);
+    savePortfolio(portfolio, userId);
+  }, [portfolio.artists.length, portfolio.activeArtistId, portfolio.settings, userId]);
 
   // wizard visibility
   const [showWizard, setShowWizard] = useState(false);
