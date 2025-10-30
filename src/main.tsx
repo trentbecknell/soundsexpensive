@@ -27,10 +27,10 @@ import './index.css'
 // Import Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
-// TEMPORARY: Disable Clerk auth until flow is fixed
-const ENABLE_CLERK = false;
+// Enable Clerk only in development mode for testing
+const ENABLE_CLERK = import.meta.env.DEV && CLERK_PUBLISHABLE_KEY;
 
-if (!CLERK_PUBLISHABLE_KEY && ENABLE_CLERK) {
+if (!CLERK_PUBLISHABLE_KEY && import.meta.env.DEV) {
   console.warn('Missing Clerk Publishable Key. Auth features will not work.')
   console.warn('Add VITE_CLERK_PUBLISHABLE_KEY to your .env.local file')
   console.warn('See CLERK_SETUP.md for instructions')
@@ -40,13 +40,51 @@ if (!CLERK_PUBLISHABLE_KEY && ENABLE_CLERK) {
 const isSpotifyCallback = window.location.pathname.includes('/callback') || 
                           (window.location.search.includes('code=') && window.location.search.includes('state='));
 
-const AppRoutes = () => (
+const AppRoutesWithAuth = () => (
+  <HashRouter>
+    <Routes>
+      {/* Auth routes */}
+      <Route path="/sign-in/*" element={<SignInPage />} />
+      <Route path="/sign-up/*" element={<SignUpPage />} />
+      
+      {/* Organization routes */}
+      <Route path="/create-organization" element={<CreateOrganization />} />
+      <Route path="/organizations" element={<OrganizationList />} />
+      <Route path="/organization-profile" element={<OrganizationProfile />} />
+      
+      {/* Spotify callback - always accessible */}
+      <Route path="/callback" element={<SpotifyCallback />} />
+      
+      {/* Main app - requires authentication */}
+      <Route 
+        path="/*" 
+        element={
+          <SignedIn>
+            <AuthenticatedApp />
+          </SignedIn>
+        } 
+      />
+      
+      {/* Redirect unauthenticated users to sign-in */}
+      <Route 
+        path="/" 
+        element={
+          <SignedOut>
+            <Navigate to="/sign-in" replace />
+          </SignedOut>
+        }
+      />
+    </Routes>
+  </HashRouter>
+);
+
+const AppRoutesWithoutAuth = () => (
   <HashRouter>
     <Routes>
       {/* Spotify callback - always accessible */}
       <Route path="/callback" element={<SpotifyCallback />} />
       
-      {/* Main app - uses AuthenticatedApp wrapper for future auth support */}
+      {/* Main app - no auth required (anonymous mode) */}
       <Route path="/*" element={<AuthenticatedApp />} />
     </Routes>
   </HashRouter>
@@ -54,16 +92,17 @@ const AppRoutes = () => (
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    {CLERK_PUBLISHABLE_KEY && ENABLE_CLERK ? (
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+    {ENABLE_CLERK ? (
+      // Clerk authentication enabled (dev mode only)
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!}>
         <ClerkLoader>
-          {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutes />}
+          {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutesWithAuth />}
         </ClerkLoader>
       </ClerkProvider>
     ) : (
-      // Run without auth
+      // Anonymous mode (production and dev without Clerk key)
       <>
-        {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutes />}
+        {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutesWithoutAuth />}
       </>
     )}
   </React.StrictMode>
