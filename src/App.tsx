@@ -8,6 +8,10 @@ import MixAnalyzer from "./components/MixAnalyzer";
 import CatalogAnalyzer from "./components/CatalogAnalyzer";
 import OnboardingWelcome from "./components/OnboardingWelcome";
 import WelcomeBackDashboard from "./components/WelcomeBackDashboard";
+import ArtistSwitcher from "./components/ArtistSwitcher";
+import PortfolioDashboard from "./components/PortfolioDashboard";
+import ArtistComparisonView from "./components/ArtistComparisonView";
+import PortfolioAnalytics from "./components/PortfolioAnalytics";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
@@ -16,6 +20,16 @@ import { GrantOpportunity, GrantApplication, ApplicationStatus } from './types/g
 import { GRANT_OPPORTUNITIES } from './data/grants';
 import { CatalogAnalysisResult } from './types/catalogAnalysis';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LineChart, Line } from "recharts";
+import { Portfolio, ArtistRecord, createArtistRecord } from './types/portfolio';
+import { 
+  loadPortfolio, 
+  savePortfolio, 
+  getActiveArtist, 
+  addArtist, 
+  updateArtist, 
+  switchActiveArtist,
+  deleteArtist 
+} from './lib/portfolioStorage';
 
 import computeStageFromScores, { Stage } from "./lib/computeStage";
 type PhaseKey = "Discovery" | "Pre‑Production" | "Production" | "Post‑Production" | "Release" | "Growth";
@@ -361,7 +375,19 @@ function decodeStateFromUrl(): AppState | null {
 }
 
 export default function App() {
+  // Portfolio Management - Multi-Artist Support
+  const [portfolio, setPortfolio] = useState<Portfolio>(() => loadPortfolio());
+  
+  // Get current active artist state
+  const activeArtistRecord = getActiveArtist(portfolio);
+  
   const [app, setApp] = useState<AppState>(() => {
+    // If we have an active artist in portfolio, use their state
+    if (activeArtistRecord) {
+      return activeArtistRecord.state;
+    }
+    
+    // Otherwise, check URL state or create new
     // First check URL state
     const fromUrl = decodeStateFromUrl(); 
     if (fromUrl) {
@@ -444,9 +470,14 @@ export default function App() {
   });
   
   // Navigation state - use last active tab from app state
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer'>(() => {
-    return app.lastActiveTab as 'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer';
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio'>(() => {
+    return app.lastActiveTab as 'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio';
   });
+
+  // Artist comparison state
+  const [showComparison, setShowComparison] = useState(false);
+  const [comparisonArtistIds, setComparisonArtistIds] = useState<string[]>([]);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   
   // Update lastActiveTab in app state when tab changes
   useEffect(() => {
@@ -599,7 +630,23 @@ export default function App() {
     setActiveTab('roadmap');
   };
 
-  useEffect(()=> { localStorage.setItem(LS_KEY, JSON.stringify(app)); }, [app]);
+  // Auto-save: Update portfolio when app state changes
+  useEffect(() => {
+    // Legacy single-artist save (keep for backward compatibility)
+    localStorage.setItem(LS_KEY, JSON.stringify(app));
+    
+    // Portfolio multi-artist save
+    if (portfolio.activeArtistId) {
+      const updatedPortfolio = updateArtist(portfolio, portfolio.activeArtistId, app);
+      setPortfolio(updatedPortfolio);
+      savePortfolio(updatedPortfolio);
+    }
+  }, [app]);
+  
+  // Save portfolio when it changes (but not when triggered by app state change)
+  useEffect(() => {
+    savePortfolio(portfolio);
+  }, [portfolio.artists.length, portfolio.activeArtistId, portfolio.settings]);
 
   // wizard visibility
   const [showWizard, setShowWizard] = useState(false);
@@ -768,6 +815,112 @@ export default function App() {
     window.history.replaceState({}, "", window.location.pathname); 
   };
 
+  // Multi-Artist Management Functions
+  const handleNewArtist = () => {
+    // Create new artist with default state
+    const newState = { 
+      profile: DEFAULT_PROFILE, 
+      project: DEFAULT_PROJECT, 
+      budget: BUDGET_PRESETS(DEFAULT_PROJECT.units), 
+      tasks: DEFAULT_TASKS(DEFAULT_PROJECT.units),
+      assessment: convertLegacyProfileToAssessment({ profile: DEFAULT_PROFILE, project: DEFAULT_PROJECT }),
+      savedGrants: [],
+      grantApplications: [],
+      onboardingComplete: false,
+      catalogAnalysisComplete: false,
+      chatPlanningComplete: false,
+      roadmapGenerated: false,
+      lastActiveTab: 'catalog-analyzer' as const,
+      firstVisitDate: new Date().toISOString(),
+      catalogAnalysisData: undefined
+    };
+    
+    // Add to portfolio and switch to it
+    const updatedPortfolio = addArtist(portfolio, newState);
+    setPortfolio(updatedPortfolio);
+    setApp(newState);
+    
+    // Reset chat and UI state for new artist
+    setShowWelcomeBack(false);
+    setChatComplete(false);
+    setChatMessages(generatePlanningMessages(undefined));
+    setChatProgress({ personality: 0, sonics: 0, total: 0, detailedAnalysis: { personality: {}, sonics: {} } });
+    setActiveTab('catalog-analyzer');
+    
+    pushToast('New artist created');
+  };
+
+  const handleSwitchArtist = (artistId: string) => {
+    const updatedPortfolio = switchActiveArtist(portfolio, artistId);
+    setPortfolio(updatedPortfolio);
+    
+    const artist = updatedPortfolio.artists.find(a => a.id === artistId);
+    if (artist) {
+      setApp(artist.state);
+      
+      // Reset UI state for switched artist
+      setShowWelcomeBack(artist.state.onboardingComplete && (artist.state.catalogAnalysisComplete || artist.state.roadmapGenerated));
+      setChatComplete(artist.state.chatPlanningComplete);
+      setChatMessages(generatePlanningMessages(artist.state.catalogAnalysisData));
+      setActiveTab((artist.state.lastActiveTab || 'catalog-analyzer') as any);
+      
+      pushToast(`Switched to ${artist.profile.artistName || 'Unnamed Artist'}`);
+    }
+  };
+
+  const handleDeleteArtist = (artistId: string) => {
+    const artistToDelete = portfolio.artists.find(a => a.id === artistId);
+    if (!artistToDelete) return;
+    
+    const confirmDelete = window.confirm(
+      `Delete ${artistToDelete.profile.artistName || 'Unnamed Artist'}?\n\n` +
+      `This will permanently remove all data for this artist. This action cannot be undone.`
+    );
+    
+    if (confirmDelete) {
+      const updatedPortfolio = deleteArtist(portfolio, artistId);
+      setPortfolio(updatedPortfolio);
+      
+      // If we deleted the active artist, load the new active one
+      if (artistId === portfolio.activeArtistId) {
+        const newActive = getActiveArtist(updatedPortfolio);
+        if (newActive) {
+          setApp(newActive.state);
+          setShowWelcomeBack(newActive.state.onboardingComplete && (newActive.state.catalogAnalysisComplete || newActive.state.roadmapGenerated));
+          setChatComplete(newActive.state.chatPlanningComplete);
+          setChatMessages(generatePlanningMessages(newActive.state.catalogAnalysisData));
+          setActiveTab((newActive.state.lastActiveTab || 'catalog-analyzer') as any);
+        } else {
+          // No artists left, create a new one
+          handleNewArtist();
+        }
+      }
+      
+      pushToast(`Deleted ${artistToDelete.profile.artistName || 'Unnamed Artist'}`);
+    }
+  };
+
+  const getArtistCount = () => portfolio.artists.length;
+  const getCurrentArtistName = () => {
+    if (activeArtistRecord) {
+      return activeArtistRecord.profile.artistName || 'Unnamed Artist';
+    }
+    return app.profile.artistName || 'Unnamed Artist';
+  };
+
+  const handleCompareArtists = (artistIds: string[]) => {
+    setComparisonArtistIds(artistIds);
+    setShowComparison(true);
+  };
+
+  const handleRemoveFromComparison = (artistId: string) => {
+    const updatedIds = comparisonArtistIds.filter(id => id !== artistId);
+    setComparisonArtistIds(updatedIds);
+    if (updatedIds.length < 2) {
+      setShowComparison(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen w-full">
       {/* Global studio background (color-only) */}
@@ -818,11 +971,21 @@ export default function App() {
         <header className="mb-6 relative overflow-hidden rounded-2xl border border-surface-700 p-5 banner-studio">
           <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-surface-900/60 via-surface-900/40 to-transparent"></div>
           <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-surface-50">Artist Roadmap <span className="text-surface-400">PRO</span></h1>
-              <p className="text-sm text-surface-300">Professional A&R tool for baseline assessment, strategic planning, and career development.</p>
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight text-surface-50">Artist Roadmap <span className="text-surface-300">PRO</span></h1>
+                <p className="text-sm text-surface-300">Professional A&R tool for baseline assessment, strategic planning, and career development.</p>
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+            {/* Artist Switcher - Multi-Artist Management */}
+            <ArtistSwitcher
+              portfolio={portfolio}
+              onSwitchArtist={handleSwitchArtist}
+              onNewArtist={handleNewArtist}
+              onDeleteArtist={handleDeleteArtist}
+              currentArtistName={getCurrentArtistName()}
+            />
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={shareUrl}>Share</button>
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportCSV}>Export CSV</button>
             <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50 transition-colors" onClick={exportJSON}>Export Data</button>
@@ -830,7 +993,6 @@ export default function App() {
               Import Data
               <input type="file" accept="application/json" className="hidden" onChange={e => e.target.files && importJSON(e.target.files[0])}/>
             </label>
-            <button className="rounded-lg border border-accent-600 px-3 py-2 text-sm text-accent-100 hover:bg-accent-800/50 transition-colors" onClick={reset}>New Artist</button>
             <button
               className="rounded-lg border border-red-600 px-3 py-2 text-sm text-red-100 hover:bg-red-800/50 transition-colors"
               onClick={() => { localStorage.removeItem('artist-roadmap-vite-v1'); window.location.reload(); }}
@@ -852,7 +1014,7 @@ export default function App() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <h2 className="text-lg md:text-xl font-semibold text-surface-50">Strategic Planning</h2>
-                    <p className="text-xs md:text-sm text-surface-400 mt-1">
+                    <p className="text-xs md:text-sm text-surface-200 mt-1">
                       {app.catalogAnalysisComplete 
                         ? 'Based on your catalog analysis, let\'s create a data-driven release plan' 
                         : 'Share your goals and constraints to build a customized project roadmap'}
@@ -866,7 +1028,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={completeChatPhase}
-                      className="hidden md:flex text-sm text-surface-500 hover:text-surface-300 px-3 py-2 rounded-lg hover:bg-surface-700/50 transition-colors items-center gap-1"
+                      className="hidden md:flex text-sm text-surface-300 hover:text-surface-200 px-3 py-2 rounded-lg hover:bg-surface-700/50 transition-colors items-center gap-1"
                       title="Skip to roadmap generation"
                     >
                       Skip
@@ -879,7 +1041,7 @@ export default function App() {
                 {/* Mobile skip button - Always visible */}
                 <button
                   onClick={completeChatPhase}
-                  className="md:hidden mt-3 w-full text-center text-sm text-surface-500 hover:text-surface-300 py-2.5 rounded-lg hover:bg-surface-700/50 transition-colors border border-surface-700/50"
+                  className="md:hidden mt-3 w-full text-center text-sm text-surface-300 hover:text-surface-200 py-2.5 rounded-lg hover:bg-surface-700/50 transition-colors border border-surface-700/50"
                   title="Skip to roadmap generation"
                 >
                   Skip to roadmap →
@@ -901,7 +1063,7 @@ export default function App() {
                 <div className="hidden md:flex md:w-72 lg:w-80 bg-surface-800/50 rounded-xl border border-surface-700/50 p-4 flex-col flex-shrink-0 max-h-full overflow-y-auto">
                   <div className="mb-3">
                     <h3 className="text-sm font-semibold text-surface-200 mb-1">Quick Topics</h3>
-                    <p className="text-xs text-surface-400">Click to add</p>
+                    <p className="text-xs text-surface-300">Click to add</p>
                   </div>
                   
                   {/* Simplified suggestion list - Top 8 most useful */}
@@ -919,7 +1081,7 @@ export default function App() {
 
                   {/* Compact Progress Summary */}
                   <div className="mt-4 pt-3 border-t border-surface-700/50">
-                    <div className="text-xs text-surface-400 mb-2">
+                    <div className="text-xs text-surface-300 mb-2">
                       Progress: <span className="text-primary-400 font-semibold">{chatProgress.total} / 3</span>
                     </div>
                     <div className="w-full bg-surface-700 rounded-full h-1.5">
@@ -938,7 +1100,7 @@ export default function App() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-sm font-medium text-primary-200">Planning Complete</div>
-                      <div className="text-xs text-surface-400 mt-0.5">Ready to generate your strategic roadmap</div>
+                      <div className="text-xs text-surface-200 mt-0.5">Ready to generate your strategic roadmap</div>
                     </div>
                     <button
                       onClick={completeChatPhase}
@@ -1078,6 +1240,23 @@ export default function App() {
                     </span>
                   )}
                 </button>
+
+                {/* Portfolio View - Multi-artist management */}
+                {portfolio.artists.length > 1 && (
+                  <button
+                    onClick={() => setActiveTab('portfolio')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      activeTab === 'portfolio'
+                        ? 'bg-primary-600 text-primary-50'
+                        : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                    }`}
+                  >
+                    👥 Portfolio
+                    <span className="ml-1 px-1.5 py-0.5 bg-purple-500/30 text-purple-200 rounded text-xs">
+                      {portfolio.artists.length}
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1136,6 +1315,33 @@ export default function App() {
               />
             )}
 
+            {activeTab === 'portfolio' && !showComparison && !showAnalytics && (
+              <PortfolioDashboard
+                portfolio={portfolio}
+                onSelectArtist={handleSwitchArtist}
+                onNewArtist={handleNewArtist}
+                onDeleteArtist={handleDeleteArtist}
+                onClose={() => setActiveTab('roadmap')}
+                onCompareArtists={handleCompareArtists}
+                onShowAnalytics={() => setShowAnalytics(true)}
+              />
+            )}
+
+            {activeTab === 'portfolio' && showComparison && (
+              <ArtistComparisonView
+                artists={comparisonArtistIds.map(id => portfolio.artists.find(a => a.id === id)!).filter(Boolean)}
+                onClose={() => setShowComparison(false)}
+                onRemoveArtist={handleRemoveFromComparison}
+              />
+            )}
+
+            {activeTab === 'portfolio' && showAnalytics && (
+              <PortfolioAnalytics
+                portfolio={portfolio}
+                onClose={() => setShowAnalytics(false)}
+              />
+            )}
+
             {activeTab === 'roadmap' && (
               <>
             {/* Smart Roadmap Banner */}
@@ -1155,23 +1361,23 @@ export default function App() {
                     </p>
                     <div className="mt-4 flex flex-wrap gap-3 text-sm">
                       <div className="px-3 py-1.5 rounded-lg bg-surface-800/50 border border-surface-700">
-                        <span className="text-surface-400">Project: </span>
+                        <span className="text-surface-300">Project: </span>
                         <span className="text-surface-100 font-medium">{app.project.projectType}</span>
                       </div>
                       <div className="px-3 py-1.5 rounded-lg bg-surface-800/50 border border-surface-700">
-                        <span className="text-surface-400">Tracks: </span>
+                        <span className="text-surface-300">Tracks: </span>
                         <span className="text-surface-100 font-medium">{app.project.units}</span>
                       </div>
                       <div className="px-3 py-1.5 rounded-lg bg-surface-800/50 border border-surface-700">
-                        <span className="text-surface-400">Timeline: </span>
+                        <span className="text-surface-300">Timeline: </span>
                         <span className="text-surface-100 font-medium">{app.project.targetWeeks} weeks</span>
                       </div>
                       <div className="px-3 py-1.5 rounded-lg bg-surface-800/50 border border-surface-700">
-                        <span className="text-surface-400">Est. Budget: </span>
+                        <span className="text-surface-300">Est. Budget: </span>
                         <span className="text-surface-100 font-medium">{currency(totals.grand)}</span>
                       </div>
                     </div>
-                    <p className="mt-3 text-xs text-surface-400">
+                    <p className="mt-3 text-xs text-surface-200">
                       💡 These are smart defaults based on your data. Feel free to customize below!
                     </p>
                   </div>
@@ -1196,7 +1402,7 @@ export default function App() {
                     </div>
                     {app.assessment.identity.subgenres_tags && app.assessment.identity.subgenres_tags.length > 0 && (
                       <div className="mt-2">
-                        <div className="text-xs text-surface-400 mb-1">Subgenres:</div>
+                        <div className="text-xs text-surface-300 mb-1">Subgenres:</div>
                         {app.assessment.identity.subgenres_tags.map(tag => (
                           <span key={tag} className="inline-block bg-surface-700 text-surface-300 px-2 py-1 rounded text-xs mr-1">
                             {tag}
@@ -1213,19 +1419,19 @@ export default function App() {
                       {app.assessment.audio_profile && (
                         <>
                           <div className="flex justify-between">
-                            <span className="text-surface-400">Tempo:</span>
+                            <span className="text-surface-300">Tempo:</span>
                             <span className="text-surface-200">{Math.round(app.assessment.audio_profile.tempo_bpm)} BPM</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-surface-400">Danceability:</span>
+                            <span className="text-surface-300">Danceability:</span>
                             <span className="text-surface-200">{Math.round(app.assessment.audio_profile.danceability * 100)}%</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-surface-400">Energy:</span>
+                            <span className="text-surface-300">Energy:</span>
                             <span className="text-surface-200">{Math.round(app.assessment.audio_profile.energy * 100)}%</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-surface-400">Valence:</span>
+                            <span className="text-surface-300">Valence:</span>
                             <span className="text-surface-200">{Math.round(app.assessment.audio_profile.valence * 100)}%</span>
                           </div>
                         </>
@@ -1244,7 +1450,7 @@ export default function App() {
                       return (
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <div className="text-xs text-surface-400">Market Fit:</div>
+                            <div className="text-xs text-surface-300">Market Fit:</div>
                             <div className={`text-xs font-medium ${
                               probability > 0.7 ? 'text-green-400' : 
                               probability > 0.5 ? 'text-yellow-400' : 'text-red-400'
@@ -1255,7 +1461,7 @@ export default function App() {
                           
                           {recommendations.length > 0 && (
                             <div className="mt-2">
-                              <div className="text-xs text-surface-400 mb-1">Top Recommendation:</div>
+                              <div className="text-xs text-surface-300 mb-1">Top Recommendation:</div>
                               <div className="text-xs text-surface-200 bg-surface-700/50 p-2 rounded">
                                 {recommendations[0]}
                               </div>
@@ -1280,7 +1486,7 @@ export default function App() {
                     </div>
                     {app.assessment.brand_narrative.positioning && (
                       <div className="mt-3">
-                        <div className="text-xs text-surface-400 mb-1">Positioning:</div>
+                        <div className="text-xs text-surface-300 mb-1">Positioning:</div>
                         <div className="text-sm text-surface-200 italic">"{app.assessment.brand_narrative.positioning}"</div>
                       </div>
                     )}
@@ -1315,7 +1521,7 @@ export default function App() {
               <div className="mb-3 flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-semibold">Maturity self‑assessment</h3>
-                  <p className="text-xs text-surface-400 mt-0.5">Optional — used to calibrate timelines and budgets</p>
+                  <p className="text-xs text-surface-200 mt-0.5">Optional — used to calibrate timelines and budgets</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1 rounded-md bg-surface-700/60 px-2 py-1 text-xs text-surface-200 border border-surface-600">

@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> Non‑technical user notes (latest v1.3.3): You can now manage multiple artists, compare 2–3 side‑by‑side, see portfolio‑wide analytics, and bulk select/export/delete. Existing single‑artist projects are migrated automatically—no setup required.
+
+## [1.3.3] - 2025-10-30
+
+### 🚀 Major Release: Multi‑Artist Portfolio Management
+
+Briefly: Manage 20+ artists in one place. Compare artists with radar charts and a readiness score, view portfolio analytics (quality, genre, stage, top performers), and run bulk actions (export/delete). Backward compatible—no data loss.
+
+#### Highlights
+- Portfolio dashboard with search, filter, sort, grid/list views
+- Artist comparison (2–3 artists): radar charts + investment readiness scoring
+- Portfolio analytics: quality distribution, genre and stage breakdowns, top performers
+- Bulk operations: select all, export selected to JSON, delete with confirmation
+- Portfolio tab appears automatically when you have 2+ artists
+
+#### Migration & Compatibility
+- Automatic migration from single‑artist data to portfolio format
+- No breaking changes; existing workflows unchanged for single‑artist users
+
+#### Learn More
+- Release notes: `RELEASE_NOTES_v1.3.3.md`
+- Release summary: `RELEASE_SUMMARY_v1.3.3.md`
+
 ## [1.3.2] - 2025-10-29
 
 ### 🎨 Major Release: Mobile UX & Light Theme

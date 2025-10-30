@@ -52,7 +52,7 @@ export default function WelcomeBackDashboard({
           <div className="rounded-2xl border border-surface-700 bg-surface-800/50 p-6 backdrop-blur">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <div className="text-sm text-surface-400 mb-1">Catalog Analysis</div>
+                <div className="text-sm text-surface-300 mb-1">Catalog Analysis</div>
                 <div className="text-2xl font-bold text-surface-50">
                   {catalogAnalysisData ? (
                     <span className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default function WelcomeBackDashboard({
                       {catalogAnalysisData.total_tracks} tracks
                     </span>
                   ) : (
-                    <span className="text-surface-500">Not yet</span>
+                    <span className="text-surface-300">Not yet</span>
                   )}
                 </div>
               </div>
@@ -73,15 +73,15 @@ export default function WelcomeBackDashboard({
             {catalogAnalysisData && (
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-surface-400">Avg Score:</span>
+                  <span className="text-surface-300">Avg Score:</span>
                   <span className="text-surface-200 font-medium">{catalogAnalysisData.average_score.toFixed(0)}/100</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-surface-400">Consistency:</span>
+                  <span className="text-surface-300">Consistency:</span>
                   <span className="text-surface-200 font-medium">{catalogAnalysisData.sonic_identity.consistency_score.toFixed(0)}%</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-surface-400">Trend:</span>
+                  <span className="text-surface-300">Trend:</span>
                   <span className={`font-medium ${
                     catalogAnalysisData.score_trend === 'improving' ? 'text-green-400' :
                     catalogAnalysisData.score_trend === 'declining' ? 'text-orange-400' :
@@ -100,7 +100,7 @@ export default function WelcomeBackDashboard({
           <div className="rounded-2xl border border-surface-700 bg-surface-800/50 p-6 backdrop-blur">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <div className="text-sm text-surface-400 mb-1">Project Roadmap</div>
+                <div className="text-sm text-surface-300 mb-1">Project Roadmap</div>
                 <div className="text-2xl font-bold text-surface-50">
                   {roadmapGenerated ? (
                     <span className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export default function WelcomeBackDashboard({
                       {projectType}
                     </span>
                   ) : (
-                    <span className="text-surface-500">Not set</span>
+                    <span className="text-surface-300">Not set</span>
                   )}
                 </div>
               </div>
@@ -119,11 +119,11 @@ export default function WelcomeBackDashboard({
             {roadmapGenerated && (
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-surface-400">Tracks:</span>
+                  <span className="text-surface-300">Tracks:</span>
                   <span className="text-surface-200 font-medium">{projectUnits}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-surface-400">Status:</span>
+                  <span className="text-surface-300">Status:</span>
                   <span className="text-accent-300 font-medium">In Progress</span>
                 </div>
               </div>
@@ -134,14 +134,14 @@ export default function WelcomeBackDashboard({
           <div className="rounded-2xl border border-surface-700 bg-surface-800/50 p-6 backdrop-blur">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <div className="text-sm text-surface-400 mb-1">Grant Opportunities</div>
+                <div className="text-sm text-surface-300 mb-1">Grant Opportunities</div>
                 <div className="text-2xl font-bold text-surface-50">
                   {savedGrantsCount > 0 ? (
                     <span className="flex items-center gap-2">
                       {savedGrantsCount} saved
                     </span>
                   ) : (
-                    <span className="text-surface-500">Explore</span>
+                    <span className="text-surface-300">Explore</span>
                   )}
                 </div>
               </div>
@@ -153,12 +153,12 @@ export default function WelcomeBackDashboard({
             </div>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
-                <span className="text-surface-400">Applications:</span>
+                <span className="text-surface-300">Applications:</span>
                 <span className="text-surface-200 font-medium">{applicationsCount}</span>
               </div>
               {savedGrantsCount > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-surface-400">Status:</span>
+                  <span className="text-surface-300">Status:</span>
                   <span className="text-green-300 font-medium">Active</span>
                 </div>
               )}
@@ -191,7 +191,7 @@ export default function WelcomeBackDashboard({
               <h3 className="text-lg font-semibold text-surface-100 mb-2 group-hover:text-primary-200 transition-colors">
                 Continue Session
               </h3>
-              <p className="text-sm text-surface-400">
+              <p className="text-sm text-surface-200">
                 Resume artist development planning from last checkpoint
               </p>
             </button>
@@ -209,7 +209,7 @@ export default function WelcomeBackDashboard({
               <h3 className="text-lg font-semibold text-surface-100 mb-2 group-hover:text-accent-200 transition-colors">
                 {roadmapGenerated ? 'View Roadmap' : 'Generate Roadmap'}
               </h3>
-              <p className="text-sm text-surface-400">
+              <p className="text-sm text-surface-200">
                 {roadmapGenerated 
                   ? 'Review timeline, budget, and tasks'
                   : 'Start planning your next release'}
@@ -225,7 +225,7 @@ export default function WelcomeBackDashboard({
               <h3 className="text-lg font-semibold text-surface-100 mb-2 group-hover:text-primary-200 transition-colors">
                 {catalogAnalysisData ? 'Update Catalog Analysis' : 'Analyze Your Catalog'}
               </h3>
-              <p className="text-sm text-surface-400">
+              <p className="text-sm text-surface-200">
                 {catalogAnalysisData
                   ? 'Add new tracks or refresh your analysis'
                   : 'Upload tracks to get data-driven insights'}
@@ -245,7 +245,7 @@ export default function WelcomeBackDashboard({
               <h3 className="text-lg font-semibold text-surface-100 mb-2 group-hover:text-green-200 transition-colors">
                 Explore Grant Opportunities
               </h3>
-              <p className="text-sm text-surface-400">
+              <p className="text-sm text-surface-200">
                 {savedGrantsCount > 0
                   ? `${savedGrantsCount} saved funding opportunities`
                   : 'Identify funding opportunities for artist development'}
@@ -256,7 +256,7 @@ export default function WelcomeBackDashboard({
 
         {/* System Status */}
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-800/50 border border-surface-700 text-sm text-surface-400">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-800/50 border border-surface-700 text-sm text-surface-300">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>

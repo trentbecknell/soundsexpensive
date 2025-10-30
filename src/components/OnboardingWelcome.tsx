@@ -20,10 +20,10 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-surface-50 mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
               Artist Roadmap PRO
             </h1>
-            <p className="text-lg text-surface-300 max-w-2xl mx-auto">
+            <p className="text-lg text-surface-200 max-w-2xl mx-auto">
               Professional A&R platform for data-driven artist development and strategic release planning
             </p>
           </div>
@@ -43,10 +43,10 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-surface-100 mb-2">
+                  <h3 className="text-lg font-semibold text-white mb-2">
                     Baseline Assessment
                   </h3>
-                  <p className="text-surface-400 text-sm leading-relaxed">
+                  <p className="text-surface-200 text-sm leading-relaxed">
                     Analyze artist catalog with objective metrics. Spotify integration or direct upload provides 
                     quality scores, consistency analysis, sonic identity, and trend detection. Establish data-driven baseline.
                   </p>
@@ -66,10 +66,10 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-surface-100 mb-2">
+                  <h3 className="text-lg font-semibold text-white mb-2">
                     Strategic Planning
                   </h3>
-                  <p className="text-surface-400 text-sm leading-relaxed">
+                  <p className="text-surface-200 text-sm leading-relaxed">
                     Define release strategy based on catalog data. AI assistant guides format selection (EP/Album/Singles), 
                     timeline planning, budget allocation, and goal setting. Evidence-based recommendations.
                   </p>
@@ -89,10 +89,10 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-surface-100 mb-2">
+                  <h3 className="text-lg font-semibold text-white mb-2">
                     Roadmap Generation
                   </h3>
-                  <p className="text-surface-400 text-sm leading-relaxed">
+                  <p className="text-surface-200 text-sm leading-relaxed">
                     System generates comprehensive roadmap from catalog + planning data. Includes realistic timelines, 
                     budget estimates by phase, task management, and grant opportunities. Fully customizable post-generation.
                   </p>
@@ -136,7 +136,7 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
             {hasExistingData && (
               <button
                 onClick={onSkip}
-                className="w-full sm:w-auto px-6 py-4 border border-surface-600 hover:border-surface-500 text-surface-300 hover:text-surface-200 rounded-xl text-sm transition-colors"
+                className="w-full sm:w-auto px-6 py-4 border border-surface-600 hover:border-surface-500 text-surface-200 hover:text-white rounded-xl text-sm transition-colors"
               >
                 Skip to Existing Data
               </button>
@@ -145,7 +145,7 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
 
           {/* Time Estimate */}
           <div className="mt-6 text-center">
-            <p className="text-xs text-surface-500">
+            <p className="text-xs text-surface-300">
               <span className="inline-flex items-center gap-1">
                 <span>⏱️</span> Takes about 5-10 minutes
               </span>
@@ -165,8 +165,8 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6l4 2" />
                 </svg>
               </div>
-              <div className="text-sm font-medium text-surface-200 mb-1">Data-Driven</div>
-              <div className="text-xs text-surface-400">Decisions based on real analysis</div>
+              <div className="text-sm font-medium text-white mb-1">Data-Driven</div>
+              <div className="text-xs text-surface-200">Decisions based on real analysis</div>
             </div>
           </div>
           <div className="relative overflow-hidden p-4 rounded-xl border border-surface-700/50 banner-studio">
@@ -177,8 +177,8 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-4.197-2.42A1 1 0 009 9.618v4.764a1 1 0 001.555.832l4.197-2.42a1 1 0 000-1.726z" />
                 </svg>
               </div>
-              <div className="text-sm font-medium text-surface-200 mb-1">AI-Powered</div>
-              <div className="text-xs text-surface-400">Smart recommendations for your stage</div>
+              <div className="text-sm font-medium text-white mb-1">AI-Powered</div>
+              <div className="text-xs text-surface-200">Smart recommendations for your stage</div>
             </div>
           </div>
           <div className="relative overflow-hidden p-4 rounded-xl border border-surface-700/50 banner-studio">
@@ -189,8 +189,8 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <div className="text-sm font-medium text-surface-200 mb-1">Auto-Saved</div>
-              <div className="text-xs text-surface-400">Never lose your progress</div>
+              <div className="text-sm font-medium text-white mb-1">Auto-Saved</div>
+              <div className="text-xs text-surface-200">Never lose your progress</div>
             </div>
           </div>
         </div>
