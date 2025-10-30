@@ -1,6 +1,8 @@
-# Artist Roadmap v1.0
+# Artist Roadmap v1.3.3
 
 A comprehensive React + TypeScript application for AI-powered artist assessment, project planning, and music career development.
+
+> **Latest Release (v1.3.3):** Multi-artist portfolio management is here! Manage 20+ artists, compare side-by-side with radar charts, view portfolio analytics, and run bulk operations. [📄 Read the release summary](./RELEASE_SUMMARY_v1.3.3.md) for a quick overview.
 
 ## 🎯 Overview
 
@@ -12,6 +14,13 @@ The Artist Roadmap combines AI-driven personality assessment with professional p
 - **Track progress** through comprehensive project management tools
 
 ## ✨ Key Features
+
+### 🗂️ Multi-Artist Portfolio Management (NEW in v1.3.3)
+- **Portfolio Dashboard**: Manage 20+ artists with search, filter, sort, and dual view modes (grid/list)
+- **Artist Comparison**: Compare 2-3 artists side-by-side with radar charts and investment readiness scoring (0-100)
+- **Portfolio Analytics**: Quality distribution, genre/stage breakdowns, top performers leaderboard
+- **Bulk Operations**: Select all, export to JSON, and batch delete with confirmation
+- **Auto-Migration**: Existing single-artist projects automatically convert to portfolio format (no data loss)
 
 ### 🎵 Multi-Track Catalog Analysis
 - **Spotify Integration**: Import tracks directly via Spotify URL (or download & upload)
