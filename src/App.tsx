@@ -471,6 +471,11 @@ export default function App() {
       baseState.catalogAnalysisData = undefined;
     }
     
+    // Migrate old lastActiveTab values - if it's 'catalog-analyzer', change to 'roadmap'
+    if (baseState.lastActiveTab === 'catalog-analyzer') {
+      baseState.lastActiveTab = 'roadmap';
+    }
+    
     // Initialize assessment from legacy profile if not present
     if (!baseState.assessment) {
       baseState.assessment = convertLegacyProfileToAssessment(baseState);
@@ -908,7 +913,7 @@ export default function App() {
       setShowWelcomeBack(artist.state.onboardingComplete && (artist.state.catalogAnalysisComplete || artist.state.roadmapGenerated));
       setChatComplete(artist.state.chatPlanningComplete);
       setChatMessages(generatePlanningMessages(artist.state.catalogAnalysisData));
-      setActiveTab((artist.state.lastActiveTab || 'catalog-analyzer') as any);
+      setActiveTab((artist.state.lastActiveTab || 'roadmap') as any);
       
       pushToast(`Switched to ${artist.profile.artistName || 'Unnamed Artist'}`);
     }
@@ -935,7 +940,7 @@ export default function App() {
           setShowWelcomeBack(newActive.state.onboardingComplete && (newActive.state.catalogAnalysisComplete || newActive.state.roadmapGenerated));
           setChatComplete(newActive.state.chatPlanningComplete);
           setChatMessages(generatePlanningMessages(newActive.state.catalogAnalysisData));
-          setActiveTab((newActive.state.lastActiveTab || 'catalog-analyzer') as any);
+          setActiveTab((newActive.state.lastActiveTab || 'roadmap') as any);
         } else {
           // No artists left, create a new one
           handleNewArtist();
