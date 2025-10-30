@@ -43,14 +43,49 @@ const isSpotifyCallback = window.location.pathname.includes('/callback') ||
 const AppRoutesWithAuth = () => (
   <HashRouter>
     <Routes>
-      {/* Auth routes */}
-      <Route path="/sign-in/*" element={<SignInPage />} />
-      <Route path="/sign-up/*" element={<SignUpPage />} />
+      {/* Auth routes - accessible when signed out */}
+      <Route 
+        path="/sign-in/*" 
+        element={
+          <SignedOut>
+            <SignInPage />
+          </SignedOut>
+        } 
+      />
+      <Route 
+        path="/sign-up/*" 
+        element={
+          <SignedOut>
+            <SignUpPage />
+          </SignedOut>
+        } 
+      />
       
-      {/* Organization routes */}
-      <Route path="/create-organization" element={<CreateOrganization />} />
-      <Route path="/organizations" element={<OrganizationList />} />
-      <Route path="/organization-profile" element={<OrganizationProfile />} />
+      {/* Organization routes - require auth */}
+      <Route 
+        path="/create-organization" 
+        element={
+          <SignedIn>
+            <CreateOrganization />
+          </SignedIn>
+        } 
+      />
+      <Route 
+        path="/organizations" 
+        element={
+          <SignedIn>
+            <OrganizationList />
+          </SignedIn>
+        } 
+      />
+      <Route 
+        path="/organization-profile" 
+        element={
+          <SignedIn>
+            <OrganizationProfile />
+          </SignedIn>
+        } 
+      />
       
       {/* Spotify callback - always accessible */}
       <Route path="/callback" element={<SpotifyCallback />} />
@@ -59,20 +94,15 @@ const AppRoutesWithAuth = () => (
       <Route 
         path="/*" 
         element={
-          <SignedIn>
-            <AuthenticatedApp />
-          </SignedIn>
+          <>
+            <SignedIn>
+              <AuthenticatedApp />
+            </SignedIn>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+          </>
         } 
-      />
-      
-      {/* Redirect unauthenticated users to sign-in */}
-      <Route 
-        path="/" 
-        element={
-          <SignedOut>
-            <Navigate to="/sign-in" replace />
-          </SignedOut>
-        }
       />
     </Routes>
   </HashRouter>
