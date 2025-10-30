@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <meta http-equiv="refresh" content="0; url=/soundsexpensive/">
+  <script>
+    // For client-side routing: redirect to the correct path under /soundsexpensive/
+    (function() {
+      var path = window.location.pathname.replace(/^\/soundsexpensive/, '');
+      var search = window.location.search || '';
+      var hash = window.location.hash || '';
+      var newUrl = '/soundsexpensive/' + path.replace(/^\//, '') + search + hash;
+      window.location.replace(newUrl);
+    })();
+  </script>
+  <style>
+    body { font-family: sans-serif; color: #333; background: #f9f9f9; display: flex; align-items: center; justify-content: center; height: 100vh; }
+    .msg { font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <div class="msg">Redirecting to Artist Roadmap...</div>
+</body>
+</html>
