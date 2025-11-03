@@ -51,13 +51,22 @@ function getRuntimeAnonFlag(): boolean {
   }
 }
 
-// Enable Clerk authentication (both dev and production) unless bypassed at runtime
-const ENABLE_CLERK = !!CLERK_PUBLISHABLE_KEY && !getRuntimeAnonFlag();
+// Determine environment/host to force anonymous mode on public deployments
+const IS_PROD_BUILD = import.meta.env.PROD;
+const ON_PUBLIC_HOST = (() => {
+  try {
+    return /github\.io|netlify\.app|vercel\.app/i.test(window.location.host);
+  } catch {
+    return true; // safest default in non-browser contexts
+  }
+})();
+const FORCE_ANON = getRuntimeAnonFlag() || IS_PROD_BUILD || ON_PUBLIC_HOST;
 
-if (!CLERK_PUBLISHABLE_KEY) {
-  console.warn('Missing Clerk Publishable Key. Running in anonymous mode.')
-  console.warn('Add VITE_CLERK_PUBLISHABLE_KEY to your .env.local file')
-  console.warn('See CLERK_SETUP.md for instructions')
+// Enable Clerk authentication only in explicit dev environments (never on public/prod)
+const ENABLE_CLERK = !!CLERK_PUBLISHABLE_KEY && !FORCE_ANON && import.meta.env.DEV;
+
+if (!CLERK_PUBLISHABLE_KEY || !ENABLE_CLERK) {
+  console.warn('[Auth] Running in anonymous mode. Clerk is disabled for this environment.')
 }
 
 // Check if this is the Spotify callback page
