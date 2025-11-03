@@ -25,6 +25,7 @@ import { OrganizationProfile } from './components/org/OrganizationProfile'
 import SpotifyCallback from './components/SpotifyCallback'
 import './index.css'
 import computeAuthFlags from './lib/authEnv'
+import { getFlags } from './lib/flags'
 
 // Import Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -186,3 +187,16 @@ createRoot(document.getElementById('root')!).render(
     )}
   </React.StrictMode>
 )
+
+// Register service worker for PWA/offline caching
+try {
+  const flags = getFlags();
+  const base = import.meta.env.BASE_URL || '/';
+  if ('serviceWorker' in navigator) {
+    // Always register SW in prod; in dev only when perf-slice is enabled
+    const shouldRegister = import.meta.env.PROD || flags.has('perf-slice');
+    if (shouldRegister) {
+      navigator.serviceWorker.register(`${base}sw.js`).catch(() => void 0);
+    }
+  }
+} catch {}

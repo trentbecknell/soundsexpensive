@@ -25,21 +25,23 @@ import { useLocation, useNavigate } from "react-router-dom";
 // import { useClerk } from "@clerk/clerk-react";
 
 
+import ReactLazy = React.lazy;
 import AssessmentWizard from "./components/AssessmentWizard";
 import Toast from "./components/Toast";
 import Chat, { ChatMessage } from "./components/Chat";
-import GrantDiscovery from "./components/GrantDiscovery";
-import GrantApplicationTracker from "./components/GrantApplicationTracker";
-import MixAnalyzer from "./components/MixAnalyzer";
-import CatalogAnalyzer from "./components/CatalogAnalyzer";
 import OnboardingWelcome from "./components/OnboardingWelcome";
 import WelcomeBackDashboard from "./components/WelcomeBackDashboard";
 import ArtistSwitcher from "./components/ArtistSwitcher";
-import PortfolioDashboard from "./components/PortfolioDashboard";
-import ArtistComparisonView from "./components/ArtistComparisonView";
-import PortfolioAnalytics from "./components/PortfolioAnalytics";
-import TourPlanner from "./components/TourPlanner";
-import MasterPlan from "./components/MasterPlan";
+// Lazy-loaded heavy views
+const GrantDiscovery = React.lazy(() => import("./components/GrantDiscovery"));
+const GrantApplicationTracker = React.lazy(() => import("./components/GrantApplicationTracker"));
+const MixAnalyzer = React.lazy(() => import("./components/MixAnalyzer"));
+const CatalogAnalyzer = React.lazy(() => import("./components/CatalogAnalyzer"));
+const PortfolioDashboard = React.lazy(() => import("./components/PortfolioDashboard"));
+const ArtistComparisonView = React.lazy(() => import("./components/ArtistComparisonView"));
+const PortfolioAnalytics = React.lazy(() => import("./components/PortfolioAnalytics"));
+const TourPlanner = React.lazy(() => import("./components/TourPlanner"));
+const MasterPlan = React.lazy(() => import("./components/MasterPlan"));
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
@@ -1428,7 +1430,9 @@ export default function App({ userId }: AppProps = {}) {
                     Identify technical issues, compare against reference tracks, and get actionable recommendations to improve your sound.
                   </p>
                 </div>
-                <MixAnalyzer />
+                <React.Suspense fallback={<div className="text-surface-300">Loading Mix Analyzer…</div>}>
+                  <MixAnalyzer />
+                </React.Suspense>
               </div>
             )}
 
@@ -1448,12 +1452,15 @@ export default function App({ userId }: AppProps = {}) {
                     </div>
                   )}
                 </div>
-                <CatalogAnalyzer onAnalysisComplete={handleCatalogAnalysisComplete} />
+                <React.Suspense fallback={<div className="text-surface-300">Loading Catalog Analyzer…</div>}>
+                  <CatalogAnalyzer onAnalysisComplete={handleCatalogAnalysisComplete} />
+                </React.Suspense>
               </div>
             )}
 
             {activeTab === 'grants' && (
-              <GrantDiscovery
+              <React.Suspense fallback={<div className="text-surface-300">Loading Grants…</div>}>
+                <GrantDiscovery
                 profile={app.profile}
                 assessment={app.assessment}
                 savedGrants={app.savedGrants}
@@ -1461,20 +1468,24 @@ export default function App({ userId }: AppProps = {}) {
                 onSaveGrant={saveGrant}
                 onStartApplication={startGrantApplication}
               />
+              </React.Suspense>
             )}
 
             {activeTab === 'applications' && (
-              <GrantApplicationTracker
+              <React.Suspense fallback={<div className="text-surface-300">Loading Applications…</div>}>
+                <GrantApplicationTracker
                 applications={app.grantApplications}
                 grants={GRANT_OPPORTUNITIES}
                 onUpdateApplication={updateGrantApplication}
                 onDeleteApplication={deleteGrantApplication}
                 onAddReminder={addApplicationReminder}
               />
+              </React.Suspense>
             )}
 
             {activeTab === 'portfolio' && !showComparison && !showAnalytics && (
-              <PortfolioDashboard
+              <React.Suspense fallback={<div className="text-surface-300">Loading Portfolio…</div>}>
+                <PortfolioDashboard
                 portfolio={portfolio}
                 onSelectArtist={handleSwitchArtist}
                 onNewArtist={handleNewArtist}
@@ -1483,25 +1494,31 @@ export default function App({ userId }: AppProps = {}) {
                 onCompareArtists={handleCompareArtists}
                 onShowAnalytics={() => setShowAnalytics(true)}
               />
+              </React.Suspense>
             )}
 
             {activeTab === 'portfolio' && showComparison && (
-              <ArtistComparisonView
+              <React.Suspense fallback={<div className="text-surface-300">Loading Comparison…</div>}>
+                <ArtistComparisonView
                 artists={comparisonArtistIds.map(id => portfolio.artists.find(a => a.id === id)!).filter(Boolean)}
                 onClose={() => setShowComparison(false)}
                 onRemoveArtist={handleRemoveFromComparison}
               />
+              </React.Suspense>
             )}
 
             {activeTab === 'portfolio' && showAnalytics && (
-              <PortfolioAnalytics
+              <React.Suspense fallback={<div className="text-surface-300">Loading Analytics…</div>}>
+                <PortfolioAnalytics
                 portfolio={portfolio}
                 onClose={() => setShowAnalytics(false)}
               />
+              </React.Suspense>
             )}
 
             {activeTab === 'master-plan' && (
-              <MasterPlan
+              <React.Suspense fallback={<div className="text-surface-300">Loading Master Plan…</div>}>
+                <MasterPlan
                 profile={app.profile}
                 projectConfig={app.project}
                 budgetItems={app.budget}
@@ -1510,15 +1527,18 @@ export default function App({ userId }: AppProps = {}) {
                 genres={app.profile.genres.split(',').map(g => g.trim()).filter(Boolean)}
                 onNavigate={(tab) => setActiveTab(tab as any)}
               />
+              </React.Suspense>
             )}
 
             {activeTab === 'live' && (
-              <TourPlanner
+              <React.Suspense fallback={<div className="text-surface-300">Loading Live Planner…</div>}>
+                <TourPlanner
                 artistStage={app.profile.stage}
                 genres={app.profile.genres.split(',').map(g => g.trim()).filter(Boolean)}
                 estimatedDraw={app.estimatedDraw}
                 onEstimatedDrawChange={(draw) => setApp(prev => ({ ...prev, estimatedDraw: draw }))}
               />
+              </React.Suspense>
             )}
 
             {activeTab === 'roadmap' && (
