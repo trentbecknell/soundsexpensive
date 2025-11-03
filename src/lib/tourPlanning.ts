@@ -177,13 +177,32 @@ export function generateSmartTour(
     tourSize = 20; // Full tour for big acts
   }
   
-  // Filter by region if specified
+  // Start with the best matches
   let selectedVenues = matchedVenues.slice(0, tourSize);
+
+  // Low-draw guardrails: keep tiers modest and bias to one corridor
+  const lowDraw = estimatedDraw < 120;
+  if (lowDraw) {
+    const allowedTiers: VenueTier[] = ['dive-bar', 'club'];
+    const tierFiltered = matchedVenues.filter(v => allowedTiers.includes(v.tier));
+    if (tierFiltered.length) {
+      selectedVenues = tierFiltered.slice(0, tourSize);
+    }
+
+    // Bias to a single region for efficient routing
+    const baseRegion = preferredRegion || (selectedVenues[0] ? getRegionalCorridor(selectedVenues[0].city) || undefined : undefined);
+    if (baseRegion) {
+      const regional = selectedVenues.filter(v => getRegionalCorridor(v.city) === baseRegion);
+      if (regional.length >= Math.min(3, tourSize)) {
+        selectedVenues = regional.slice(0, tourSize);
+      }
+    }
+  }
+
+  // Filter by explicit region if specified (overrides bias)
   if (preferredRegion) {
-    const regionalVenues = matchedVenues.filter(v => 
-      getRegionalCorridor(v.city) === preferredRegion
-    );
-    if (regionalVenues.length >= tourSize) {
+    const regionalVenues = matchedVenues.filter(v => getRegionalCorridor(v.city) === preferredRegion);
+    if (regionalVenues.length >= Math.min(3, tourSize)) {
       selectedVenues = regionalVenues.slice(0, tourSize);
     }
   }
@@ -225,7 +244,10 @@ export function generateSmartTour(
   const regionInfo = preferredRegion ? ` in the ${preferredRegion} corridor` : '';
   const description = `${tourSize}-show ${primaryGenre} tour${regionInfo}`;
   
-  const rationale = `Based on your ${stage} stage and ${estimatedDraw}-person average draw, we've selected ${selectedVenues.length} ${avgTier}-tier venues. ${bandConfig.description} is the recommended setup for ${primaryGenre} at this level.`;
+  let rationale = `Based on your ${stage} stage and ${estimatedDraw}-person average draw, we've selected ${selectedVenues.length} ${avgTier}-tier venues. ${bandConfig.description} is the recommended setup for ${primaryGenre} at this level.`;
+  if (lowDraw) {
+    rationale += ' For emerging draw levels, we prioritized smaller rooms (dive bars/clubs) and a single region to maximize sell‑through and reduce travel risk.';
+  }
   
   return {
     venues: selectedVenues,

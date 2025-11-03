@@ -24,6 +24,7 @@ import { OrganizationList } from './components/org/OrganizationList'
 import { OrganizationProfile } from './components/org/OrganizationProfile'
 import SpotifyCallback from './components/SpotifyCallback'
 import './index.css'
+import computeAuthFlags from './lib/authEnv'
 
 // Import Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -53,17 +54,17 @@ function getRuntimeAnonFlag(): boolean {
 
 // Determine environment/host to force anonymous mode on public deployments
 const IS_PROD_BUILD = import.meta.env.PROD;
-const ON_PUBLIC_HOST = (() => {
-  try {
-    return /github\.io|netlify\.app|vercel\.app/i.test(window.location.host);
-  } catch {
-    return true; // safest default in non-browser contexts
-  }
-})();
-const FORCE_ANON = getRuntimeAnonFlag() || IS_PROD_BUILD || ON_PUBLIC_HOST;
+const HOST = (() => { try { return window.location.host || ''; } catch { return ''; } })();
+const RUNTIME_ANON = getRuntimeAnonFlag();
+const { FORCE_ANON, ENABLE_CLERK } = computeAuthFlags(HOST, IS_PROD_BUILD, !!CLERK_PUBLISHABLE_KEY, RUNTIME_ANON);
 
-// Enable Clerk authentication only in explicit dev environments (never on public/prod)
-const ENABLE_CLERK = !!CLERK_PUBLISHABLE_KEY && !FORCE_ANON && import.meta.env.DEV;
+// Expose for diagnostics
+(window as any).__AUTH_FLAGS__ = { FORCE_ANON, ENABLE_CLERK, HOST, IS_PROD_BUILD };
+
+// Runtime assertion: in prod or on public hosts, auth must be disabled
+if (IS_PROD_BUILD || /github\.io|netlify\.app|vercel\.app/i.test(HOST)) {
+  console.assert(!ENABLE_CLERK, '[Auth] ENABLE_CLERK must be false on prod/public hosts');
+}
 
 if (!CLERK_PUBLISHABLE_KEY || !ENABLE_CLERK) {
   console.warn('[Auth] Running in anonymous mode. Clerk is disabled for this environment.')

@@ -526,7 +526,7 @@ export default function App({ userId }: AppProps = {}) {
   const [activeTab, setActiveTab] = useState<'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live'>(() => {
     // Check URL hash first (e.g., #/roadmap, #/grants, etc.)
     const hash = location.pathname.replace('/', '') || location.hash.replace('#/', '');
-    const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
+  const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
     if (validTabs.includes(hash)) {
       return hash as any;
     }
@@ -1274,7 +1274,7 @@ export default function App({ userId }: AppProps = {}) {
                 {/* Step 1: Catalog Analyzer */}
                 <button
                   onClick={() => setActiveTab('catalog-analyzer')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                  className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
                     activeTab === 'catalog-analyzer'
                       ? 'bg-primary-600 text-primary-50'
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -1296,7 +1296,7 @@ export default function App({ userId }: AppProps = {}) {
                     }
                     setActiveTab('roadmap'); // We'll handle this better later
                   }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                  className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
                     !chatComplete && !app.chatPlanningComplete
                       ? 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -1313,7 +1313,7 @@ export default function App({ userId }: AppProps = {}) {
                 {/* Step 3: Project Roadmap */}
                 <button
                   onClick={() => setActiveTab('roadmap')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
+                  className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
                     activeTab === 'roadmap'
                       ? 'bg-primary-600 text-primary-50'
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -1331,7 +1331,7 @@ export default function App({ userId }: AppProps = {}) {
                 {app.roadmapGenerated && (
                   <button
                     onClick={() => setActiveTab('master-plan')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       activeTab === 'master-plan'
                         ? 'bg-gradient-to-r from-primary-600 to-accent-600 text-white'
                         : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -1344,7 +1344,7 @@ export default function App({ userId }: AppProps = {}) {
                 {/* Step 4: Mix Analyzer - Refine individual tracks */}
                 <button
                   onClick={() => setActiveTab('mix-analyzer')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'mix-analyzer'
                       ? 'bg-primary-600 text-primary-50'
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -1356,7 +1356,7 @@ export default function App({ userId }: AppProps = {}) {
                 {/* Step 5: Grant Discovery */}
                 <button
                   onClick={() => setActiveTab('grants')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'grants'
                       ? 'bg-primary-600 text-primary-50'
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -1373,7 +1373,7 @@ export default function App({ userId }: AppProps = {}) {
                 {/* Step 6: Applications */}
                 <button
                   onClick={() => setActiveTab('applications')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'applications'
                       ? 'bg-primary-600 text-primary-50'
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -1391,7 +1391,7 @@ export default function App({ userId }: AppProps = {}) {
                 {portfolio.artists.length > 1 && (
                   <button
                     onClick={() => setActiveTab('portfolio')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       activeTab === 'portfolio'
                         ? 'bg-primary-600 text-primary-50'
                         : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -1407,7 +1407,7 @@ export default function App({ userId }: AppProps = {}) {
                 {/* Live Performance Planning */}
                 <button
                   onClick={() => setActiveTab('live')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     activeTab === 'live'
                       ? 'bg-primary-600 text-primary-50'
                       : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'

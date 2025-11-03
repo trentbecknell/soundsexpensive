@@ -328,7 +328,7 @@ export default function TourPlanner({
       <div className="flex gap-2 p-1 bg-surface-800/50 rounded-xl border border-surface-700">
         <button
           onClick={() => setActiveTab('venues')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             activeTab === 'venues'
               ? 'bg-primary-600 text-primary-50'
               : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -338,7 +338,7 @@ export default function TourPlanner({
         </button>
         <button
           onClick={() => setActiveTab('band')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             activeTab === 'band'
               ? 'bg-primary-600 text-primary-50'
               : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -348,7 +348,7 @@ export default function TourPlanner({
         </button>
         <button
           onClick={() => setActiveTab('budget')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             activeTab === 'budget'
               ? 'bg-primary-600 text-primary-50'
               : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
@@ -662,6 +662,26 @@ export default function TourPlanner({
                           ))}
                         </div>
                       </details>
+
+                      {/* Musician pay breakdown (per show) */}
+                      {bandMembers.some(m => !m.is_core_member) && (
+                        <details className="mt-3">
+                          <summary className="text-xs text-surface-400 cursor-pointer hover:text-surface-300">
+                            View musician pay details
+                          </summary>
+                          <div className="mt-2 space-y-1 pl-4 border-l-2 border-surface-700">
+                            {bandMembers.filter(m => !m.is_core_member).map(m => (
+                              <div key={m.id} className="flex justify-between text-xs text-surface-300">
+                                <span>{m.role}{m.name ? ` — ${m.name}` : ''}</span>
+                                <span>{currency(m.rate_per_show)}/show</span>
+                              </div>
+                            ))}
+                            <div className="text-[11px] text-surface-400 mt-2">
+                              Core members are paid via profit share and not listed here.
+                            </div>
+                          </div>
+                        </details>
+                      )}
                     </div>
                   ))}
                 </div>
