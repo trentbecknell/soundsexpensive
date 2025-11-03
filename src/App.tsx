@@ -39,6 +39,7 @@ import PortfolioDashboard from "./components/PortfolioDashboard";
 import ArtistComparisonView from "./components/ArtistComparisonView";
 import PortfolioAnalytics from "./components/PortfolioAnalytics";
 import TourPlanner from "./components/TourPlanner";
+import MasterPlan from "./components/MasterPlan";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
@@ -61,7 +62,7 @@ import {
 import computeStageFromScores, { Stage } from "./lib/computeStage";
 type PhaseKey = "Discovery" | "Pre‑Production" | "Production" | "Post‑Production" | "Release" | "Growth";
 
-interface ArtistProfile {
+export interface ArtistProfile {
   artistName: string;
   genres: string;
   city: string;
@@ -70,7 +71,7 @@ interface ArtistProfile {
   stageScores: Record<string, number>;
 }
 
-interface ProjectConfig {
+export interface ProjectConfig {
   projectType: "EP" | "Album" | "Singles";
   units: number;
   startWeeks: number;
@@ -80,7 +81,7 @@ interface ProjectConfig {
   targetMarkets: string[];
 }
 
-interface BudgetItem {
+export interface BudgetItem {
   id: string;
   category: string;
   description: string;
@@ -522,15 +523,15 @@ export default function App({ userId }: AppProps = {}) {
   });
   
   // Navigation state - sync with URL hash
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live'>(() => {
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live'>(() => {
     // Check URL hash first (e.g., #/roadmap, #/grants, etc.)
     const hash = location.pathname.replace('/', '') || location.hash.replace('#/', '');
-    const validTabs = ['roadmap', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
+    const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
     if (validTabs.includes(hash)) {
       return hash as any;
     }
     // Fall back to last active tab from app state
-    return app.lastActiveTab as 'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live';
+    return app.lastActiveTab as 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live';
   });
 
   // Artist comparison state
@@ -541,7 +542,7 @@ export default function App({ userId }: AppProps = {}) {
   // Sync activeTab with URL hash
   useEffect(() => {
     const hash = location.pathname.replace('/', '');
-    const validTabs = ['roadmap', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
+    const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
     if (hash && validTabs.includes(hash)) {
       setActiveTab(hash as any);
     }
@@ -1326,6 +1327,20 @@ export default function App({ userId }: AppProps = {}) {
                   )}
                 </button>
 
+                {/* Master Plan - Complete project overview with ROI */}
+                {app.roadmapGenerated && (
+                  <button
+                    onClick={() => setActiveTab('master-plan')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      activeTab === 'master-plan'
+                        ? 'bg-gradient-to-r from-primary-600 to-accent-600 text-white'
+                        : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                    }`}
+                  >
+                    💎 Master Plan
+                  </button>
+                )}
+
                 {/* Step 4: Mix Analyzer - Refine individual tracks */}
                 <button
                   onClick={() => setActiveTab('mix-analyzer')}
@@ -1482,6 +1497,18 @@ export default function App({ userId }: AppProps = {}) {
               <PortfolioAnalytics
                 portfolio={portfolio}
                 onClose={() => setShowAnalytics(false)}
+              />
+            )}
+
+            {activeTab === 'master-plan' && (
+              <MasterPlan
+                profile={app.profile}
+                projectConfig={app.project}
+                budgetItems={app.budget}
+                artistStage={app.profile.stage}
+                estimatedDraw={app.estimatedDraw}
+                genres={app.profile.genres.split(',').map(g => g.trim()).filter(Boolean)}
+                onNavigate={(tab) => setActiveTab(tab as any)}
               />
             )}
 
