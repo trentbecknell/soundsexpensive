@@ -15,6 +15,7 @@ import React from 'react';
 import { useUser } from '@clerk/clerk-react';
 import App from '../App';
 import TesterWelcome from './TesterWelcome';
+import OnboardingOverlay from './OnboardingOverlay';
 
 /**
  * Loading screen shown while Clerk authentication initializes
@@ -88,6 +89,7 @@ function ErrorScreen({ error }: { error: string }) {
  * Main wrapper component
  * 
  * Usage when Clerk is ENABLED:
+              <OnboardingOverlay />
  * ```tsx
  * <ClerkProvider publishableKey={key}>
  *   <AuthenticatedApp />
