@@ -5,7 +5,66 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> Non‑technical user notes (latest v1.3.3): You can now manage multiple artists, compare 2–3 side‑by‑side, see portfolio‑wide analytics, and bulk select/export/delete. Existing single‑artist projects are migrated automatically—no setup required.
+> Non‑technical user notes (latest v1.4.0): Performance improvements for faster analysis and better responsiveness. Enable experimental features with `?flags=perf-slice` for Web Worker-powered analysis that keeps the app smooth while processing heavy computations.
+
+## [1.4.0] - 2025-11-03
+
+### 🚀 Performance & Scalability Release
+
+Optimized for 25 concurrent testers with Web Workers, code splitting, and service worker caching.
+
+#### **Performance Enhancements**
+- **Web Worker Architecture**: Heavy analysis computations run off main thread (opt-in with `?flags=perf-slice`)
+  - Mix Analyzer: Audio feature extraction on main thread, compute offloaded to worker
+  - Catalog Analyzer: Per-track analysis parallelized via workers
+  - Graceful fallback to synchronous processing if workers unavailable
+- **Code Splitting**: Route-level lazy loading for heavy views
+  - MixAnalyzer, CatalogAnalyzer, TourPlanner, MasterPlan load on-demand
+  - Grant Discovery, Applications, Portfolio views code-split
+  - Main bundle reduced, feature chunks load as needed
+- **Service Worker Caching**: Cache-first for assets, stale-while-revalidate for data
+  - Offline support for core assets after first visit
+  - Always enabled in production, opt-in for development
+
+#### **User Experience Improvements**
+- **Chat Interface**: ARIA labels, clickable suggestions, custom placeholders, stable typing indicator
+- **Assessment Wizard**: Proper backdrop interaction, enhanced keyboard navigation
+- **Accessibility**: Improved ARIA labels and semantic markup throughout
+
+#### **Testing & Developer Experience**
+- **Test Suite**: Single-run by default (`npm test`), ~5-6 seconds vs indefinite watch
+- **Quality Gates**: TypeScript, Vite build, 18/18 tests passing
+- **CI/CD Ready**: Better automated testing pipeline integration
+
+### Added
+- `src/lib/mixAnalysis.ts` - New `computeMixFromFeatures()` export for worker use
+- `src/workers/mixWorker.ts` - Web Worker for mix analysis compute
+- `src/lib/workers.ts` - Worker lifecycle management utilities
+- `src/lib/flags.ts` - Feature flags system with URL and localStorage persistence
+- `public/sw.js` - Service worker for asset caching
+- `RELEASE_NOTES_v1.4.0.md` - Comprehensive release documentation
+- `RELEASE_SUMMARY_v1.4.0.md` - Quick reference guide
+
+### Changed
+- `src/components/MixAnalyzer.tsx` - Worker integration with flag check
+- `src/components/CatalogAnalyzer.tsx` - Parallel track analysis via workers
+- `src/components/Chat.tsx` - Accessibility and UX enhancements
+- `src/components/AssessmentWizard.tsx` - Accessibility improvements
+- `src/App.tsx` - Route-level code splitting with React.lazy()
+- `src/main.tsx` - Service worker registration, auth flags, runtime assertions
+- `package.json` - Version bump to 1.4.0, test script to single-run mode
+
+### Fixed
+- Chat send button accessibility (missing ARIA label)
+- Assessment wizard backdrop click-outside behavior
+- Test flakiness due to typing indicator timing
+- Placeholder mismatch in chat tests
+
+### Technical
+- **Bundle Size**: Main bundle ~656KB (split into feature chunks)
+- **Build Time**: ~7 seconds for production build
+- **Test Suite**: ~6 seconds for complete run
+- **Target Capacity**: 25 concurrent users
 
 ## [1.3.3] - 2025-10-30
 
