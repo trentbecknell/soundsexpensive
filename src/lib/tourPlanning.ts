@@ -157,6 +157,8 @@ export function generateSmartTour(
   bandMembers: BandMember[];
   description: string;
   rationale: string;
+  lowDrawGuardrailsApplied: boolean;
+  appliedRegion?: string;
 } {
   const primaryGenre = genres[0] || 'indie';
   
@@ -182,6 +184,7 @@ export function generateSmartTour(
 
   // Low-draw guardrails: keep tiers modest and bias to one corridor
   const lowDraw = estimatedDraw < 120;
+  let appliedRegion: string | undefined;
   if (lowDraw) {
     const allowedTiers: VenueTier[] = ['dive-bar', 'club'];
     const tierFiltered = matchedVenues.filter(v => allowedTiers.includes(v.tier));
@@ -195,6 +198,7 @@ export function generateSmartTour(
       const regional = selectedVenues.filter(v => getRegionalCorridor(v.city) === baseRegion);
       if (regional.length >= Math.min(3, tourSize)) {
         selectedVenues = regional.slice(0, tourSize);
+        appliedRegion = baseRegion;
       }
     }
   }
@@ -204,6 +208,7 @@ export function generateSmartTour(
     const regionalVenues = matchedVenues.filter(v => getRegionalCorridor(v.city) === preferredRegion);
     if (regionalVenues.length >= Math.min(3, tourSize)) {
       selectedVenues = regionalVenues.slice(0, tourSize);
+      appliedRegion = preferredRegion;
     }
   }
   
@@ -253,7 +258,9 @@ export function generateSmartTour(
     venues: selectedVenues,
     bandMembers,
     description,
-    rationale
+    rationale,
+    lowDrawGuardrailsApplied: lowDraw,
+    appliedRegion
   };
 }
 

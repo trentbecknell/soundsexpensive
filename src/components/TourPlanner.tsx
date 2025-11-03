@@ -5,7 +5,7 @@
  * and pay musicians fairly based on industry standards.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Stage } from '../lib/computeStage';
 import { Venue, VenueTier, BandMember, TourShow, DealStructure } from '../types/livePerformance';
 import { VENUE_DATABASE, MUSICIAN_RATES, TOUR_EXPENSE_STANDARDS } from '../data/venues';
@@ -19,6 +19,7 @@ import {
   generateSmartTour,
   getRegionalCorridor
 } from '../lib/tourPlanning';
+import Toast from './Toast';
 
 interface TourPlannerProps {
   artistStage: Stage;
@@ -50,6 +51,14 @@ export default function TourPlanner({
   ]);
   const [activeTab, setActiveTab] = useState<'venues' | 'band' | 'budget'>('venues');
   const [showSmartBuilder, setShowSmartBuilder] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 3500);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
 
   // Auto-build tour with smart defaults
   const handleSmartBuild = (region?: string) => {
@@ -64,6 +73,12 @@ export default function TourPlanner({
     setBandMembers(smartTour.bandMembers);
     setShowSmartBuilder(false);
     setActiveTab('budget');
+
+    // Show guardrail notice when applied
+    if (smartTour.lowDrawGuardrailsApplied) {
+      const regionNote = smartTour.appliedRegion ? ` in the ${smartTour.appliedRegion} corridor` : '';
+      setToast(`Smart Builder limited the tour to small rooms and regional routing${regionNote} due to low draw. Increase draw or pick venues manually to expand.`);
+    }
   };
 
   // Match recommended venues based on artist profile
@@ -323,6 +338,9 @@ export default function TourPlanner({
           </p>
         </div>
       </div>
+
+  {/* Toast */}
+  {toast && <div className="pointer-events-none"><Toast message={toast} /></div>}
 
       {/* Tabs */}
       <div className="flex gap-2 p-1 bg-surface-800/50 rounded-xl border border-surface-700">
