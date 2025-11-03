@@ -14,7 +14,8 @@ import {
   calculateShowRevenue,
   calculateMusicianPay,
   generateTourBudget,
-  recommendBandPay
+  recommendBandPay,
+  suggestTourRouting
 } from '../lib/tourPlanning';
 
 interface TourPlannerProps {
@@ -59,6 +60,14 @@ export default function TourPlanner({
       genreList
     );
   }, [artistStage, estimatedDraw, genres]);
+
+  // Get routing suggestions
+  const routingSuggestions = useMemo(() => {
+    if (selectedVenues.length < 2) {
+      return { optimizedOrder: selectedVenues, totalMiles: 0, recommendations: [] };
+    }
+    return suggestTourRouting(selectedVenues);
+  }, [selectedVenues]);
 
   // Calculate tour budget
   const tourBudget = useMemo(() => {
@@ -458,6 +467,31 @@ export default function TourPlanner({
                   <div className="text-xs text-surface-500 mt-1">{tourBudget.profitMargin.toFixed(1)}% margin</div>
                 </div>
               </div>
+
+              {/* Routing Recommendations */}
+              {routingSuggestions.recommendations.length > 0 && (
+                <div className="rounded-lg border border-primary-700/50 bg-primary-900/10 p-4">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-primary-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-primary-200 mb-2">Tour Routing</h3>
+                      <div className="text-sm text-surface-300 mb-2">
+                        Total Distance: <span className="font-medium text-white">{routingSuggestions.totalMiles.toLocaleString()} miles</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {routingSuggestions.recommendations.map((rec, idx) => (
+                          <div key={idx} className="text-sm text-surface-400 flex items-start gap-2">
+                            <span className="text-surface-600">•</span>
+                            <span>{rec}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Show-by-Show Breakdown */}
               <div className="rounded-2xl border border-surface-700 bg-surface-800/80 p-6">

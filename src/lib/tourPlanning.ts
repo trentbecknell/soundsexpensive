@@ -9,6 +9,153 @@ import { Venue, VenueTier, TourShow, BandMember, TourExpense, DealStructure } fr
 import { VENUE_DATABASE, MUSICIAN_RATES, TOUR_EXPENSE_STANDARDS } from '../data/venues';
 
 /**
+ * Regional tour corridors for intelligent routing
+ */
+const REGIONAL_CORRIDORS = {
+  'Midwest': ['Cincinnati', 'Columbus', 'Indianapolis', 'Louisville', 'Cleveland', 'Pittsburgh', 'Milwaukee', 'Minneapolis', 'St. Paul', 'Chicago', 'St. Louis', 'Kansas City'],
+  'Southeast': ['Nashville', 'Atlanta', 'Asheville', 'Carrboro', 'Raleigh', 'Charlotte', 'Richmond'],
+  'Northeast': ['New York', 'Brooklyn', 'Pittsburgh', 'Philadelphia', 'Boston', 'Washington'],
+  'Texas': ['Austin', 'Dallas', 'Houston', 'San Antonio'],
+  'Pacific Northwest': ['Seattle', 'Portland'],
+  'Southwest': ['Denver', 'Phoenix', 'Albuquerque', 'Salt Lake City'],
+  'West Coast': ['Los Angeles', 'San Francisco', 'Oakland', 'San Diego', 'Portland', 'Seattle'],
+  'Deep South': ['New Orleans', 'Birmingham', 'Memphis', 'Little Rock', 'Jackson']
+};
+
+/**
+ * Calculate driving distance estimate between cities (rough approximation)
+ */
+function estimateDrivingDistance(city1: string, state1: string, city2: string, state2: string): number {
+  // Simplified distance matrix for common routes
+  const cityKey = (city: string, state: string) => `${city}, ${state}`;
+  
+  // Return approximate driving miles between major cities
+  // In production, would use actual routing API
+  const distances: Record<string, Record<string, number>> = {
+    'Cincinnati, OH': {
+      'Columbus, OH': 110,
+      'Indianapolis, IN': 110,
+      'Louisville, KY': 100,
+      'Cleveland, OH': 250,
+      'Pittsburgh, PA': 290,
+      'Nashville, TN': 280,
+      'Chicago, IL': 300,
+    },
+    'Columbus, OH': {
+      'Cincinnati, OH': 110,
+      'Cleveland, OH': 145,
+      'Pittsburgh, PA': 185,
+      'Indianapolis, IN': 175,
+    },
+    'Indianapolis, IN': {
+      'Cincinnati, OH': 110,
+      'Louisville, KY': 115,
+      'Columbus, OH': 175,
+      'Chicago, IL': 185,
+      'Nashville, TN': 290,
+      'St. Louis, MO': 240,
+    },
+    // Add more as needed - for now, default to rough estimate
+  };
+
+  const key1 = cityKey(city1, state1);
+  const key2 = cityKey(city2, state2);
+
+  if (distances[key1]?.[key2]) {
+    return distances[key1][key2];
+  } else if (distances[key2]?.[key1]) {
+    return distances[key2][key1];
+  }
+
+  // Default: rough estimate based on geographic proximity
+  // In production, use proper routing API
+  return 250;
+}
+
+/**
+ * Get regional corridor for a city
+ */
+export function getRegionalCorridor(city: string): string | null {
+  for (const [region, cities] of Object.entries(REGIONAL_CORRIDORS)) {
+    if (cities.includes(city)) {
+      return region;
+    }
+  }
+  return null;
+}
+
+/**
+ * Suggest logical tour routing based on selected venues
+ */
+export function suggestTourRouting(venues: Venue[]): {
+  optimizedOrder: Venue[];
+  totalMiles: number;
+  recommendations: string[];
+} {
+  if (venues.length === 0) {
+    return { optimizedOrder: [], totalMiles: 0, recommendations: [] };
+  }
+
+  // Group by region
+  const byRegion: Record<string, Venue[]> = {};
+  venues.forEach(venue => {
+    const region = getRegionalCorridor(venue.city) || 'Other';
+    if (!byRegion[region]) byRegion[region] = [];
+    byRegion[region].push(venue);
+  });
+
+  const recommendations: string[] = [];
+
+  // Check if all venues are in one region
+  const regions = Object.keys(byRegion);
+  if (regions.length === 1 && regions[0] !== 'Other') {
+    recommendations.push(`✓ All shows in ${regions[0]} corridor - efficient regional tour`);
+  } else if (regions.length > 1) {
+    recommendations.push(`⚠ Shows span ${regions.length} regions: ${regions.join(', ')}`);
+    recommendations.push(`Consider splitting into separate tour legs to minimize drive time`);
+  }
+
+  // Simple routing: group by region, order geographically within region
+  const optimizedOrder: Venue[] = [];
+  let totalMiles = 0;
+
+  // Process each region
+  Object.entries(byRegion).forEach(([region, regionVenues]) => {
+    // For now, just maintain order - in production, optimize within region
+    regionVenues.forEach((venue, idx) => {
+      optimizedOrder.push(venue);
+      
+      // Calculate distance from previous show
+      if (optimizedOrder.length > 1) {
+        const prev = optimizedOrder[optimizedOrder.length - 2];
+        const miles = estimateDrivingDistance(prev.city, prev.state, venue.city, venue.state);
+        totalMiles += miles;
+      }
+    });
+  });
+
+  // Add routing recommendations
+  if (totalMiles > 3000) {
+    recommendations.push(`⚠ High total mileage (${totalMiles} miles) - consider fly dates or split legs`);
+  } else if (totalMiles < 1000) {
+    recommendations.push(`✓ Low mileage (${totalMiles} miles) - efficient routing`);
+  }
+
+  // Check for long individual drives
+  for (let i = 1; i < optimizedOrder.length; i++) {
+    const prev = optimizedOrder[i - 1];
+    const curr = optimizedOrder[i];
+    const miles = estimateDrivingDistance(prev.city, prev.state, curr.city, curr.state);
+    
+    if (miles > 500) {
+      recommendations.push(`⚠ Long drive: ${prev.city} → ${curr.city} (~${miles} mi) - consider day off or fly`);
+    }
+  }
+
+  return { optimizedOrder, totalMiles, recommendations };
+}
+
+/**
  * Match venues to artist's current stage and audience size
  */
 export function matchVenuesToArtist(
