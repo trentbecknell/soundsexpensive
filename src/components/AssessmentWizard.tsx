@@ -45,7 +45,7 @@ export default function AssessmentWizard({ initialAnswers, onFinish, onCancel }:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="wizard-title" ref={rootRef}>
-      <div className="absolute inset-0 bg-black/50" onClick={onCancel} aria-hidden="true" />
+      <div className="absolute inset-0 bg-black/50" onClick={onCancel} role="presentation" />
       <div className="relative w-full max-w-5xl rounded-2xl bg-surface-800 p-6" role="document">
         <h3 className="text-lg font-semibold mb-2 text-primary-100">Guided assessment</h3>
         <p className="text-sm text-surface-300 mb-4">Answer a few short prompts to help compute your maturity baseline. You can edit values later.</p>
@@ -95,6 +95,7 @@ export default function AssessmentWizard({ initialAnswers, onFinish, onCancel }:
                   messages={messages}
                   onSendMessage={handleChat}
                   suggestions={ASSESSMENT_PROMPTS[Math.min(index, ASSESSMENT_PROMPTS.length - 1)].suggestions}
+                  placeholder="Type your message..."
                 />
               </div>
             )}

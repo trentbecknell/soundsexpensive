@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { analyzeMix, MIX_BENCHMARKS, generateChecklist, compareVersions } from '../lib/mixAnalysis';
+import { analyzeMix, MIX_BENCHMARKS, generateChecklist, compareVersions, analyzeAudioFile } from '../lib/mixAnalysis';
+import { hasFlag } from '../lib/flags';
+import { runMixWorker } from '../lib/workers';
 import type { MixAnalysisResult, DiagnosticIssue, MixingStage, ChecklistItem, MixVersion } from '../types/mixAnalysis';
 
 interface MixAnalyzerProps {
@@ -80,7 +82,19 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
     setError(null);
 
     try {
-      const analysisResult = await analyzeMix(selectedFile, targetGenre, mixingStage);
+      let analysisResult;
+      if (hasFlag('perf-slice')) {
+        // Compute features on main thread (needs DOM APIs), offload scoring/diagnostics to worker
+        const features = await analyzeAudioFile(selectedFile);
+        analysisResult = await runMixWorker({
+          features,
+          fileInfo: { name: selectedFile.name, size_bytes: selectedFile.size, format: selectedFile.type },
+          targetGenre,
+          mixingStage,
+        });
+      } else {
+        analysisResult = await analyzeMix(selectedFile, targetGenre, mixingStage);
+      }
       setResult(analysisResult);
       setLastAnalyzedFile(selectedFile);
       
@@ -120,7 +134,18 @@ export default function MixAnalyzer({ onAnalysisComplete, className = '' }: MixA
     if (lastAnalyzedFile && result) {
       setAnalyzing(true);
       try {
-        const reanalysis = await analyzeMix(lastAnalyzedFile, newGenre, mixingStage);
+        let reanalysis;
+        if (hasFlag('perf-slice')) {
+          const features = await analyzeAudioFile(lastAnalyzedFile);
+          reanalysis = await runMixWorker({
+            features,
+            fileInfo: { name: lastAnalyzedFile.name, size_bytes: lastAnalyzedFile.size, format: lastAnalyzedFile.type },
+            targetGenre: newGenre,
+            mixingStage,
+          });
+        } else {
+          reanalysis = await analyzeMix(lastAnalyzedFile, newGenre, mixingStage);
+        }
         setResult(reanalysis);
         
         // Update checklist for new genre

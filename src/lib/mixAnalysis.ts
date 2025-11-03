@@ -935,6 +935,68 @@ export async function analyzeMix(
 }
 
 /**
+ * Compute full mix analysis given already-derived audio features.
+ * Use this in Web Workers or when features are computed on the main thread.
+ */
+export async function computeMixFromFeatures(
+  features: AudioFeatures,
+  fileInfo: { name: string; size_bytes?: number; format?: string },
+  targetGenre: string = 'Pop',
+  mixingStage: MixingStage = 'not-sure',
+  customBenchmarks?: Partial<MixBenchmarks>
+): Promise<MixAnalysisResult> {
+  // Get benchmarks
+  const baseBenchmarks = getBenchmarksForGenre(targetGenre);
+  const benchmarks = customBenchmarks
+    ? { ...baseBenchmarks, ...customBenchmarks }
+    : baseBenchmarks;
+
+  // Calculate score
+  const score = calculateMixScore(features, benchmarks);
+
+  // Generate diagnostics
+  const allIssues = generateDiagnostics(features, benchmarks);
+
+  // Filter issues based on mixing stage
+  const issues = filterIssuesForStage(allIssues, mixingStage);
+
+  // Identify strengths
+  const strengths = identifyStrengths(features, benchmarks, score);
+
+  // Generate overall assessment
+  const overall_assessment = generateOverallAssessment(score, issues);
+
+  // Generate next steps
+  const next_steps = generateNextSteps(issues, score);
+
+  // Generate stage-appropriate tips
+  const stage_appropriate_tips = generateStageAppropriateTips(mixingStage, issues, score);
+
+  // Generate regional market analysis
+  const regional_analysis = analyzeRegionalMarkets(features, targetGenre);
+
+  return {
+    file_info: {
+      name: fileInfo.name,
+      size_bytes: fileInfo.size_bytes ?? 0,
+      format: fileInfo.format ?? 'unknown',
+    },
+    mixing_stage: mixingStage,
+    audio_features: features,
+    benchmarks_used: benchmarks,
+    score,
+    issues,
+    strengths,
+    overall_assessment,
+    next_steps,
+    stage_appropriate_tips,
+    similar_reference_tracks: benchmarks.reference_tracks,
+    regional_analysis,
+    analysis_timestamp: new Date().toISOString(),
+  };
+}
+
+/**
  * Compare specific metric against benchmark
  */
 export function compareMetric(

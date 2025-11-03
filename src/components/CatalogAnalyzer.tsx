@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { analyzeCatalog, getTimelineData } from '../lib/catalogAnalysis';
+import { analyzeAudioFile } from '../lib/mixAnalysis';
+import { hasFlag } from '../lib/flags';
+import { runMixWorker } from '../lib/workers';
 import type { CatalogTrack, CatalogAnalysisResult } from '../types/catalogAnalysis';
 import { getSpotifyAuthUrl, getAccessToken, fetchPlaylist, fetchAudioFeatures, convertSpotifyFeatures } from '../lib/spotifyApi';
 import { fetchSamplyPlaylist, estimateSamplyAudioFeatures } from '../lib/samplyApi';
@@ -198,7 +201,43 @@ export default function CatalogAnalyzer({ onAnalysisComplete }: CatalogAnalyzerP
     setError(null);
 
     try {
-      const analysis = await analyzeCatalog(tracks, targetGenre);
+      let analysis;
+      if (hasFlag('perf-slice')) {
+        // Pre-compute per-track analyses off the main thread using the mix worker
+        const enriched = await Promise.all(
+          tracks.map(async (t, index) => {
+            try {
+              if (t.analysis) return t; // already analyzed
+              if (t.audio_features) {
+                const res = await runMixWorker({
+                  features: t.audio_features,
+                  fileInfo: { name: t.name, format: 'streaming' },
+                  targetGenre,
+                  mixingStage: 'mastered',
+                });
+                return { ...t, analysis: res };
+              } else if (t.file) {
+                const features = await analyzeAudioFile(t.file);
+                const res = await runMixWorker({
+                  features,
+                  fileInfo: { name: t.name, size_bytes: t.file.size, format: t.file.type },
+                  targetGenre,
+                  mixingStage: 'not-sure',
+                });
+                return { ...t, analysis: res };
+              }
+              throw new Error(`Track ${t.name} missing file or audio features`);
+            } catch (e) {
+              // Fail a single track gracefully
+              console.error('Track analysis failed:', t.name, e);
+              return t;
+            }
+          })
+        );
+        analysis = await analyzeCatalog(enriched, targetGenre);
+      } else {
+        analysis = await analyzeCatalog(tracks, targetGenre);
+      }
       setResult(analysis);
       
       // Notify parent component of completed analysis

@@ -11,19 +11,25 @@ type Props = {
   onSendMessage: (message: string) => void;
   suggestions?: string[];
   className?: string;
+  placeholder?: string;
 };
 
-export default function Chat({ messages, onSendMessage, suggestions = [], className = '' }: Props) {
+export default function Chat({ messages, onSendMessage, suggestions = [], className = '', placeholder = 'Type your response or question...' }: Props) {
   const [input, setInput] = useState('');
   const [isAITyping, setIsAITyping] = useState(false);
 
   // Monitor for AI typing (when a system message is being added)
+  const didMountRef = React.useRef(false);
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
+    // Skip initial mount to avoid disabling input in tests and on first render
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      setIsAITyping(false);
+      return;
+    }
     if (lastMessage?.type === 'user') {
       setIsAITyping(true);
-      
-      // Reset typing after AI responds
       const timeout = setTimeout(() => {
         setIsAITyping(false);
       }, 800);
@@ -80,6 +86,22 @@ export default function Chat({ messages, onSendMessage, suggestions = [], classN
           </div>
         ))}
 
+        {/* Suggestions */}
+        {suggestions.length > 0 && (
+          <div className="space-y-2" aria-label="suggestions">
+            {suggestions.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                className="max-w-[85%] text-left w-full rounded-lg p-3 bg-surface-700/30 text-surface-200 border border-surface-600/30 hover:bg-surface-700/50 transition"
+                onClick={() => onSendMessage(s)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Clean typing indicator */}
         {isAITyping && (
           <div className="max-w-[85%]">
@@ -104,19 +126,20 @@ export default function Chat({ messages, onSendMessage, suggestions = [], classN
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Type your response or question..."
+            placeholder={placeholder}
             className="flex-1 bg-surface-700/50 rounded-lg px-4 py-3 text-sm text-surface-100 placeholder-surface-400 border border-surface-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all outline-none"
             disabled={isAITyping}
           />
           <button
             type="submit"
+            aria-label="Send"
             disabled={!input.trim() || isAITyping}
             className="px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-surface-600 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-all"
           >
             {isAITyping ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true"></div>
             ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             )}
