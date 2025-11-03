@@ -158,7 +158,7 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
         {/* Quick Features Highlight */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
           <div className="relative overflow-hidden p-4 rounded-xl border border-surface-700/50 banner-studio">
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-surface-900/30 via-transparent to-surface-900/30"></div>
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-surface-900/30 via-transparent to-surface-900/30"></div>
             <div className="relative flex flex-col items-center">
               <div className="w-10 h-10 rounded-lg bg-primary-600/20 flex items-center justify-center mb-2">
                 <svg className="w-5 h-5 text-primary-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,7 +170,7 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
             </div>
           </div>
           <div className="relative overflow-hidden p-4 rounded-xl border border-surface-700/50 banner-studio">
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-surface-900/30 via-transparent to-surface-900/30"></div>
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-surface-900/30 via-transparent to-surface-900/30"></div>
             <div className="relative flex flex-col items-center">
               <div className="w-10 h-10 rounded-lg bg-accent-600/20 flex items-center justify-center mb-2">
                 <svg className="w-5 h-5 text-accent-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@ export default function OnboardingWelcome({ onStart, onSkip, hasExistingData }: 
             </div>
           </div>
           <div className="relative overflow-hidden p-4 rounded-xl border border-surface-700/50 banner-studio">
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-surface-900/30 via-transparent to-surface-900/30"></div>
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-surface-900/30 via-transparent to-surface-900/30"></div>
             <div className="relative flex flex-col items-center">
               <div className="w-10 h-10 rounded-lg bg-green-600/20 flex items-center justify-center mb-2">
                 <svg className="w-5 h-5 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

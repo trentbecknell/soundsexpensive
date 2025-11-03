@@ -182,7 +182,7 @@ export default function AICharacter({
     <div className={`relative flex flex-col items-center ${className}`}>
       {/* Stage lighting effect */}
       <div 
-        className="absolute inset-0 rounded-full opacity-20 animate-pulse"
+  className="pointer-events-none absolute inset-0 rounded-full opacity-20 animate-pulse"
         style={{
           background: `radial-gradient(circle, ${styles.borderGlow}60 0%, transparent 70%)`,
           width: '200px',

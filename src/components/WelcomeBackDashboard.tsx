@@ -39,7 +39,7 @@ export default function WelcomeBackDashboard({
       <div className="max-w-5xl w-full">
         {/* Header - Studio banner styling */}
         <div className="relative overflow-hidden rounded-2xl border border-surface-700 p-6 mb-8 banner-studio text-center">
-          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-surface-900/50 via-surface-900/30 to-transparent"></div>
+          <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-surface-900/50 via-surface-900/30 to-transparent"></div>
           <div className="relative">
             <h1 className="text-4xl font-bold text-surface-50 mb-2">{getGreeting()}</h1>
             <p className="text-sm text-surface-300">Artist Development Session</p>
