@@ -38,6 +38,7 @@ import ArtistSwitcher from "./components/ArtistSwitcher";
 import PortfolioDashboard from "./components/PortfolioDashboard";
 import ArtistComparisonView from "./components/ArtistComparisonView";
 import PortfolioAnalytics from "./components/PortfolioAnalytics";
+import TourPlanner from "./components/TourPlanner";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
@@ -113,6 +114,8 @@ interface AppState {
   lastActiveTab: string; // Remember user's last active tab
   firstVisitDate?: string; // ISO date of first visit
   catalogAnalysisData?: CatalogAnalysisResult; // Store catalog analysis results for chat context
+  // Live Performance State
+  estimatedDraw: number; // Artist's estimated draw for live shows
 }
 
 const PHASE_ORDER: PhaseKey[] = ["Discovery","Pre‑Production","Production","Post‑Production","Release","Growth"];
@@ -453,7 +456,8 @@ export default function App({ userId }: AppProps = {}) {
       roadmapGenerated: false,
       lastActiveTab: 'roadmap', // Start at roadmap - assessment is optional
       firstVisitDate: new Date().toISOString(),
-      catalogAnalysisData: undefined
+      catalogAnalysisData: undefined,
+      estimatedDraw: 100 // Default draw for live performance planning
     };
     
     // Migration for existing users - add new fields if missing
@@ -485,6 +489,11 @@ export default function App({ userId }: AppProps = {}) {
       baseState.chatPlanningComplete = false;
     }
     
+    // Migrate live performance draw
+    if (baseState.estimatedDraw === undefined) {
+      baseState.estimatedDraw = 100;
+    }
+    
     // Initialize assessment from legacy profile if not present
     if (!baseState.assessment) {
       baseState.assessment = convertLegacyProfileToAssessment(baseState);
@@ -513,15 +522,15 @@ export default function App({ userId }: AppProps = {}) {
   });
   
   // Navigation state - sync with URL hash
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio'>(() => {
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live'>(() => {
     // Check URL hash first (e.g., #/roadmap, #/grants, etc.)
     const hash = location.pathname.replace('/', '') || location.hash.replace('#/', '');
-    const validTabs = ['roadmap', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio'];
+    const validTabs = ['roadmap', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
     if (validTabs.includes(hash)) {
       return hash as any;
     }
     // Fall back to last active tab from app state
-    return app.lastActiveTab as 'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio';
+    return app.lastActiveTab as 'roadmap' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live';
   });
 
   // Artist comparison state
@@ -532,7 +541,7 @@ export default function App({ userId }: AppProps = {}) {
   // Sync activeTab with URL hash
   useEffect(() => {
     const hash = location.pathname.replace('/', '');
-    const validTabs = ['roadmap', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio'];
+    const validTabs = ['roadmap', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
     if (hash && validTabs.includes(hash)) {
       setActiveTab(hash as any);
     }
@@ -869,7 +878,8 @@ export default function App({ userId }: AppProps = {}) {
       roadmapGenerated: false,
       lastActiveTab: 'roadmap' as const, // Start at roadmap, not forced assessment
       firstVisitDate: new Date().toISOString(),
-      catalogAnalysisData: undefined
+      catalogAnalysisData: undefined,
+      estimatedDraw: 100 // Default draw for live performance planning
     };
     setApp(newState); 
     window.history.replaceState({}, "", window.location.pathname); 
@@ -892,7 +902,8 @@ export default function App({ userId }: AppProps = {}) {
       roadmapGenerated: false,
       lastActiveTab: 'roadmap' as const, // Start at roadmap, not forced assessment
       firstVisitDate: new Date().toISOString(),
-      catalogAnalysisData: undefined
+      catalogAnalysisData: undefined,
+      estimatedDraw: 100 // Default draw for live performance planning
     };
     
     // Add to portfolio and switch to it
@@ -1377,6 +1388,18 @@ export default function App({ userId }: AppProps = {}) {
                     </span>
                   </button>
                 )}
+
+                {/* Live Performance Planning */}
+                <button
+                  onClick={() => setActiveTab('live')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'live'
+                      ? 'bg-primary-600 text-primary-50'
+                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                  }`}
+                >
+                  🎸 Live
+                </button>
               </div>
             </div>
 
@@ -1459,6 +1482,15 @@ export default function App({ userId }: AppProps = {}) {
               <PortfolioAnalytics
                 portfolio={portfolio}
                 onClose={() => setShowAnalytics(false)}
+              />
+            )}
+
+            {activeTab === 'live' && (
+              <TourPlanner
+                artistStage={app.profile.stage}
+                genres={app.profile.genres.split(',').map(g => g.trim()).filter(Boolean)}
+                estimatedDraw={app.estimatedDraw}
+                onEstimatedDrawChange={(draw) => setApp(prev => ({ ...prev, estimatedDraw: draw }))}
               />
             )}
 
