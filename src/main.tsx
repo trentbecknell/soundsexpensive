@@ -26,6 +26,7 @@ import SpotifyCallback from './components/SpotifyCallback'
 import './index.css'
 import computeAuthFlags from './lib/authEnv'
 import { getFlags } from './lib/flags'
+import { getTesterIdentity, isFirstTimeVisitor } from './lib/testerIdentity'
 
 // Import Clerk publishable key
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -61,6 +62,26 @@ const { FORCE_ANON, ENABLE_CLERK } = computeAuthFlags(HOST, IS_PROD_BUILD, !!CLE
 
 // Expose for diagnostics
 (window as any).__AUTH_FLAGS__ = { FORCE_ANON, ENABLE_CLERK, HOST, IS_PROD_BUILD };
+
+// Initialize tester identity on app load
+const testerIdentity = getTesterIdentity();
+const isNewUser = isFirstTimeVisitor();
+
+// Expose for diagnostics and optional analytics
+(window as any).__TESTER__ = {
+  id: testerIdentity.id,
+  sessionCount: testerIdentity.sessionCount,
+  isNewUser,
+  firstVisit: testerIdentity.firstVisit,
+  lastVisit: testerIdentity.lastVisit,
+};
+
+// Log welcome message for testers
+if (isNewUser) {
+  console.log(`👋 Welcome, tester ${testerIdentity.id}! Your session data will be saved across visits.`);
+} else {
+  console.log(`👋 Welcome back! Session ${testerIdentity.sessionCount} • First visit: ${new Date(testerIdentity.firstVisit).toLocaleDateString()}`);
+}
 
 // Runtime assertion: in prod or on public hosts, auth must be disabled
 if (IS_PROD_BUILD || /github\.io|netlify\.app|vercel\.app/i.test(HOST)) {

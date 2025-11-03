@@ -14,6 +14,7 @@
 import React from 'react';
 import { useUser } from '@clerk/clerk-react';
 import App from '../App';
+import TesterWelcome from './TesterWelcome';
 
 /**
  * Loading screen shown while Clerk authentication initializes
@@ -133,5 +134,10 @@ export default function AuthenticatedApp() {
     console.log('ℹ️ Running in anonymous mode');
   }
 
-  return <App userId={userId} />;
+  return (
+    <>
+      <TesterWelcome />
+      <App userId={userId} />
+    </>
+  );
 }
