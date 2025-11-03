@@ -15,7 +15,9 @@ import {
   calculateMusicianPay,
   generateTourBudget,
   recommendBandPay,
-  suggestTourRouting
+  suggestTourRouting,
+  generateSmartTour,
+  getRegionalCorridor
 } from '../lib/tourPlanning';
 
 interface TourPlannerProps {
@@ -47,6 +49,22 @@ export default function TourPlanner({
     }
   ]);
   const [activeTab, setActiveTab] = useState<'venues' | 'band' | 'budget'>('venues');
+  const [showSmartBuilder, setShowSmartBuilder] = useState(false);
+
+  // Auto-build tour with smart defaults
+  const handleSmartBuild = (region?: string) => {
+    const smartTour = generateSmartTour(
+      artistStage,
+      estimatedDraw,
+      genres,
+      region
+    );
+    
+    setSelectedVenues(smartTour.venues);
+    setBandMembers(smartTour.bandMembers);
+    setShowSmartBuilder(false);
+    setActiveTab('budget');
+  };
 
   // Match recommended venues based on artist profile
   const recommendedVenues = useMemo(() => {
@@ -171,12 +189,109 @@ export default function TourPlanner({
 
   return (
     <div className="space-y-6">
+      {/* Smart Tour Builder Modal */}
+      {showSmartBuilder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-surface-900 border border-primary-700 rounded-2xl p-6 max-w-2xl w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-primary-100 mb-2">✨ Smart Tour Builder</h3>
+            <p className="text-surface-300 text-sm mb-6">
+              Let us build a complete tour for you based on your artist profile. We'll select the right venues, 
+              recommend a band configuration, and calculate fair pay rates.
+            </p>
+            
+            <div className="space-y-4 mb-6">
+              <div className="bg-surface-800/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-surface-200 mb-2">Your Profile</h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-surface-400">Stage:</span>{' '}
+                    <span className="text-white font-medium">{artistStage}</span>
+                  </div>
+                  <div>
+                    <span className="text-surface-400">Avg Draw:</span>{' '}
+                    <span className="text-white font-medium">{estimatedDraw} people</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-surface-400">Genre:</span>{' '}
+                    <span className="text-white font-medium">{genres.join(', ') || 'Not set'}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-surface-800/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-surface-200 mb-3">Choose Region (Optional)</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => handleSmartBuild()}
+                    className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium transition-colors"
+                  >
+                    🎯 Best Matches (Any Region)
+                  </button>
+                  <button
+                    onClick={() => handleSmartBuild('Midwest')}
+                    className="px-4 py-2 rounded-lg bg-surface-700 hover:bg-surface-600 text-surface-100 text-sm transition-colors"
+                  >
+                    Midwest Tour
+                  </button>
+                  <button
+                    onClick={() => handleSmartBuild('Southeast')}
+                    className="px-4 py-2 rounded-lg bg-surface-700 hover:bg-surface-600 text-surface-100 text-sm transition-colors"
+                  >
+                    Southeast Tour
+                  </button>
+                  <button
+                    onClick={() => handleSmartBuild('West Coast')}
+                    className="px-4 py-2 rounded-lg bg-surface-700 hover:bg-surface-600 text-surface-100 text-sm transition-colors"
+                  >
+                    West Coast Tour
+                  </button>
+                  <button
+                    onClick={() => handleSmartBuild('Northeast')}
+                    className="px-4 py-2 rounded-lg bg-surface-700 hover:bg-surface-600 text-surface-100 text-sm transition-colors"
+                  >
+                    Northeast Tour
+                  </button>
+                  <button
+                    onClick={() => handleSmartBuild('Pacific Northwest')}
+                    className="px-4 py-2 rounded-lg bg-surface-700 hover:bg-surface-600 text-surface-100 text-sm transition-colors"
+                  >
+                    Pacific NW Tour
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSmartBuilder(false)}
+                className="flex-1 px-4 py-2 rounded-lg bg-surface-700 hover:bg-surface-600 text-surface-100 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">
-        <h2 className="text-xl font-semibold text-primary-100 mb-2">🎸 Live Performance Planning</h2>
-        <p className="text-surface-300 text-sm mb-4">
-          Book the right venues, budget accurately, and pay your team fairly based on industry standards.
-        </p>
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-semibold text-primary-100 mb-2">🎸 Live Performance Planning</h2>
+            <p className="text-surface-300 text-sm">
+              Book the right venues, budget accurately, and pay your team fairly based on industry standards.
+            </p>
+          </div>
+          
+          {selectedVenues.length === 0 && (
+            <button
+              onClick={() => setShowSmartBuilder(true)}
+              className="px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
+            >
+              ✨ Build Tour for Me
+            </button>
+          )}
+        </div>
 
         {/* Estimated Draw Input */}
         <div className="bg-surface-800/50 rounded-lg p-4">

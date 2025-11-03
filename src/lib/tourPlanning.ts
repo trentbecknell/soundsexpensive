@@ -85,6 +85,157 @@ export function getRegionalCorridor(city: string): string | null {
 }
 
 /**
+ * Get recommended band configuration based on genre and venue tier
+ */
+export function getRecommendedBandConfig(genre: string, venueTier: VenueTier): {
+  roles: string[];
+  description: string;
+} {
+  const lowerGenre = genre.toLowerCase();
+  
+  // Genre-specific band configurations
+  if (lowerGenre.includes('rock') || lowerGenre.includes('punk')) {
+    if (venueTier === 'dive-bar') {
+      return { roles: ['Guitar', 'Bass', 'Drums'], description: '3-piece rock band (classic power trio)' };
+    }
+    return { roles: ['Guitar', 'Bass', 'Drums', 'FOH Engineer'], description: '3-piece + sound engineer' };
+  }
+  
+  if (lowerGenre.includes('folk') || lowerGenre.includes('singer-songwriter')) {
+    if (venueTier === 'dive-bar' || venueTier === 'club') {
+      return { roles: [], description: 'Solo performance (you + house sound)' };
+    }
+    return { roles: ['Guitar', 'FOH Engineer'], description: 'Solo + accompanist + engineer' };
+  }
+  
+  if (lowerGenre.includes('jazz')) {
+    if (venueTier === 'dive-bar') {
+      return { roles: ['Bass', 'Drums'], description: 'Jazz trio' };
+    }
+    return { roles: ['Bass', 'Drums', 'Piano/Keys', 'FOH Engineer'], description: 'Jazz quartet + engineer' };
+  }
+  
+  if (lowerGenre.includes('electronic') || lowerGenre.includes('dj')) {
+    return { roles: ['FOH Engineer'], description: 'DJ/electronic solo + engineer' };
+  }
+  
+  if (lowerGenre.includes('hip-hop') || lowerGenre.includes('rap')) {
+    if (venueTier === 'dive-bar' || venueTier === 'club') {
+      return { roles: ['DJ/Turntablist'], description: 'MC + DJ' };
+    }
+    return { roles: ['DJ/Turntablist', 'FOH Engineer', 'Tour Manager'], description: 'MC + DJ + crew' };
+  }
+  
+  if (lowerGenre.includes('country') || lowerGenre.includes('americana')) {
+    if (venueTier === 'dive-bar') {
+      return { roles: ['Guitar', 'Bass'], description: 'Country trio' };
+    }
+    return { roles: ['Guitar', 'Bass', 'Drums', 'Pedal Steel', 'FOH Engineer'], description: 'Full country band' };
+  }
+  
+  if (lowerGenre.includes('metal')) {
+    return { roles: ['Guitar', 'Guitar', 'Bass', 'Drums', 'FOH Engineer'], description: 'Metal band (dual guitars)' };
+  }
+  
+  // Default: indie rock configuration
+  if (venueTier === 'dive-bar') {
+    return { roles: ['Guitar', 'Bass', 'Drums'], description: '3-piece indie band' };
+  }
+  return { roles: ['Guitar', 'Bass', 'Drums', 'Keyboard/Synth', 'FOH Engineer'], description: '4-piece indie + engineer' };
+}
+
+/**
+ * Generate a smart tour plan based on artist profile
+ */
+export function generateSmartTour(
+  stage: Stage,
+  estimatedDraw: number,
+  genres: string[],
+  preferredRegion?: string
+): {
+  venues: Venue[];
+  bandMembers: BandMember[];
+  description: string;
+  rationale: string;
+} {
+  const primaryGenre = genres[0] || 'indie';
+  
+  // Match venues
+  const matchedVenues = matchVenuesToArtist(stage, estimatedDraw, genres);
+  
+  // Select optimal tour size based on stage and draw
+  let tourSize = 5; // Default
+  if (estimatedDraw < 50) {
+    tourSize = 3; // Weekend run for small draws
+  } else if (estimatedDraw < 150) {
+    tourSize = 5; // Week-long for developing artists
+  } else if (estimatedDraw < 400) {
+    tourSize = 8; // 1.5 week tour for established
+  } else if (estimatedDraw < 1000) {
+    tourSize = 12; // 2 week tour for breakout
+  } else {
+    tourSize = 20; // Full tour for big acts
+  }
+  
+  // Filter by region if specified
+  let selectedVenues = matchedVenues.slice(0, tourSize);
+  if (preferredRegion) {
+    const regionalVenues = matchedVenues.filter(v => 
+      getRegionalCorridor(v.city) === preferredRegion
+    );
+    if (regionalVenues.length >= tourSize) {
+      selectedVenues = regionalVenues.slice(0, tourSize);
+    }
+  }
+  
+  // Get recommended band configuration
+  const avgTier = selectedVenues[0]?.tier || 'club';
+  const bandConfig = getRecommendedBandConfig(primaryGenre, avgTier);
+  
+  // Build band members
+  const generateId = () => Math.random().toString(36).slice(2, 9);
+  
+  const bandMembers: BandMember[] = [
+    {
+      id: generateId(),
+      name: 'Artist (You)',
+      role: 'Leader',
+      rate_per_show: 0,
+      is_core_member: true,
+      total_shows: selectedVenues.length,
+      total_pay: 0
+    }
+  ];
+  
+  // Add recommended musicians
+  bandConfig.roles.forEach((role, idx) => {
+    const isCore = idx < 2 || role.includes('Guitar') || role.includes('Bass') || role.includes('Drums');
+    bandMembers.push({
+      id: generateId(),
+      name: '',
+      role,
+      rate_per_show: 0,
+      is_core_member: isCore,
+      total_shows: selectedVenues.length,
+      total_pay: 0
+    });
+  });
+  
+  // Generate description
+  const regionInfo = preferredRegion ? ` in the ${preferredRegion} corridor` : '';
+  const description = `${tourSize}-show ${primaryGenre} tour${regionInfo}`;
+  
+  const rationale = `Based on your ${stage} stage and ${estimatedDraw}-person average draw, we've selected ${selectedVenues.length} ${avgTier}-tier venues. ${bandConfig.description} is the recommended setup for ${primaryGenre} at this level.`;
+  
+  return {
+    venues: selectedVenues,
+    bandMembers,
+    description,
+    rationale
+  };
+}
+
+/**
  * Suggest logical tour routing based on selected venues
  */
 export function suggestTourRouting(venues: Venue[]): {
