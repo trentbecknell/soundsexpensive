@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > Non‑technical user notes (latest v1.4.0): Performance improvements for faster analysis and better responsiveness. Enable experimental features with `?flags=perf-slice` for Web Worker-powered analysis that keeps the app smooth while processing heavy computations.
 
+## [1.5.0] - 2025-11-03
+
+### 🎯 New: First-Time Onboarding & Tester Continuity
+
+This release focuses on helping first-time users understand the app quickly and ensuring their data persists across multi-day testing sessions—without collecting any personal information.
+
+#### Added
+- Onboarding Overlay (first 1–2 uses only)
+  - Short purpose explanation in under two sentences
+  - Clear interactive guidance with three-step prompts (Assessment → Budget → Timeline)
+  - Dismissible by tapping anywhere or pressing "Get Started"
+  - Fully accessible with ARIA roles and labels
+- Anonymous Tester Identity
+  - Unique anonymous ID generated on first visit (`tester-<timestamp>-<rand>`)
+  - Persists session metadata (first/last visit, session count) in localStorage
+  - Exposes `window.__TESTER__` for diagnostics only; no personal data collected
+  - Lightweight toast shows session info on first couple sessions
+
+#### Testing & Quality
+- +13 unit tests for onboarding overlay utilities and UX (total 39 tests passing)
+- Build verified; no changes to public API
+
+#### Notes
+- Onboarding and tester identity are independent of authentication and work in anonymous mode
+- Overlay intentionally appears a maximum of two times to avoid fatigue
+
+
 ## [1.4.0] - 2025-11-03
 
 ### 🚀 Performance & Scalability Release
