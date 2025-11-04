@@ -4,42 +4,65 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Primary: Warm sepia/amber (readable on dark)
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          50: '#fef9f3',
+          100: '#fef3e7',
+          200: '#fde4c3',
+          300: '#fcd09f',
+          400: '#faad57',
+          500: '#f8890f',
+          600: '#df7c0e',
+          700: '#ba670c',
+          800: '#955209',
+          900: '#7a4408',
         },
+        // Surface: Dark warm neutrals (heritage aesthetic)
         surface: {
-          50: '#fafafa',
-          100: '#f4f4f5',
-          200: '#e4e4e7',
-          300: '#d4d4d8',
-          400: '#a1a1aa',
-          500: '#71717a',
-          600: '#52525b',
-          700: '#3f3f46',
-          800: '#27272a',
-          900: '#18181b',
+          50: '#fafaf9',
+          100: '#f5f5f4',
+          200: '#e7e5e4',
+          300: '#d6d3d1',
+          400: '#a8a29e',
+          500: '#78716c',
+          600: '#57534e',
+          700: '#44403c',
+          800: '#292524',
+          900: '#1c1917',
         },
+        // Accent: Rich amber/gold (jazzy warmth)
         accent: {
-          50: '#fdf4ff',
-          100: '#fae8ff',
-          200: '#f5d0fe',
-          300: '#f0abfc',
-          400: '#e879f9',
-          500: '#d946ef',
-          600: '#c026d3',
-          700: '#a21caf',
-          800: '#86198f',
-          900: '#701a75',
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
         }
+      },
+      fontFamily: {
+        // Heritage serif for headlines
+        serif: ['Georgia', 'Garamond', 'serif'],
+        // Modern sans for body
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'system-ui', 'sans-serif'],
+        // Monospace for studio elements
+        mono: ['Courier New', 'Courier', 'monospace'],
+      },
+      borderRadius: {
+        // Softer, rounded aesthetic
+        'brand': '12px',
+        'brand-lg': '16px',
+        'brand-xl': '24px',
+      },
+      boxShadow: {
+        // Warm, atmospheric shadows
+        'warm': '0 4px 6px -1px rgba(120, 53, 15, 0.1), 0 2px 4px -1px rgba(120, 53, 15, 0.06)',
+        'warm-lg': '0 10px 15px -3px rgba(120, 53, 15, 0.1), 0 4px 6px -2px rgba(120, 53, 15, 0.05)',
+        'warm-xl': '0 20px 25px -5px rgba(120, 53, 15, 0.1), 0 10px 10px -5px rgba(120, 53, 15, 0.04)',
       }
     }
   },

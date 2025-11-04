@@ -3,17 +3,29 @@
 @tailwind utilities;
 
 * { box-sizing: border-box; }
+
+/* Dark mode with warm accents for readability */
 :root { 
   color-scheme: dark;
-  background: linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(88, 28, 135) 100%);
+  /* Warm dark gradient (film-inspired) */
+  background: linear-gradient(135deg, rgb(28, 25, 23) 0%, rgb(68, 64, 60) 50%, rgb(41, 37, 36) 100%);
   min-height: 100vh;
 }
 
 body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
-  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 100%);
+  /* Subtle warm glow over dark base */
+  background: radial-gradient(circle at center, rgba(248, 137, 15, 0.08) 0%, rgba(248, 137, 15, 0) 70%);
   min-height: 100vh;
+}
+
+/* Heritage serif for headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: Georgia, 'Garamond', serif;
+  font-weight: normal;
+  letter-spacing: -0.01em;
 }
 
 /* Improve mobile/touch interactions */
@@ -21,15 +33,18 @@ html, body { touch-action: manipulation; }
 button, [role="button"], summary, a { -webkit-tap-highlight-color: transparent; }
 button { touch-action: manipulation; }
 
-/* Recommended minimum tap target (44px) when using utility classes */
+/* Recommended minimum tap target (44px) */
 .tap-target { min-width: 44px; min-height: 44px; }
 
 input, select, textarea { 
   color-scheme: dark;
-  @apply bg-surface-700/50 text-surface-100 placeholder-surface-500 focus:bg-surface-700 focus:ring-2 focus:ring-primary-500 transition-colors outline-none;
+  @apply bg-surface-800/50 text-surface-100 placeholder-surface-500 
+         focus:bg-surface-800 focus:ring-2 focus:ring-primary-500 
+         transition-colors outline-none rounded-brand
+         border border-surface-700;
 }
 
-/* Modern scrollbar */
+/* Warm scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -40,23 +55,27 @@ input, select, textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-surface-700 rounded-full;
+  @apply bg-primary-700 rounded-full;
 }
 
-/* Studio theme: color-first, no photos */
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-600;
+}
+
+/* Dark studio theme with warm atmospheric accents */
 .bg-studio {
-  /* Layer soft color glows over a dark surface base */
+  /* Layered warm glows over dark base */
   background:
-    radial-gradient(700px 700px at 0% 0%, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0) 60%),
-    radial-gradient(900px 900px at 100% 0%, rgba(217, 70, 239, 0.10), rgba(217, 70, 239, 0) 60%),
-    linear-gradient(180deg, rgba(24, 24, 27, 0.98) 0%, rgba(24, 24, 27, 1) 60%);
+    radial-gradient(700px 700px at 0% 0%, rgba(248, 137, 15, 0.10), rgba(248, 137, 15, 0) 60%),
+    radial-gradient(900px 900px at 100% 0%, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0) 60%),
+    linear-gradient(180deg, rgba(28, 25, 23, 0.98) 0%, rgba(28, 25, 23, 1) 60%);
 }
 
 .banner-studio {
-  /* Subtle banner mesh with gentle color accents */
+  /* Warm banner with subtle amber accents */
   background:
-    radial-gradient(400px 400px at 10% 50%, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0) 55%),
-    radial-gradient(450px 450px at 90% 50%, rgba(217, 70, 239, 0.10), rgba(217, 70, 239, 0) 55%),
-    rgba(39, 39, 42, 0.5);
+    radial-gradient(400px 400px at 10% 50%, rgba(248, 137, 15, 0.10), rgba(248, 137, 15, 0) 55%),
+    radial-gradient(450px 450px at 90% 50%, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0) 55%),
+    rgba(41, 37, 36, 0.6);
   backdrop-filter: blur(6px);
 }

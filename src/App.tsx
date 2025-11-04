@@ -1132,32 +1132,34 @@ export default function App({ userId }: AppProps = {}) {
         />
       ) : (
       <div className="mx-auto max-w-7xl px-6 py-8">
-        {/* Studio banner header */}
-        <header className="mb-6 relative rounded-2xl border border-surface-700 p-5 banner-studio z-50">
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-surface-900/60 via-surface-900/40 to-transparent rounded-2xl overflow-hidden"></div>
+        {/* Studio banner header - warm heritage aesthetic */}
+        <header className="mb-6 relative rounded-brand-lg border border-surface-700 p-5 banner-studio z-50 shadow-warm">
+          <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-surface-900/60 via-surface-900/40 to-transparent rounded-brand-lg overflow-hidden"></div>
           <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-surface-50">Artist Roadmap <span className="text-surface-300">PRO</span></h1>
-                <p className="text-sm text-surface-300">Professional A&R tool for baseline assessment, strategic planning, and career development.</p>
+                <h1 className="text-2xl font-serif tracking-tight text-surface-50">
+                  sounds expensive <span className="text-primary-400">✶</span>
+                </h1>
+                <p className="text-sm text-surface-300">boutique music project planning & strategy</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
             {/* Persona mode switch */}
-            <div className="flex items-center gap-1 rounded-lg border border-surface-600 bg-surface-800/60 p-1">
+            <div className="flex items-center gap-1 rounded-brand border border-surface-600 bg-surface-800/60 p-1">
               <button
-                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='artist' ? 'bg-primary-600 text-white' : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/60'}`}
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='artist' ? 'bg-primary-500 text-white shadow-sm' : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/60'}`}
                 onClick={() => setPersona('artist')}
                 title="Artist mode: plan and build"
               >
-                Artist
+                artist
               </button>
               <button
-                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='manager' ? 'bg-primary-600 text-white' : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/60'}`}
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='manager' ? 'bg-primary-500 text-white shadow-sm' : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/60'}`}
                 onClick={() => setPersona('manager')}
                 title="Manager mode: review and share"
               >
-                Manager
+                manager
               </button>
             </div>
             {/* TEMPORARILY DISABLED - Organization Switcher (Clerk auth not active)
