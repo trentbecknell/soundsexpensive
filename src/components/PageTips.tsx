@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-type TabKey = 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent';
+type TabKey = 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch';
 
 type TipsState = {
   byTab: Record<TabKey, { index: number; dismissed: boolean } | undefined>;
@@ -52,6 +52,10 @@ const TIPS: Record<TabKey, string[]> = {
   'talent': [
     'Use recommendations by role, then copy an outreach brief. Add your contact to speed replies.',
     'Try External Sources (beta) to search credits and local live activity.',
+  ],
+  'merch': [
+    'Start with tees and stickers; adjust quantities by expected show draw. Use Copy quote to email vendors fast.',
+    'Add items to your budget to track costs in the Growth phase. Iterate quantities after first runs.',
   ],
 };
 

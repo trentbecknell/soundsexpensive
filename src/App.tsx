@@ -43,6 +43,7 @@ const PortfolioAnalytics = React.lazy(() => import("./components/PortfolioAnalyt
 const TourPlanner = React.lazy(() => import("./components/TourPlanner"));
 const MasterPlan = React.lazy(() => import("./components/MasterPlan"));
 const TalentFinder = React.lazy(() => import("./components/TalentFinder"));
+const MerchPlanner = React.lazy(() => import("./components/MerchPlanner"));
 import PageTips from "./components/PageTips";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
@@ -527,15 +528,15 @@ export default function App({ userId }: AppProps = {}) {
   });
   
   // Navigation state - sync with URL hash
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent'>(() => {
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch'>(() => {
     // Check URL hash first (e.g., #/roadmap, #/grants, etc.)
     const hash = location.pathname.replace('/', '') || location.hash.replace('#/', '');
-  const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live', 'talent'];
+  const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live', 'talent', 'merch'];
     if (validTabs.includes(hash)) {
       return hash as any;
     }
     // Fall back to last active tab from app state
-  return app.lastActiveTab as 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent';
+  return app.lastActiveTab as 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch';
   });
 
   // Artist comparison state
@@ -546,7 +547,7 @@ export default function App({ userId }: AppProps = {}) {
   // Sync activeTab with URL hash
   useEffect(() => {
     const hash = location.pathname.replace('/', '');
-    const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live', 'talent'];
+    const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live', 'talent', 'merch'];
     if (hash && validTabs.includes(hash)) {
       setActiveTab(hash as any);
     }
@@ -1386,6 +1387,18 @@ export default function App({ userId }: AppProps = {}) {
                   🤝 Talent
                 </button>
 
+                {/* Merch Planner */}
+                <button
+                  onClick={() => setActiveTab('merch')}
+                  className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'merch'
+                      ? 'bg-primary-600 text-primary-50'
+                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                  }`}
+                >
+                  🛍️ Merch
+                </button>
+
                 {/* Step 6: Applications */}
                 <button
                   onClick={() => setActiveTab('applications')}
@@ -1564,6 +1577,26 @@ export default function App({ userId }: AppProps = {}) {
                   profile={app.profile}
                   project={app.project}
                   budget={app.budget}
+                />
+              </React.Suspense>
+            )}
+
+            {activeTab === 'merch' && (
+              <React.Suspense fallback={<div className="text-surface-300">Loading Merch Planner…</div>}>
+                <MerchPlanner
+                  profile={app.profile}
+                  project={app.project}
+                  estimatedDraw={app.estimatedDraw}
+                  onAddToBudget={({ description, totalCost }) => {
+                    setApp(prev => ({
+                      ...prev,
+                      budget: [
+                        ...prev.budget,
+                        { id: uid(), category: 'Merch', description, qty: 1, unitCost: Math.max(0, totalCost || 0), phase: 'Growth', required: false }
+                      ]
+                    }));
+                    pushToast('Merch item added to budget');
+                  }}
                 />
               </React.Suspense>
             )}
