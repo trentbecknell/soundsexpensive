@@ -416,6 +416,8 @@ export interface AppProps {
 export default function App({ userId }: AppProps = {}) {
   const location = useLocation();
   const navigate = useNavigate();
+  type PersonaMode = 'artist' | 'manager';
+  const PERSONA_LS_KEY = 'artist-roadmap-persona-v1';
   
   // Portfolio Management - Multi-Artist Support
   const [portfolio, setPortfolio] = useState<Portfolio>(() => loadPortfolio(userId));
@@ -508,6 +510,50 @@ export default function App({ userId }: AppProps = {}) {
     return baseState;
   });
 
+  // Persona mode: Artist | Manager
+  const initialPersona: PersonaMode = (() => {
+    try {
+      // Prefer URL param (works with HashRouter via location.search)
+      const params = new URLSearchParams(window.location.search);
+      const p = (params.get('persona') || '').toLowerCase();
+      if (p === 'artist' || p === 'manager') return p as PersonaMode;
+
+      // Then persisted preference
+      const saved = localStorage.getItem(PERSONA_LS_KEY) as PersonaMode | null;
+      if (saved === 'artist' || saved === 'manager') return saved;
+
+      // Fallback heuristic: portfolio with multiple artists => manager mode
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.portfolio && Array.isArray(parsed.portfolio.artists) && parsed.portfolio.artists.length > 1) {
+          return 'manager';
+        }
+      }
+    } catch {}
+    return 'artist';
+  })();
+  const [persona, setPersona] = useState<PersonaMode>(initialPersona);
+
+  // Keep persona in localStorage and URL (query) in sync
+  useEffect(() => {
+    try {
+      localStorage.setItem(PERSONA_LS_KEY, persona);
+      // Update the hash-route search params without losing path
+      const current = new URL(window.location.href);
+      // Under HashRouter, use the search portion after the hash
+      const hash = current.hash || '#/';
+      const [path, q = ''] = hash.split('?');
+      const sp = new URLSearchParams(q);
+      sp.set('persona', persona);
+      const newHash = `${path}?${sp.toString()}`;
+      if (newHash !== hash) {
+        current.hash = newHash;
+        window.history.replaceState({}, '', current.toString());
+      }
+    } catch {}
+  }, [persona]);
+
   // Chat state for planning (now context-aware based on catalog analysis)
   const [chatComplete, setChatComplete] = useState(true); // Skip chat planning by default - make it optional
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
@@ -528,7 +574,8 @@ export default function App({ userId }: AppProps = {}) {
   });
   
   // Navigation state - sync with URL hash
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch'>(() => {
+  type TabKey = 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch';
+  const [activeTab, setActiveTab] = useState<TabKey>(() => {
     // Check URL hash first (e.g., #/roadmap, #/grants, etc.)
     const hash = location.pathname.replace('/', '') || location.hash.replace('#/', '');
   const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live', 'talent', 'merch'];
@@ -538,6 +585,30 @@ export default function App({ userId }: AppProps = {}) {
     // Fall back to last active tab from app state
   return app.lastActiveTab as 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch';
   });
+
+  // Allowed tabs per persona
+  const ARTIST_TABS = useMemo<Set<TabKey>>(() => new Set([
+    'catalog-analyzer',
+    'roadmap',
+    'master-plan',
+    'grants',
+    'applications',
+    'merch',
+    'live',
+    'mix-analyzer',
+    'talent',
+  ] as TabKey[]), []);
+  const MANAGER_TABS = useMemo<Set<TabKey>>(() => new Set([
+    'master-plan',
+    'roadmap',
+    'grants',
+    'applications',
+    'merch',
+    'portfolio',
+    'live',
+  ] as TabKey[]), []);
+  const isTabAllowed = (tab: TabKey) => (persona === 'manager' ? MANAGER_TABS.has(tab) : ARTIST_TABS.has(tab));
+  const defaultTabForPersona: TabKey = persona === 'manager' ? 'master-plan' : 'roadmap';
 
   // Artist comparison state
   const [showComparison, setShowComparison] = useState(false);
@@ -557,9 +628,20 @@ export default function App({ userId }: AppProps = {}) {
   useEffect(() => {
     if (app.lastActiveTab !== activeTab) {
       setApp(prev => ({...prev, lastActiveTab: activeTab}));
-      navigate(`/${activeTab}`, { replace: true });
+      // Preserve persona query in the hash-router URL
+      const params = new URLSearchParams(window.location.search);
+      params.set('persona', persona);
+      navigate(`/${activeTab}?${params.toString()}`, { replace: true });
     }
   }, [activeTab, navigate]);
+
+  // Ensure activeTab is valid for current persona; if not, redirect to default
+  useEffect(() => {
+    if (!isTabAllowed(activeTab)) {
+      setActiveTab(defaultTabForPersona);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [persona]);
   
   const handleChatMessage = (message: string) => {
     // Add user message
@@ -1055,6 +1137,23 @@ export default function App({ userId }: AppProps = {}) {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+            {/* Persona mode switch */}
+            <div className="flex items-center gap-1 rounded-lg border border-surface-600 bg-surface-800/60 p-1">
+              <button
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='artist' ? 'bg-primary-600 text-white' : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/60'}`}
+                onClick={() => setPersona('artist')}
+                title="Artist mode: plan and build"
+              >
+                Artist
+              </button>
+              <button
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='manager' ? 'bg-primary-600 text-white' : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/60'}`}
+                onClick={() => setPersona('manager')}
+                title="Manager mode: review and share"
+              >
+                Manager
+              </button>
+            </div>
             {/* TEMPORARILY DISABLED - Organization Switcher (Clerk auth not active)
             <OrganizationSwitcher
               appearance={{
@@ -1277,6 +1376,7 @@ export default function App({ userId }: AppProps = {}) {
             <div className="mb-6">
               <div className="flex flex-wrap gap-2 p-1 bg-surface-800/50 rounded-xl border border-surface-700">
                 {/* Step 1: Catalog Analyzer */}
+                {isTabAllowed('catalog-analyzer') && (
                 <button
                   onClick={() => setActiveTab('catalog-analyzer')}
                   className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
@@ -1292,8 +1392,10 @@ export default function App({ userId }: AppProps = {}) {
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
                   )}
                 </button>
+                )}
 
                 {/* Step 2: AI Planning Chat */}
+                {isTabAllowed('roadmap') && (
                 <button
                   onClick={() => {
                     if (!chatComplete && !app.chatPlanningComplete) {
@@ -1314,8 +1416,10 @@ export default function App({ userId }: AppProps = {}) {
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
                   )}
                 </button>
+                )}
 
                 {/* Step 3: Project Roadmap */}
+                {isTabAllowed('roadmap') && (
                 <button
                   onClick={() => setActiveTab('roadmap')}
                   className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors relative ${
@@ -1331,9 +1435,10 @@ export default function App({ userId }: AppProps = {}) {
                     <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full"></span>
                   )}
                 </button>
+                )}
 
                 {/* Master Plan - Complete project overview with ROI */}
-                {app.roadmapGenerated && (
+                {app.roadmapGenerated && isTabAllowed('master-plan') && (
                   <button
                     onClick={() => setActiveTab('master-plan')}
                     className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -1347,6 +1452,7 @@ export default function App({ userId }: AppProps = {}) {
                 )}
 
                 {/* Step 4: Mix Analyzer - Refine individual tracks */}
+                {isTabAllowed('mix-analyzer') && (
                 <button
                   onClick={() => setActiveTab('mix-analyzer')}
                   className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -1357,8 +1463,10 @@ export default function App({ userId }: AppProps = {}) {
                 >
                   🎚️ Mix Analyzer
                 </button>
+                )}
 
                 {/* Step 5: Grant Discovery */}
+                {isTabAllowed('grants') && (
                 <button
                   onClick={() => setActiveTab('grants')}
                   className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -1374,8 +1482,10 @@ export default function App({ userId }: AppProps = {}) {
                     </span>
                   )}
                 </button>
+                )}
 
                 {/* Talent Sourcing */}
+                {isTabAllowed('talent') && (
                 <button
                   onClick={() => setActiveTab('talent')}
                   className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -1386,8 +1496,10 @@ export default function App({ userId }: AppProps = {}) {
                 >
                   🤝 Talent
                 </button>
+                )}
 
                 {/* Merch Planner */}
+                {isTabAllowed('merch') && (
                 <button
                   onClick={() => setActiveTab('merch')}
                   className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -1398,8 +1510,10 @@ export default function App({ userId }: AppProps = {}) {
                 >
                   🛍️ Merch
                 </button>
+                )}
 
                 {/* Step 6: Applications */}
+                {isTabAllowed('applications') && (
                 <button
                   onClick={() => setActiveTab('applications')}
                   className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -1415,9 +1529,10 @@ export default function App({ userId }: AppProps = {}) {
                     </span>
                   )}
                 </button>
+                )}
 
                 {/* Portfolio View - Multi-artist management */}
-                {portfolio.artists.length > 1 && (
+                {portfolio.artists.length > 1 && isTabAllowed('portfolio') && (
                   <button
                     onClick={() => setActiveTab('portfolio')}
                     className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -1434,6 +1549,7 @@ export default function App({ userId }: AppProps = {}) {
                 )}
 
                 {/* Live Performance Planning */}
+                {isTabAllowed('live') && (
                 <button
                   onClick={() => setActiveTab('live')}
                   className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -1444,6 +1560,7 @@ export default function App({ userId }: AppProps = {}) {
                 >
                   🎸 Live
                 </button>
+                )}
               </div>
             </div>
 
@@ -1451,7 +1568,7 @@ export default function App({ userId }: AppProps = {}) {
             <PageTips tab={activeTab} />
 
             {/* Tab Content */}
-            {activeTab === 'mix-analyzer' && (
+            {activeTab === 'mix-analyzer' && isTabAllowed('mix-analyzer') && (
               <div>
                 <div className="mb-6 rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">
                   <h2 className="text-xl font-semibold text-primary-100 mb-2">🎚️ Mix Analyzer</h2>
@@ -1466,7 +1583,7 @@ export default function App({ userId }: AppProps = {}) {
               </div>
             )}
 
-            {activeTab === 'catalog-analyzer' && (
+            {activeTab === 'catalog-analyzer' && isTabAllowed('catalog-analyzer') && (
               <div id="catalog-analysis">
                 <div className="mb-6 rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">
                   <h2 className="text-xl font-semibold text-primary-100 mb-2">📊 Catalog Analyzer</h2>
@@ -1488,7 +1605,7 @@ export default function App({ userId }: AppProps = {}) {
               </div>
             )}
 
-            {activeTab === 'grants' && (
+            {activeTab === 'grants' && isTabAllowed('grants') && (
               <React.Suspense fallback={<div className="text-surface-300">Loading Grants…</div>}>
                 <GrantDiscovery
                 profile={app.profile}
@@ -1501,7 +1618,7 @@ export default function App({ userId }: AppProps = {}) {
               </React.Suspense>
             )}
 
-            {activeTab === 'applications' && (
+            {activeTab === 'applications' && isTabAllowed('applications') && (
               <React.Suspense fallback={<div className="text-surface-300">Loading Applications…</div>}>
                 <GrantApplicationTracker
                 applications={app.grantApplications}
@@ -1513,7 +1630,7 @@ export default function App({ userId }: AppProps = {}) {
               </React.Suspense>
             )}
 
-            {activeTab === 'portfolio' && !showComparison && !showAnalytics && (
+            {activeTab === 'portfolio' && isTabAllowed('portfolio') && !showComparison && !showAnalytics && (
               <React.Suspense fallback={<div className="text-surface-300">Loading Portfolio…</div>}>
                 <PortfolioDashboard
                 portfolio={portfolio}
@@ -1527,7 +1644,7 @@ export default function App({ userId }: AppProps = {}) {
               </React.Suspense>
             )}
 
-            {activeTab === 'portfolio' && showComparison && (
+            {activeTab === 'portfolio' && isTabAllowed('portfolio') && showComparison && (
               <React.Suspense fallback={<div className="text-surface-300">Loading Comparison…</div>}>
                 <ArtistComparisonView
                 artists={comparisonArtistIds.map(id => portfolio.artists.find(a => a.id === id)!).filter(Boolean)}
@@ -1537,7 +1654,7 @@ export default function App({ userId }: AppProps = {}) {
               </React.Suspense>
             )}
 
-            {activeTab === 'portfolio' && showAnalytics && (
+            {activeTab === 'portfolio' && isTabAllowed('portfolio') && showAnalytics && (
               <React.Suspense fallback={<div className="text-surface-300">Loading Analytics…</div>}>
                 <PortfolioAnalytics
                 portfolio={portfolio}
@@ -1546,7 +1663,7 @@ export default function App({ userId }: AppProps = {}) {
               </React.Suspense>
             )}
 
-            {activeTab === 'master-plan' && (
+            {activeTab === 'master-plan' && isTabAllowed('master-plan') && (
               <React.Suspense fallback={<div className="text-surface-300">Loading Master Plan…</div>}>
                 <MasterPlan
                 profile={app.profile}
@@ -1560,7 +1677,7 @@ export default function App({ userId }: AppProps = {}) {
               </React.Suspense>
             )}
 
-            {activeTab === 'live' && (
+            {activeTab === 'live' && isTabAllowed('live') && (
               <React.Suspense fallback={<div className="text-surface-300">Loading Live Planner…</div>}>
                 <TourPlanner
                 artistStage={app.profile.stage}
@@ -1571,7 +1688,7 @@ export default function App({ userId }: AppProps = {}) {
               </React.Suspense>
             )}
 
-            {activeTab === 'talent' && (
+            {activeTab === 'talent' && isTabAllowed('talent') && (
               <React.Suspense fallback={<div className="text-surface-300">Loading Talent Finder…</div>}>
                 <TalentFinder
                   profile={app.profile}
@@ -1581,7 +1698,7 @@ export default function App({ userId }: AppProps = {}) {
               </React.Suspense>
             )}
 
-            {activeTab === 'merch' && (
+            {activeTab === 'merch' && isTabAllowed('merch') && (
               <React.Suspense fallback={<div className="text-surface-300">Loading Merch Planner…</div>}>
                 <MerchPlanner
                   profile={app.profile}
