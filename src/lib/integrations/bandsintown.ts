@@ -2,7 +2,7 @@ import { TalentSource, TalentSearchParams, TalentSourceResult } from '../../type
 import { TalentProfile } from '../../types/talent';
 import { getCached, setCached } from './base';
 import sample from '../../data/integrations/bandsintown.json';
-import { getLiveSourcesFlag } from '../featureFlags';
+import { getLiveSourcesFlag, getApiBase } from '../featureFlags';
 
 type BITEvent = {
   artist: string;
@@ -29,7 +29,8 @@ function eventToLiveTalent(e: BITEvent): TalentProfile {
 async function searchBIT(params: TalentSearchParams): Promise<TalentSourceResult> {
   if (getLiveSourcesFlag()) {
     try {
-      const url = new URL('/api/bandsintown/events', window.location.origin);
+      const base = getApiBase();
+      const url = new URL(`${base.replace(/\/$/, '')}/bandsintown/events`, base.startsWith('http') ? undefined : window.location.origin);
       if (params.city) url.searchParams.set('city', params.city);
       if (params.referenceArtist) url.searchParams.set('artist', params.referenceArtist);
       const res = await fetch(url.toString());

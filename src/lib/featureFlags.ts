@@ -20,3 +20,28 @@ export function setLiveSourcesFlag(val: boolean) {
     // ignore
   }
 }
+
+export function getApiBase(): string {
+  try {
+    // URL hash override: #apiBase=https://api.example.com
+    const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    if (params.has('apiBase')) {
+      const v = params.get('apiBase') || '';
+      if (v) return v;
+    }
+    const stored = localStorage.getItem('ar-api-base');
+    if (stored) return stored;
+  } catch {
+    // ignore
+  }
+  // default to relative /api (works with dev proxy)
+  return '/api';
+}
+
+export function setApiBase(url: string) {
+  try {
+    localStorage.setItem('ar-api-base', url || '');
+  } catch {
+    // ignore
+  }
+}

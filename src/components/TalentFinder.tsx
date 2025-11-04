@@ -10,7 +10,7 @@ import type { TalentSourceResult, TalentSearchParams } from '../types/integratio
 import discogs from '../lib/integrations/discogs';
 import musicbrainz from '../lib/integrations/musicbrainz';
 import bandsintown from '../lib/integrations/bandsintown';
-import { getLiveSourcesFlag, setLiveSourcesFlag } from '../lib/featureFlags';
+import { getLiveSourcesFlag, setLiveSourcesFlag, getApiBase, setApiBase } from '../lib/featureFlags';
 
 export default function TalentFinder({
   profile,
@@ -32,6 +32,7 @@ export default function TalentFinder({
   const [extLoading, setExtLoading] = useState(false);
   const [extResults, setExtResults] = useState<TalentSourceResult[]>([]);
   const [useLive, setUseLive] = useState<boolean>(() => getLiveSourcesFlag());
+  const [apiBase, updateApiBase] = useState<string>(() => getApiBase());
 
   const needs = useMemo(() => inferTalentNeeds(profile, project, budget), [profile, project, budget]);
   const maxPerSong = useMemo(() => {
@@ -191,6 +192,13 @@ export default function TalentFinder({
             Use live API (via /api) instead of sample data
           </label>
         </div>
+        {useLive && (
+          <div className="mb-3">
+            <label className="text-xs text-surface-300">API base URL</label>
+            <input className="w-full rounded bg-surface-900 px-2 py-2 text-sm" placeholder="/api or https://your-proxy.example.com/api" value={apiBase} onChange={e => { updateApiBase(e.target.value); setApiBase(e.target.value); }} />
+            <div className="mt-1 text-[11px] text-surface-400">Tip: For dev, leave as /api. For production, set to your deployed proxy’s /api base.</div>
+          </div>
+        )}
         <div className="grid gap-3 md:grid-cols-3">
           <div>
             <label className="text-xs text-surface-300">Reference artist or release</label>
