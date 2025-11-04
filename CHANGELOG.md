@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > Non‑technical user notes (latest v1.4.0): Performance improvements for faster analysis and better responsiveness. Enable experimental features with `?flags=perf-slice` for Web Worker-powered analysis that keeps the app smooth while processing heavy computations.
 
+## [1.7.0] - 2025-11-04
+
+### 🛒 Merch Planner (mature) + Master Plan Integration
+
+Plan real merch lineups with vendor constraints, pricing, and sizes—then see cost, revenue, and gross margin roll up in your Master Plan. Also includes bundle size optimization for faster initial load.
+
+#### Added
+- Merch Planner: quantities, print methods, colorways, unit costs, and sell prices
+- Vendor intelligence: MOQs, lead times, dropship/eco flags, and per-item vendor lock
+- Size breakdown editor: default distribution, rebalance to new totals, and reset
+- Pricing helpers: suggest prices by category and target margin application
+- CSV export of planned SKUs; copyable generic and vendor-specific quote outreach
+- Persistence: save/load merch plans per artist/project via localStorage
+- Master Plan: Merch Summary card (items, total cost, projected revenue, gross margin)
+- Master Plan: Year 1 revenue now includes merch gross margin with breakdown share
+
+#### Changed
+- Code splitting: Added Rollup manualChunks to split heavy vendor libs (react, recharts, auth) into separate chunks
+- Dramatically reduced main bundle from ~665 KB → ~160 KB (post-split)
+- Replaced alerts with toasts; added Page Tips for Merch
+
+#### Quality
+- 52 tests passing; production build verified
+- CSV export and persistence validated locally
+
+#### Files
+- `src/components/MerchPlanner.tsx` – full merch planning UI
+- `src/components/MasterPlan.tsx` – Merch Summary panel and revenue integration
+- `src/lib/merch*.ts` – recommender, outreach, storage, sizing helpers
+- `src/lib/pricing.ts` – margin and default price helpers
+- `vite.config.ts` – vendor chunking via manualChunks
+
 ## [1.6.0] - 2025-11-04
 
 ### 🤝 Talent Sourcing + External Integrations (Beta)

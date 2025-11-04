@@ -20,6 +20,18 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         mixanalyzer: resolve(__dirname, 'mix-analyzer.html'),
       },
+      output: {
+        // Split heavy vendor libraries into dedicated chunks to reduce main bundle size
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('recharts')) return 'vendor-recharts';
+            if (id.includes('react')) return 'vendor-react';
+            if (id.includes('@supabase')) return 'vendor-supabase';
+            if (id.includes('@clerk')) return 'vendor-clerk';
+            return 'vendor';
+          }
+        },
+      },
     },
   },
   test: {
