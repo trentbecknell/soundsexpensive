@@ -3,17 +3,37 @@
 @tailwind utilities;
 
 * { box-sizing: border-box; }
+
+/* Modern Heritage: Film-inspired warm tones */
 :root { 
-  color-scheme: dark;
-  background: linear-gradient(135deg, rgb(15, 23, 42) 0%, rgb(88, 28, 135) 100%);
+  color-scheme: light;
+  /* Warm sepia gradient (film aesthetic) */
+  background: linear-gradient(135deg, #faf9f7 0%, #f3d9c1 50%, #e9bb94 100%);
   min-height: 100vh;
 }
 
 body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
-  background: radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 100%);
+  /* Subtle film grain texture overlay */
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(43, 43, 43, 0.01) 2px,
+      rgba(43, 43, 43, 0.01) 4px
+    ),
+    radial-gradient(circle at center, rgba(212, 119, 63, 0.08) 0%, rgba(212, 119, 63, 0) 70%);
   min-height: 100vh;
+}
+
+/* Heritage serif for headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: Georgia, 'Garamond', serif;
+  font-weight: normal;
+  letter-spacing: -0.01em;
 }
 
 /* Improve mobile/touch interactions */
@@ -21,42 +41,70 @@ html, body { touch-action: manipulation; }
 button, [role="button"], summary, a { -webkit-tap-highlight-color: transparent; }
 button { touch-action: manipulation; }
 
-/* Recommended minimum tap target (44px) when using utility classes */
+/* Recommended minimum tap target (44px) */
 .tap-target { min-width: 44px; min-height: 44px; }
 
 input, select, textarea { 
-  color-scheme: dark;
-  @apply bg-surface-700/50 text-surface-100 placeholder-surface-500 focus:bg-surface-700 focus:ring-2 focus:ring-primary-500 transition-colors outline-none;
+  color-scheme: light;
+  @apply bg-white/60 text-surface-900 placeholder-surface-400 
+         focus:bg-white focus:ring-2 focus:ring-primary-400 
+         transition-colors outline-none rounded-brand
+         border border-surface-200;
 }
 
-/* Modern scrollbar */
+/* Warm, boutique scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-surface-900;
+  @apply bg-surface-100;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-surface-700 rounded-full;
+  @apply bg-primary-300 rounded-full;
 }
 
-/* Studio theme: color-first, no photos */
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-400;
+}
+
+/* Boutique studio theme: warm, atmospheric, craft-focused */
 .bg-studio {
-  /* Layer soft color glows over a dark surface base */
+  /* Layered warm glows (jazzy cinematic atmosphere) */
   background:
-    radial-gradient(700px 700px at 0% 0%, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0) 60%),
-    radial-gradient(900px 900px at 100% 0%, rgba(217, 70, 239, 0.10), rgba(217, 70, 239, 0) 60%),
-    linear-gradient(180deg, rgba(24, 24, 27, 0.98) 0%, rgba(24, 24, 27, 1) 60%);
+    radial-gradient(700px 700px at 0% 0%, rgba(212, 119, 63, 0.12), rgba(212, 119, 63, 0) 60%),
+    radial-gradient(900px 900px at 100% 0%, rgba(245, 158, 11, 0.10), rgba(245, 158, 11, 0) 60%),
+    linear-gradient(180deg, rgba(250, 249, 247, 0.98) 0%, rgba(245, 243, 239, 1) 60%);
 }
 
 .banner-studio {
-  /* Subtle banner mesh with gentle color accents */
+  /* Warm banner with soft amber/sepia accents */
   background:
-    radial-gradient(400px 400px at 10% 50%, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0) 55%),
-    radial-gradient(450px 450px at 90% 50%, rgba(217, 70, 239, 0.10), rgba(217, 70, 239, 0) 55%),
-    rgba(39, 39, 42, 0.5);
+    radial-gradient(400px 400px at 10% 50%, rgba(212, 119, 63, 0.12), rgba(212, 119, 63, 0) 55%),
+    radial-gradient(450px 450px at 90% 50%, rgba(245, 158, 11, 0.10), rgba(245, 158, 11, 0) 55%),
+    rgba(250, 249, 247, 0.8);
   backdrop-filter: blur(6px);
+}
+
+/* Film grain effect (optional overlay) */
+.film-grain {
+  position: relative;
+}
+
+.film-grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(43, 43, 43, 0.015) 2px,
+      rgba(43, 43, 43, 0.015) 4px
+    );
+  pointer-events: none;
+  opacity: 0.4;
 }

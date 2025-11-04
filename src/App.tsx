@@ -1132,32 +1132,40 @@ export default function App({ userId }: AppProps = {}) {
         />
       ) : (
       <div className="mx-auto max-w-7xl px-6 py-8">
-        {/* Studio banner header */}
-        <header className="mb-6 relative rounded-2xl border border-surface-700 p-5 banner-studio z-50">
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-surface-900/60 via-surface-900/40 to-transparent rounded-2xl overflow-hidden"></div>
+        {/* Studio banner header - Modern Heritage brand */}
+        <header className="mb-6 relative rounded-brand-lg border border-surface-200 p-5 banner-studio z-50 shadow-warm">
+          <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/40 via-white/20 to-transparent rounded-brand-lg overflow-hidden"></div>
           <div className="relative flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
+              {/* Reel seal logo */}
+              <img 
+                src="/soundsexpensive/brand/sounds_expensive_brand_system/02_Logo_System/reel_seal.svg" 
+                alt="sounds expensive" 
+                className="w-12 h-12 opacity-90"
+              />
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-surface-50">Artist Roadmap <span className="text-surface-300">PRO</span></h1>
-                <p className="text-sm text-surface-300">Professional A&R tool for baseline assessment, strategic planning, and career development.</p>
+                <h1 className="text-2xl font-serif tracking-tight text-surface-900">
+                  sounds expensive <span className="text-surface-500 font-sans text-base">✶</span>
+                </h1>
+                <p className="text-sm text-surface-600">boutique music project planning & strategy</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
             {/* Persona mode switch */}
-            <div className="flex items-center gap-1 rounded-lg border border-surface-600 bg-surface-800/60 p-1">
+            <div className="flex items-center gap-1 rounded-brand border border-surface-300 bg-white/60 p-1 shadow-warm">
               <button
-                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='artist' ? 'bg-primary-600 text-white' : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/60'}`}
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='artist' ? 'bg-primary-500 text-white shadow-sm' : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'}`}
                 onClick={() => setPersona('artist')}
                 title="Artist mode: plan and build"
               >
-                Artist
+                artist
               </button>
               <button
-                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='manager' ? 'bg-primary-600 text-white' : 'text-surface-300 hover:text-surface-100 hover:bg-surface-700/60'}`}
+                className={`px-3 py-1.5 text-xs rounded-md transition-colors ${persona==='manager' ? 'bg-primary-500 text-white shadow-sm' : 'text-surface-600 hover:text-surface-900 hover:bg-surface-100'}`}
                 onClick={() => setPersona('manager')}
                 title="Manager mode: review and share"
               >
-                Manager
+                manager
               </button>
             </div>
             {/* TEMPORARILY DISABLED - Organization Switcher (Clerk auth not active)
@@ -2142,9 +2150,9 @@ export default function App({ userId }: AppProps = {}) {
                 </div>
               </div>
             </div>
-            <div className="mt-4 rounded-xl bg-indigo-600/10 p-4">
-              <div className="text-sm text-indigo-300">Current est. budget</div>
-              <div className="text-2xl font-semibold">{currency(totals.grand)} <span className="text-sm text-slate-400">({currency(Math.max(0, totals.afterGrant))} after grants)</span></div>
+            <div className="mt-4 rounded-brand bg-primary-500/10 p-4 border border-primary-200">
+              <div className="text-sm text-primary-700">Current est. budget</div>
+              <div className="text-2xl font-semibold text-surface-900">{currency(totals.grand)} <span className="text-sm text-surface-600">({currency(Math.max(0, totals.afterGrant))} after grants)</span></div>
             </div>
           </section>
 
