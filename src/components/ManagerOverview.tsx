@@ -77,88 +77,95 @@ export default function ManagerOverview({ profile, project, budget, stage, estim
   }, [gantt, project.targetWeeks, profile.artistName, profile.genres, merchBudget.count, project.hasGrant, totals.grand]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-4">
       {/* Header */}
-      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6 print:border-gray-300 print:bg-white print:p-4">
+        <div className="flex items-start justify-between gap-4 flex-wrap print:flex-nowrap">
           <div>
-            <h2 className="text-lg font-semibold text-surface-50">Executive Overview</h2>
-            <p className="text-surface-300 text-sm">Concise summary for stakeholders. Read-only, with export options.</p>
+            <h2 className="text-lg font-semibold text-surface-50 print:text-gray-900">Executive Overview</h2>
+            <p className="text-surface-300 text-sm print:text-gray-600">Concise summary for stakeholders. Read-only, with export options.</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 print:hidden">
             {onShare && <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50" onClick={onShare}>Share</button>}
             {onExportCSV && <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50" onClick={onExportCSV}>Export CSV</button>}
             {onExportJSON && <button className="rounded-lg border border-primary-600 px-3 py-2 text-sm text-primary-100 hover:bg-primary-800/50" onClick={onExportJSON}>Export JSON</button>}
+            <button
+              className="rounded-lg border border-accent-600 px-3 py-2 text-sm text-accent-100 hover:bg-accent-800/50"
+              onClick={() => window.print()}
+              title="Print or save as PDF"
+            >
+              Print PDF
+            </button>
           </div>
         </div>
       </section>
 
       {/* KPIs */}
-      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6">
-        <div className="grid gap-4 md:grid-cols-4">
-          <div className="rounded-xl bg-surface-800/60 p-4">
-            <div className="text-sm text-surface-400">Est. Budget</div>
-            <div className="text-2xl font-semibold">{currency(totals.grand)}</div>
+      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6 print:border-gray-300 print:bg-white print:p-4">
+        <div className="grid gap-4 md:grid-cols-4 print:grid-cols-4">
+          <div className="rounded-xl bg-surface-800/60 p-4 print:bg-gray-50 print:border print:border-gray-200">
+            <div className="text-sm text-surface-400 print:text-gray-600">Est. Budget</div>
+            <div className="text-2xl font-semibold print:text-xl print:text-gray-900">{currency(totals.grand)}</div>
           </div>
-          <div className="rounded-xl bg-surface-800/60 p-4">
-            <div className="text-sm text-surface-400">After Grants</div>
-            <div className="text-2xl font-semibold">{currency(Math.max(0, totals.afterGrant))}</div>
+          <div className="rounded-xl bg-surface-800/60 p-4 print:bg-gray-50 print:border print:border-gray-200">
+            <div className="text-sm text-surface-400 print:text-gray-600">After Grants</div>
+            <div className="text-2xl font-semibold print:text-xl print:text-gray-900">{currency(Math.max(0, totals.afterGrant))}</div>
           </div>
-          <div className="rounded-xl bg-surface-800/60 p-4">
-            <div className="text-sm text-surface-400">Project</div>
-            <div className="text-sm text-surface-200">{project.projectType} • {project.units} tracks • {project.targetWeeks} weeks</div>
+          <div className="rounded-xl bg-surface-800/60 p-4 print:bg-gray-50 print:border print:border-gray-200">
+            <div className="text-sm text-surface-400 print:text-gray-600">Project</div>
+            <div className="text-sm text-surface-200 print:text-gray-800">{project.projectType} • {project.units} tracks • {project.targetWeeks} weeks</div>
           </div>
-          <div className="rounded-xl bg-surface-800/60 p-4">
-            <div className="text-sm text-surface-400">Stage</div>
-            <div className="text-2xl font-semibold">{stage}</div>
+          <div className="rounded-xl bg-surface-800/60 p-4 print:bg-gray-50 print:border print:border-gray-200">
+            <div className="text-sm text-surface-400 print:text-gray-600">Stage</div>
+            <div className="text-2xl font-semibold print:text-xl print:text-gray-900">{stage}</div>
           </div>
         </div>
       </section>
 
       {/* Merch Summary */}
-      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6">
-        <h3 className="mb-3 font-semibold">Merch Summary</h3>
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl bg-surface-800/60 p-4">
-            <div className="text-sm text-surface-400">Planned items</div>
-            <div className="text-2xl font-semibold">{merchBudget.count}</div>
+      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6 print:border-gray-300 print:bg-white print:p-4">
+        <h3 className="mb-3 font-semibold print:text-gray-900">Merch Summary</h3>
+        <div className="grid gap-4 md:grid-cols-3 print:grid-cols-3">
+          <div className="rounded-xl bg-surface-800/60 p-4 print:bg-gray-50 print:border print:border-gray-200">
+            <div className="text-sm text-surface-400 print:text-gray-600">Planned items</div>
+            <div className="text-2xl font-semibold print:text-xl print:text-gray-900">{merchBudget.count}</div>
           </div>
-          <div className="rounded-xl bg-surface-800/60 p-4">
-            <div className="text-sm text-surface-400">Total merch budget</div>
-            <div className="text-2xl font-semibold">{currency(merchBudget.total)}</div>
+          <div className="rounded-xl bg-surface-800/60 p-4 print:bg-gray-50 print:border print:border-gray-200">
+            <div className="text-sm text-surface-400 print:text-gray-600">Total merch budget</div>
+            <div className="text-2xl font-semibold print:text-xl print:text-gray-900">{currency(merchBudget.total)}</div>
           </div>
-          <div className="rounded-xl bg-surface-800/60 p-4">
-            <div className="text-sm text-surface-400">Est. event draw</div>
-            <div className="text-2xl font-semibold">{estimatedDraw}</div>
+          <div className="rounded-xl bg-surface-800/60 p-4 print:bg-gray-50 print:border print:border-gray-200">
+            <div className="text-sm text-surface-400 print:text-gray-600">Est. event draw</div>
+            <div className="text-2xl font-semibold print:text-xl print:text-gray-900">{estimatedDraw}</div>
           </div>
         </div>
       </section>
 
       {/* Timeline milestones */}
-      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6">
-        <h3 className="mb-3 font-semibold">Milestones (critical path)</h3>
-        <div className="grid gap-3 md:grid-cols-3">
+      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6 print:border-gray-300 print:bg-white print:p-4">
+        <h3 className="mb-3 font-semibold print:text-gray-900">Milestones (critical path)</h3>
+        <div className="grid gap-3 md:grid-cols-3 print:grid-cols-3">
           {gantt.map(row => (
-            <div key={row.phase} className="rounded-xl bg-surface-800/60 p-4">
-              <div className="text-sm font-medium">{row.phase}</div>
-              <div className="text-xs text-surface-300">Weeks {row.start}–{row.end}</div>
+            <div key={row.phase} className="rounded-xl bg-surface-800/60 p-4 print:bg-gray-50 print:border print:border-gray-200">
+              <div className="text-sm font-medium print:text-gray-900">{row.phase}</div>
+              <div className="text-xs text-surface-300 print:text-gray-600">Weeks {row.start}–{row.end}</div>
             </div>
           ))}
         </div>
-        <div className="mt-3 text-sm text-surface-400">Total span: {gantt.length ? (gantt[gantt.length - 1].end - gantt[0].start) : 0} weeks</div>
+        <div className="mt-3 text-sm text-surface-400 print:text-gray-600">Total span: {gantt.length ? (gantt[gantt.length - 1].end - gantt[0].start) : 0} weeks</div>
       </section>
 
       {/* Risks & Assumptions */}
-      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6">
-        <h3 className="mb-3 font-semibold">Risks & Assumptions</h3>
+      <section className="rounded-2xl border border-surface-700 bg-surface-900/60 p-6 print:border-gray-300 print:bg-white print:p-4">
+        <h3 className="mb-3 font-semibold print:text-gray-900">Risks & Assumptions</h3>
         {risks.length === 0 ? (
-          <div className="text-sm text-green-300">No major risks detected based on current inputs.</div>
+          <div className="text-sm text-green-300 print:text-green-700">No major risks detected based on current inputs.</div>
         ) : (
-          <ul className="list-disc pl-5 space-y-1 text-sm text-surface-200">
+          <ul className="list-disc pl-5 space-y-1 text-sm text-surface-200 print:text-gray-800">
             {risks.map((r, i) => <li key={i}>{r}</li>)}
           </ul>
         )}
-        <p className="mt-3 text-xs text-surface-400">Assumptions: standard lead times, typical vendor MOQs, and baseline marketing cadence for the selected stage.</p>
+        <p className="mt-3 text-xs text-surface-400 print:text-gray-600">Assumptions: standard lead times, typical vendor MOQs, and baseline marketing cadence for the selected stage.</p>
       </section>
     </div>
   );

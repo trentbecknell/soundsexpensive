@@ -250,18 +250,22 @@ function phaseWeeks(phase: PhaseKey, stage: Stage, units: number) {
   return Math.max(1, Math.round(base[phase] * mult[stage]));
 }
 
-const BUDGET_PRESETS = (units: number): BudgetItem[] => [
-  { id: uid(), category: "Songwriting", description: "Co‑writing sessions", qty: units, unitCost: 300, phase: "Discovery", required: true },
-  { id: uid(), category: "Pre‑Prod", description: "Producer pre‑pro & charts", qty: units, unitCost: 250, phase: "Pre‑Production", required: true },
-  { id: uid(), category: "Recording", description: "Studio day rate", qty: Math.ceil(units/2), unitCost: 600, phase: "Production", required: true },
-  { id: uid(), category: "Musicians", description: "Session players", qty: units*2, unitCost: 200, phase: "Production", required: false },
-  { id: uid(), category: "Mixing", description: "Per song mix", qty: units, unitCost: 400, phase: "Post‑Production", required: true },
-  { id: uid(), category: "Mastering", description: "Per song master", qty: units, unitCost: 100, phase: "Post‑Production", required: true },
-  { id: uid(), category: "Artwork", description: "Cover + alt assets", qty: 1, unitCost: 500, phase: "Release", required: true },
-  { id: uid(), category: "Video", description: "Performance/visualizer", qty: 1, unitCost: 750, phase: "Release", required: false },
-  { id: uid(), category: "PR/Marketing", description: "3‑month sprint", qty: 1, unitCost: 3000, phase: "Growth", required: true },
-  { id: uid(), category: "Ads", description: "DSP/social ads", qty: 1, unitCost: 1500, phase: "Growth", required: false },
-];
+const BUDGET_PRESETS = (units: number, range: 'low' | 'mid' | 'high' = 'mid'): BudgetItem[] => {
+  const multipliers: Record<'low' | 'mid' | 'high', number> = { low: 0.5, mid: 1, high: 2 };
+  const m = multipliers[range];
+  return [
+    { id: uid(), category: "Songwriting", description: "Co‑writing sessions", qty: units, unitCost: Math.round(300 * m), phase: "Discovery", required: true },
+    { id: uid(), category: "Pre‑Prod", description: "Producer pre‑pro & charts", qty: units, unitCost: Math.round(250 * m), phase: "Pre‑Production", required: true },
+    { id: uid(), category: "Recording", description: "Studio day rate", qty: Math.ceil(units/2), unitCost: Math.round(600 * m), phase: "Production", required: true },
+    { id: uid(), category: "Musicians", description: "Session players", qty: units*2, unitCost: Math.round(200 * m), phase: "Production", required: false },
+    { id: uid(), category: "Mixing", description: "Per song mix", qty: units, unitCost: Math.round(400 * m), phase: "Post‑Production", required: true },
+    { id: uid(), category: "Mastering", description: "Per song master", qty: units, unitCost: Math.round(100 * m), phase: "Post‑Production", required: true },
+    { id: uid(), category: "Artwork", description: "Cover + alt assets", qty: 1, unitCost: Math.round(500 * m), phase: "Release", required: true },
+    { id: uid(), category: "Video", description: "Performance/visualizer", qty: 1, unitCost: Math.round(750 * m), phase: "Release", required: false },
+    { id: uid(), category: "PR/Marketing", description: "3‑month sprint", qty: 1, unitCost: Math.round(3000 * m), phase: "Growth", required: true },
+    { id: uid(), category: "Ads", description: "DSP/social ads", qty: 1, unitCost: Math.round(1500 * m), phase: "Growth", required: false },
+  ];
+};
 
 const DEFAULT_TASKS = (units: number): RoadTask[] => [
   { id: uid(), phase: "Discovery", title: "Vision & references workshop", owner: "Artist/Producer", weeks: 1 },
@@ -1424,7 +1428,7 @@ export default function App({ userId }: AppProps = {}) {
                       <option value={48}>48 (extended)</option>
                     </select>
                   </div>
-                  {/* Budget range (display only) */}
+                  {/* Budget range (now wired to presets) */}
                   <div>
                     <label className="block text-xs text-surface-300 mb-1">Budget range</label>
                     <select
@@ -1436,9 +1440,12 @@ export default function App({ userId }: AppProps = {}) {
                         return 'high';
                       })()}
                       onChange={(e) => {
-                        const v = e.target.value;
-                        // For Phase 2, budget range is informational; we may tune presets later.
-                        pushToast(v === 'low' ? 'Budget: Lean' : v === 'mid' ? 'Budget: Mid-tier' : 'Budget: High');
+                        const range = e.target.value as 'low' | 'mid' | 'high';
+                        setApp(prev => ({
+                          ...prev,
+                          budget: BUDGET_PRESETS(prev.project.units, range)
+                        }));
+                        pushToast(range === 'low' ? '✓ Budget: Lean' : range === 'mid' ? '✓ Budget: Mid-tier' : '✓ Budget: High');
                       }}
                     >
                       <option value="low">$2–5K (lean)</option>
