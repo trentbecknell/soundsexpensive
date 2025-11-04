@@ -1140,14 +1140,14 @@ export default function App({ userId }: AppProps = {}) {
               {/* Inline reel seal logo SVG */}
               <svg width="48" height="48" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
                 <g transform="translate(256, 256)">
-                  {/* Outer circle: 14px border */}
-                  <circle cx="0" cy="0" r="221.867" fill="none" stroke="#2B2B2B" strokeWidth="14"/>
+                  {/* Outer circle: 14px border - warm amber for visibility */}
+                  <circle cx="0" cy="0" r="221.867" fill="none" stroke="#f8890f" strokeWidth="14"/>
                   {/* Left circle */}
-                  <circle cx="-118.17" cy="0" r="47" fill="#2B2B2B"/>
+                  <circle cx="-118.17" cy="0" r="47" fill="#faad57"/>
                   {/* Right circle */}
-                  <circle cx="118.17" cy="0" r="47" fill="#2B2B2B"/>
+                  <circle cx="118.17" cy="0" r="47" fill="#faad57"/>
                   {/* Connection line */}
-                  <line x1="0" y1="105.5" x2="32.33" y2="110.67" stroke="#000000" strokeWidth="12"/>
+                  <line x1="0" y1="105.5" x2="32.33" y2="110.67" stroke="#fcd09f" strokeWidth="12"/>
                 </g>
               </svg>
               <div>
