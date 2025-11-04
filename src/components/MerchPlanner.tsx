@@ -7,6 +7,7 @@ import { generateMerchQuoteRequest } from '../lib/merchOutreach';
 import { getTesterContact } from '../lib/testerContact';
 import { loadMerchPlan, saveMerchPlan } from '../lib/merchStorage';
 import { defaultSizeBreakdown, rebalanceBreakdown } from '../lib/merchSizing';
+import { DEFAULT_SELL_PRICE_BY_CATEGORY, priceForMargin } from '../lib/pricing';
 
 export default function MerchPlanner({ profile, project, estimatedDraw, onAddToBudget, onToast }: {
   profile: ArtistProfile;
@@ -65,6 +66,7 @@ export default function MerchPlanner({ profile, project, estimatedDraw, onAddToB
   const estRevenue = items.reduce((s, i) => s + ((i.sellPriceUSD || 0) * i.quantity), 0);
   const estMargin = Math.max(0, estRevenue - estTotal);
   const estMarginPct = estRevenue > 0 ? Math.round((estMargin / estRevenue) * 100) : 0;
+  const [targetMarginPct, setTargetMarginPct] = useState<number>(50);
 
   const METHODS_BY_CATEGORY: Record<string, string[]> = {
     'T-Shirt': ['Screen Print','DTG'],
@@ -137,6 +139,13 @@ export default function MerchPlanner({ profile, project, estimatedDraw, onAddToB
           <span>Projected revenue: {currency(estRevenue)}</span>
           <span className="text-surface-400">•</span>
           <span>Gross margin: {currency(estMargin)} ({estMarginPct}%)</span>
+          <span className="text-surface-400">•</span>
+          <button className="text-xs rounded border border-surface-600 text-surface-200 px-2 py-1 hover:bg-surface-700" onClick={() => setItems(prev => prev.map(i => ({ ...i, sellPriceUSD: DEFAULT_SELL_PRICE_BY_CATEGORY[i.category] || i.sellPriceUSD || 0 })))}>Suggest sell prices</button>
+          <div className="flex items-center gap-2 text-xs">
+            <label className="text-surface-300">Target margin %</label>
+            <input type="number" min={0} max={90} className="w-16 rounded bg-surface-900 px-2 py-1" value={targetMarginPct} onChange={e => setTargetMarginPct(Math.max(0, Math.min(90, parseInt(e.target.value || '0'))))} />
+            <button className="text-xs rounded border border-primary-600 text-primary-200 px-2 py-1 hover:bg-primary-700/30" onClick={() => setItems(prev => prev.map(i => (i.targetUnitCostUSD ? ({ ...i, sellPriceUSD: priceForMargin(i.targetUnitCostUSD, targetMarginPct/100) }) : i)))}>Apply</button>
+          </div>
           <button className="text-xs rounded border border-primary-600 text-primary-200 px-2 py-1 hover:bg-primary-700/30" onClick={addAllToBudget}>Add all to budget</button>
           <button className="text-xs rounded border border-surface-600 text-surface-200 px-2 py-1 hover:bg-surface-700" onClick={exportCSV}>Export CSV</button>
           <button className="text-xs rounded border border-red-600 text-red-200 px-2 py-1 hover:bg-red-700/30" onClick={() => setItems(inferMerchPlan(profile, project, estimatedDraw).items)}>Reset to recommended</button>
