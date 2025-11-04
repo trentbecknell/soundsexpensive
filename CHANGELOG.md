@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > Non‑technical user notes (latest v1.4.0): Performance improvements for faster analysis and better responsiveness. Enable experimental features with `?flags=perf-slice` for Web Worker-powered analysis that keeps the app smooth while processing heavy computations.
 
+## [1.6.1] - 2025-11-04 (Hotfix)
+
+### Fixed
+- Restore stability by rolling back the deployed site to the last known-good snapshot immediately after Merch Summary integration.
+- Deployed from `hotfix/merch-summary-stable` to GitHub Pages.
+
+### Notes
+- If you see a blank screen due to cached assets, open once with `#/?nosw=1` to disable/unregister the service worker and hard refresh.
+- No functional changes versus the previously working merch summary state; forward optimizations will return in a future release after additional validation.
+
 ## [1.6.0] - 2025-11-04
 
 ### 🤝 Talent Sourcing + External Integrations (Beta)
