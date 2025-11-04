@@ -2,13 +2,18 @@
   <!-- Dark warm background -->
   <rect width="192" height="192" fill="#1c1917" rx="30"/>
   
-  <!-- Tape reel (scaled) -->
-  <g transform="translate(96, 96)">
-    <circle cx="0" cy="0" r="68" fill="none" stroke="#f8890f" stroke-width="4.5"/>
-    <circle cx="-26" cy="0" r="14" fill="#fcd09f"/>
-    <circle cx="-26" cy="0" r="10" fill="#f8890f"/>
-    <circle cx="26" cy="0" r="14" fill="#fcd09f"/>
-    <circle cx="26" cy="0" r="10" fill="#f8890f"/>
-    <rect x="-26" y="-1.5" width="52" height="3" fill="#faad57" opacity="0.8"/>
+  <!-- Logo scaled to 192x192 (37.5% of 512) -->
+  <g transform="translate(96, 96) scale(0.375)">
+    <!-- Outer border circle -->
+    <circle cx="0" cy="0" r="221.867" fill="none" stroke="#2B2B2B" stroke-width="14"/>
+    
+    <!-- Left circle -->
+    <circle cx="-118.17" cy="0" r="47" fill="#2B2B2B"/>
+    
+    <!-- Right circle -->
+    <circle cx="118.17" cy="0" r="47" fill="#2B2B2B"/>
+    
+    <!-- Connection line -->
+    <line x1="0" y1="105.5" x2="32.33" y2="110.67" stroke="#000000" stroke-width="12"/>
   </g>
 </svg>

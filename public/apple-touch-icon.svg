@@ -2,13 +2,18 @@
   <!-- iOS rounded square, dark warm -->
   <rect width="180" height="180" fill="#1c1917" rx="40"/>
   
-  <!-- Tape reel -->
-  <g transform="translate(90, 90)">
-    <circle cx="0" cy="0" r="63" fill="none" stroke="#f8890f" stroke-width="4"/>
-    <circle cx="-24" cy="0" r="13" fill="#fcd09f"/>
-    <circle cx="-24" cy="0" r="9.5" fill="#f8890f"/>
-    <circle cx="24" cy="0" r="13" fill="#fcd09f"/>
-    <circle cx="24" cy="0" r="9.5" fill="#f8890f"/>
-    <rect x="-24" y="-1.5" width="48" height="3" fill="#faad57" opacity="0.8"/>
+  <!-- Logo scaled to 180x180 (35.16% of 512) -->
+  <g transform="translate(90, 90) scale(0.3516)">
+    <!-- Outer border circle -->
+    <circle cx="0" cy="0" r="221.867" fill="none" stroke="#2B2B2B" stroke-width="14"/>
+    
+    <!-- Left circle -->
+    <circle cx="-118.17" cy="0" r="47" fill="#2B2B2B"/>
+    
+    <!-- Right circle -->
+    <circle cx="118.17" cy="0" r="47" fill="#2B2B2B"/>
+    
+    <!-- Connection line -->
+    <line x1="0" y1="105.5" x2="32.33" y2="110.67" stroke="#000000" stroke-width="12"/>
   </g>
 </svg>

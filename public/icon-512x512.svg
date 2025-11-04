@@ -2,20 +2,22 @@
   <!-- Dark warm background -->
   <rect width="512" height="512" fill="#1c1917" rx="80"/>
   
-  <!-- Vintage tape reel (warm amber/gold) -->
+  <!-- Logo centered at 256,256 with 512x512 viewbox -->
   <g transform="translate(256, 256)">
-    <!-- Outer reel circle -->
-    <circle cx="0" cy="0" r="180" fill="none" stroke="#f8890f" stroke-width="12"/>
+    <!-- Outer border circle: 6.67% to 93.33% of 512 = r=221.867 from center -->
+    <!-- Border width 14px, so stroke at r=221.867 -->
+    <circle cx="0" cy="0" r="221.867" fill="none" stroke="#2B2B2B" stroke-width="14"/>
     
-    <!-- Left hub -->
-    <circle cx="-70" cy="0" r="38" fill="#fcd09f"/>
-    <circle cx="-70" cy="0" r="28" fill="#f8890f"/>
+    <!-- Left circle: 27.5% to 45.83% horizontal (18.33% width), 40.83% to 59.17% vertical (18.34% height) -->
+    <!-- Center at x = -118.17, y = 0, radius = 47 -->
+    <circle cx="-118.17" cy="0" r="47" fill="#2B2B2B"/>
     
-    <!-- Right hub -->
-    <circle cx="70" cy="0" r="38" fill="#fcd09f"/>
-    <circle cx="70" cy="0" r="28" fill="#f8890f"/>
+    <!-- Right circle: 54.17% to 72.5% horizontal (18.33% width), 40.83% to 59.17% vertical -->
+    <!-- Center at x = 118.17, y = 0, radius = 47 -->
+    <circle cx="118.17" cy="0" r="47" fill="#2B2B2B"/>
     
-    <!-- Tape (amber accent) -->
-    <rect x="-70" y="-4" width="140" height="8" fill="#faad57" opacity="0.8"/>
+    <!-- Connection line (Vector 1): 50% to 56.33% horizontal, 70.67% to 71.67% vertical -->
+    <!-- This appears to be a small connecting element, border 12px -->
+    <line x1="0" y1="105.5" x2="32.33" y2="110.67" stroke="#000000" stroke-width="12"/>
   </g>
 </svg>
