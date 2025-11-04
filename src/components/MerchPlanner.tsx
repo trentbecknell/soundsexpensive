@@ -110,7 +110,7 @@ export default function MerchPlanner({ profile, project, estimatedDraw, onAddToB
         <h2 className="text-xl font-semibold text-primary-100 mb-2">🛍️ Merch Planner</h2>
         <p className="text-surface-300 text-sm">Recommended merch lineup based on your project and expected draw. Adjust quantities, copy a vendor quote request, or add items to your budget.</p>
         <div className="mt-3 flex items-center gap-3 text-sm text-primary-200">
-          <span>Estimated total cost: ${'{'}estTotal.toLocaleString(){'}'}</span>
+          <span>Estimated total cost: {`$${estTotal.toLocaleString()}`}</span>
           <button className="text-xs rounded border border-primary-600 text-primary-200 px-2 py-1 hover:bg-primary-700/30" onClick={addAllToBudget}>Add all to budget</button>
           <button className="text-xs rounded border border-surface-600 text-surface-200 px-2 py-1 hover:bg-surface-700" onClick={exportCSV}>Export CSV</button>
         </div>
@@ -150,7 +150,7 @@ export default function MerchPlanner({ profile, project, estimatedDraw, onAddToB
               <label className="text-surface-400">Unit cost (USD)</label>
               <input type="number" min={0} step="0.01" className="w-28 rounded bg-surface-900 px-2 py-1" value={i.targetUnitCostUSD ?? 0} onChange={e => updateUnit(i.id, parseFloat(e.target.value || '0'))} />
               <span className="text-surface-500">•</span>
-              <span>Est. total: {i.estTotalCostUSD ? `$${'{'}i.estTotalCostUSD.toLocaleString(){'}'}` : '—'}</span>
+              <span>Est. total: {i.estTotalCostUSD ? `$${i.estTotalCostUSD.toLocaleString()}` : '—'}</span>
             </div>
             {(() => { const h = vendorHints(i.category); return (h.minOrder || h.leadDays) ? (
               <div className="mt-2 text-[11px] text-surface-400">
