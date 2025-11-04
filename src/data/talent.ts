@@ -150,5 +150,27 @@ export const TALENT_DIRECTORY: TalentProfile[] = [
     portfolio: [
       { platform: 'Website', url: 'https://example.com/blueroom' }
     ]
+  },
+  {
+    id: 'tp11',
+    name: 'Audio Anthem',
+    roles: ['Producer'],
+    genres: [],
+    remote: true,
+    blurb: 'Producer profile added per user reference. See Instagram for work samples.',
+    portfolio: [
+      { platform: 'Instagram', url: 'https://www.instagram.com/audioanthem/?hl=en' }
+    ]
+  },
+  {
+    id: 'tp12',
+    name: 'Jean Marie Horvat',
+    roles: ['Mixer'],
+    genres: [],
+    remote: true,
+    blurb: 'Mix engineer profile added per user reference. See Instagram for portfolio links.',
+    portfolio: [
+      { platform: 'Instagram', url: 'https://www.instagram.com/jeanmarie.horvat/?hl=en' }
+    ]
   }
 ];

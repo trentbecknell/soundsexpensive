@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { generateOutreachBrief } from './talentOutreach';
 import { ArtistProfile, ProjectConfig } from '../App';
 import { TalentProfile } from '../types/talent';
+import type { TesterContact } from '../types/tester';
 
 const artist: ArtistProfile = {
   artistName: 'Nova',
@@ -28,5 +29,14 @@ describe('talentOutreach', () => {
     expect(brief.subject).toContain('Nova');
     expect(brief.subject.toLowerCase()).toContain('mixer');
     expect(brief.message).toContain('We\'re looking for a Mixer');
+  });
+
+  it('includes tester contact when provided', () => {
+    const contact: TesterContact = { name: 'Tester', email: 'tester@example.com', instagram: '@testmusic', website: 'testmusic.com', city: 'LA' };
+    const brief = generateOutreachBrief(artist, project, 'Producer', undefined, contact);
+    expect(brief.message).toContain('Contact me:');
+    expect(brief.message).toContain('tester@example.com');
+    expect(brief.message).toContain('instagram.com/testmusic');
+    expect(brief.message.toLowerCase()).toContain('testmusic.com');
   });
 });

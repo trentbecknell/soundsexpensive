@@ -4,6 +4,8 @@ import { TalentProfile, TalentRole, TalentFilter } from '../types/talent';
 import { TALENT_DIRECTORY } from '../data/talent';
 import { inferTalentNeeds, recommendTalent, filterTalent } from '../lib/talentRecommender';
 import { generateOutreachBrief } from '../lib/talentOutreach';
+import TesterContactPanel from './TesterContact';
+import { getTesterContact, hasAnyContact } from '../lib/testerContact';
 
 export default function TalentFinder({
   profile,
@@ -18,6 +20,8 @@ export default function TalentFinder({
   const [shortlist, setShortlist] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('ar-talent-shortlist') || '[]'); } catch { return []; }
   });
+  const [includeContact, setIncludeContact] = useState<boolean>(() => hasAnyContact(getTesterContact()));
+  const [contact, setContact] = useState(() => getTesterContact());
 
   const needs = useMemo(() => inferTalentNeeds(profile, project, budget), [profile, project, budget]);
   const maxPerSong = useMemo(() => {
@@ -40,7 +44,7 @@ export default function TalentFinder({
   };
 
   const copyBrief = (role: TalentRole, candidate?: TalentProfile) => {
-    const { subject, message } = generateOutreachBrief(profile, project, role, candidate);
+    const { subject, message } = generateOutreachBrief(profile, project, role, candidate, includeContact ? contact : undefined);
     navigator.clipboard.writeText(`${subject}\n\n${message}`);
     alert('Brief copied to clipboard');
   };
@@ -100,6 +104,16 @@ export default function TalentFinder({
 
   return (
     <div>
+      {/* Your contact info */}
+      <div className="mb-6">
+        <TesterContactPanel onChange={c => setContact(c)} />
+        <div className="mt-2 flex items-center gap-2">
+          <label className="flex items-center gap-2 text-xs text-surface-300">
+            <input type="checkbox" checked={includeContact} onChange={e => setIncludeContact(e.target.checked)} />
+            Include my contact details in copied briefs
+          </label>
+        </div>
+      </div>
       <div className="mb-6 rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">
         <h2 className="text-xl font-semibold text-primary-100 mb-2">🤝 Talent Finder</h2>
         <p className="text-surface-300 text-sm">

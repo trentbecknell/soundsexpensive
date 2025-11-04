@@ -1,5 +1,6 @@
 import { ArtistProfile, ProjectConfig } from '../App';
 import { TalentProfile, TalentRole } from '../types/talent';
+import type { TesterContact } from '../types/tester';
 
 export interface OutreachBrief {
   subject: string;
@@ -10,7 +11,8 @@ export function generateOutreachBrief(
   artist: ArtistProfile,
   project: ProjectConfig,
   role: TalentRole,
-  candidate?: TalentProfile
+  candidate?: TalentProfile,
+  initiatorContact?: TesterContact
 ): OutreachBrief {
   const artistName = artist.artistName || 'Artist';
   const genres = artist.genres || '';
@@ -74,6 +76,28 @@ export function generateOutreachBrief(
   lines.push('');
   lines.push('Thanks!');
   lines.push(`${artistName}`);
+
+  // Append tester contact if provided
+  if (initiatorContact && (initiatorContact.email || initiatorContact.instagram || initiatorContact.website || initiatorContact.phone)) {
+    lines.push('');
+    lines.push('—');
+    lines.push('Contact me:');
+    if (initiatorContact.name || initiatorContact.city) {
+      lines.push(`- ${initiatorContact.name || 'Artist'}${initiatorContact.city ? ` • ${initiatorContact.city}` : ''}`);
+    }
+    if (initiatorContact.email) lines.push(`- Email: ${initiatorContact.email}`);
+    if (initiatorContact.instagram) {
+      const v = initiatorContact.instagram.trim();
+      const handle = /^https?:\/\//i.test(v) ? v : `https://instagram.com/${v.replace(/^@/, '')}`;
+      lines.push(`- Instagram: ${handle}`);
+    }
+    if (initiatorContact.website) {
+      const v = initiatorContact.website.trim();
+      const url = /^https?:\/\//i.test(v) ? v : `https://${v}`;
+      lines.push(`- Website: ${url}`);
+    }
+    if (initiatorContact.phone) lines.push(`- Phone: ${initiatorContact.phone}`);
+  }
 
   return { subject, message: lines.join('\n') };
 }
