@@ -6,6 +6,14 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   base: '/soundsexpensive/', // This should match your GitHub repo name
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8787',
+        changeOrigin: true,
+      }
+    }
+  },
   build: {
     rollupOptions: {
       input: {

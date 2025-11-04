@@ -2,6 +2,7 @@ import { TalentSource, TalentSearchParams, TalentSourceResult } from '../../type
 import { TalentProfile, TalentRole } from '../../types/talent';
 import { getCached, setCached } from './base';
 import sample from '../../data/integrations/musicbrainz.json';
+import { getLiveSourcesFlag } from '../featureFlags';
 
 type MBCredit = {
   release: string;
@@ -36,6 +37,21 @@ function mapCredit(c: MBCredit): TalentProfile | undefined {
 }
 
 async function searchMB(params: TalentSearchParams): Promise<TalentSourceResult> {
+  if (getLiveSourcesFlag()) {
+    try {
+      const url = new URL('/api/musicbrainz/credits', window.location.origin);
+      if (params.referenceArtist) url.searchParams.set('artist', params.referenceArtist);
+      if (params.referenceRelease) url.searchParams.set('release', params.referenceRelease);
+      const res = await fetch(url.toString());
+      if (res.ok) {
+        const credits = await res.json() as MBCredit[];
+        const items = credits.map(mapCredit).filter(Boolean) as TalentProfile[];
+        return { source: 'musicbrainz', items };
+      }
+    } catch {
+      // fallback
+    }
+  }
   const cached = await getCached('musicbrainz', params);
   if (cached) return { ...cached, cached: true };
   const q = (params.referenceArtist || params.referenceRelease || '').toLowerCase();

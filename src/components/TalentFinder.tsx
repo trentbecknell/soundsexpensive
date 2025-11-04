@@ -10,6 +10,7 @@ import type { TalentSourceResult, TalentSearchParams } from '../types/integratio
 import discogs from '../lib/integrations/discogs';
 import musicbrainz from '../lib/integrations/musicbrainz';
 import bandsintown from '../lib/integrations/bandsintown';
+import { getLiveSourcesFlag, setLiveSourcesFlag } from '../lib/featureFlags';
 
 export default function TalentFinder({
   profile,
@@ -30,6 +31,7 @@ export default function TalentFinder({
   const [extQuery, setExtQuery] = useState<TalentSearchParams>({});
   const [extLoading, setExtLoading] = useState(false);
   const [extResults, setExtResults] = useState<TalentSourceResult[]>([]);
+  const [useLive, setUseLive] = useState<boolean>(() => getLiveSourcesFlag());
 
   const needs = useMemo(() => inferTalentNeeds(profile, project, budget), [profile, project, budget]);
   const maxPerSong = useMemo(() => {
@@ -182,6 +184,12 @@ export default function TalentFinder({
             <label className="flex items-center gap-1"><input type="checkbox" checked={extEnabled.musicbrainz} onChange={e => setExtEnabled(s => ({ ...s, musicbrainz: e.target.checked }))} /> MusicBrainz</label>
             <label className="flex items-center gap-1"><input type="checkbox" checked={extEnabled.bandsintown} onChange={e => setExtEnabled(s => ({ ...s, bandsintown: e.target.checked }))} /> Bandsintown</label>
           </div>
+        </div>
+        <div className="mb-2">
+          <label className="flex items-center gap-2 text-xs text-surface-300">
+            <input type="checkbox" checked={useLive} onChange={e => { setUseLive(e.target.checked); setLiveSourcesFlag(e.target.checked); }} />
+            Use live API (via /api) instead of sample data
+          </label>
         </div>
         <div className="grid gap-3 md:grid-cols-3">
           <div>

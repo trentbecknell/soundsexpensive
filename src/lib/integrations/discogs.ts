@@ -2,6 +2,7 @@ import { TalentSource, TalentSearchParams, TalentSourceResult } from '../../type
 import { TalentProfile, TalentRole } from '../../types/talent';
 import { getCached, setCached } from './base';
 import sample from '../../data/integrations/discogs.json';
+import { getLiveSourcesFlag } from '../featureFlags';
 
 type DiscogsCredit = {
   release: string;
@@ -37,6 +38,21 @@ function mapCredit(c: DiscogsCredit): TalentProfile | undefined {
 }
 
 async function searchDiscogs(params: TalentSearchParams): Promise<TalentSourceResult> {
+  if (getLiveSourcesFlag()) {
+    try {
+      const url = new URL('/api/discogs/credits', window.location.origin);
+      if (params.referenceArtist) url.searchParams.set('artist', params.referenceArtist);
+      if (params.referenceRelease) url.searchParams.set('release', params.referenceRelease);
+      const res = await fetch(url.toString());
+      if (res.ok) {
+        const credits = await res.json() as DiscogsCredit[];
+        const items = credits.map(mapCredit).filter(Boolean) as TalentProfile[];
+        return { source: 'discogs', items };
+      }
+    } catch {
+      // fall back to cache/sample
+    }
+  }
   const cached = await getCached('discogs', params);
   if (cached) return { ...cached, cached: true };
 
