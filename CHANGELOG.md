@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > Non‑technical user notes (latest v1.4.0): Performance improvements for faster analysis and better responsiveness. Enable experimental features with `?flags=perf-slice` for Web Worker-powered analysis that keeps the app smooth while processing heavy computations.
 
+## [1.6.0] - 2025-11-04
+
+### 🤝 Talent Sourcing + External Integrations (Beta)
+
+This release introduces Talent Finder end-to-end with outreach briefs, your contact footer, and external source adapters (Discogs, MusicBrainz, Bandsintown) behind a safe feature flag. Also adds contextual Page Tips across tabs for quick guidance.
+
+#### Added
+- Talent Finder: recommendations by role, filters, shortlist, and copyable outreach briefs
+- “Your contact info” panel: save email/IG/website once; optionally append to every copied brief
+- External Sources (beta): Discogs/MusicBrainz/Bandsintown adapters using sample data + cache
+- Live API scaffold: toggle in UI, configurable API base, dev proxy + minimal /api server
+- Page Tips: small, per-tab guidance with Next/Dismiss/Hide All (local persistence)
+
+#### How to test live sources
+- In Talent → External Sources, enable “Use live API.”
+- Optionally set API base (defaults to /api). For production testing, point to your deployed proxy.
+- Dev server included (node server/server.mjs) and Vite proxy for local testing.
+
+#### Quality
+- 46 tests passing; production build verified
+- No breaking changes; feature-flagged integrations use sample data by default
+
+
 ## [1.5.0] - 2025-11-03
 
 ### 🎯 New: First-Time Onboarding & Tester Continuity
