@@ -1,9 +1,12 @@
 <svg width="32" height="32" xmlns="http://www.w3.org/2000/svg">
   <rect width="32" height="32" fill="#1c1917"/>
-  <!-- Simplified reel for small favicon -->
-  <g transform="translate(16, 16)">
-    <circle cx="0" cy="0" r="12" fill="none" stroke="#f8890f" stroke-width="1.5"/>
-    <circle cx="-4.5" cy="0" r="2.5" fill="#faad57"/>
-    <circle cx="4.5" cy="0" r="2.5" fill="#faad57"/>
+  <!-- Simplified logo for small favicon (scaled to 32x32, 6.25% of 512) -->
+  <g transform="translate(16, 16) scale(0.0625)">
+    <!-- Outer circle -->
+    <circle cx="0" cy="0" r="221.867" fill="none" stroke="#2B2B2B" stroke-width="22"/>
+    
+    <!-- Left and right circles (simplified as single color) -->
+    <circle cx="-118.17" cy="0" r="47" fill="#2B2B2B"/>
+    <circle cx="118.17" cy="0" r="47" fill="#2B2B2B"/>
   </g>
 </svg>
