@@ -42,6 +42,7 @@ const ArtistComparisonView = React.lazy(() => import("./components/ArtistCompari
 const PortfolioAnalytics = React.lazy(() => import("./components/PortfolioAnalytics"));
 const TourPlanner = React.lazy(() => import("./components/TourPlanner"));
 const MasterPlan = React.lazy(() => import("./components/MasterPlan"));
+const TalentFinder = React.lazy(() => import("./components/TalentFinder"));
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
@@ -525,15 +526,15 @@ export default function App({ userId }: AppProps = {}) {
   });
   
   // Navigation state - sync with URL hash
-  const [activeTab, setActiveTab] = useState<'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live'>(() => {
+  const [activeTab, setActiveTab] = useState<'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent'>(() => {
     // Check URL hash first (e.g., #/roadmap, #/grants, etc.)
     const hash = location.pathname.replace('/', '') || location.hash.replace('#/', '');
-  const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
+  const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live', 'talent'];
     if (validTabs.includes(hash)) {
       return hash as any;
     }
     // Fall back to last active tab from app state
-    return app.lastActiveTab as 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live';
+  return app.lastActiveTab as 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent';
   });
 
   // Artist comparison state
@@ -544,7 +545,7 @@ export default function App({ userId }: AppProps = {}) {
   // Sync activeTab with URL hash
   useEffect(() => {
     const hash = location.pathname.replace('/', '');
-    const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live'];
+    const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live', 'talent'];
     if (hash && validTabs.includes(hash)) {
       setActiveTab(hash as any);
     }
@@ -1372,6 +1373,18 @@ export default function App({ userId }: AppProps = {}) {
                   )}
                 </button>
 
+                {/* Talent Sourcing */}
+                <button
+                  onClick={() => setActiveTab('talent')}
+                  className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    activeTab === 'talent'
+                      ? 'bg-primary-600 text-primary-50'
+                      : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                  }`}
+                >
+                  🤝 Talent
+                </button>
+
                 {/* Step 6: Applications */}
                 <button
                   onClick={() => setActiveTab('applications')}
@@ -1538,6 +1551,16 @@ export default function App({ userId }: AppProps = {}) {
                 estimatedDraw={app.estimatedDraw}
                 onEstimatedDrawChange={(draw) => setApp(prev => ({ ...prev, estimatedDraw: draw }))}
               />
+              </React.Suspense>
+            )}
+
+            {activeTab === 'talent' && (
+              <React.Suspense fallback={<div className="text-surface-300">Loading Talent Finder…</div>}>
+                <TalentFinder
+                  profile={app.profile}
+                  project={app.project}
+                  budget={app.budget}
+                />
               </React.Suspense>
             )}
 
