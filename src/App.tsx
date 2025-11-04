@@ -575,7 +575,7 @@ export default function App({ userId }: AppProps = {}) {
   });
   
   // Navigation state - sync with URL hash
-  type TabKey = 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch';
+  type TabKey = 'overview' | 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch';
   const [activeTab, setActiveTab] = useState<TabKey>(() => {
     // Check URL hash first (e.g., #/roadmap, #/grants, etc.)
     const hash = location.pathname.replace('/', '') || location.hash.replace('#/', '');
@@ -600,6 +600,7 @@ export default function App({ userId }: AppProps = {}) {
     'talent',
   ] as TabKey[]), []);
   const MANAGER_TABS = useMemo<Set<TabKey>>(() => new Set([
+    'overview',
     'master-plan',
     'roadmap',
     'grants',
@@ -609,7 +610,7 @@ export default function App({ userId }: AppProps = {}) {
     'live',
   ] as TabKey[]), []);
   const isTabAllowed = (tab: TabKey) => (persona === 'manager' ? MANAGER_TABS.has(tab) : ARTIST_TABS.has(tab));
-  const defaultTabForPersona: TabKey = persona === 'manager' ? 'master-plan' : 'roadmap';
+  const defaultTabForPersona: TabKey = persona === 'manager' ? 'overview' : 'roadmap';
 
   // Artist comparison state
   const [showComparison, setShowComparison] = useState(false);
@@ -619,7 +620,7 @@ export default function App({ userId }: AppProps = {}) {
   // Sync activeTab with URL hash
   useEffect(() => {
     const hash = location.pathname.replace('/', '');
-    const validTabs = ['roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live', 'talent', 'merch'];
+  const validTabs = ['overview','roadmap', 'master-plan', 'grants', 'applications', 'mix-analyzer', 'catalog-analyzer', 'portfolio', 'live', 'talent', 'merch'];
     if (hash && validTabs.includes(hash)) {
       setActiveTab(hash as any);
     }
@@ -1481,6 +1482,19 @@ export default function App({ userId }: AppProps = {}) {
             {/* Navigation Tabs */}
             <div className="mb-6">
               <div className="flex flex-wrap gap-2 p-1 bg-surface-800/50 rounded-xl border border-surface-700">
+                {/* Manager Overview (manager mode only) */}
+                {persona === 'manager' && (
+                  <button
+                    onClick={() => setActiveTab('overview')}
+                    className={`tap-target px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      activeTab === 'overview'
+                        ? 'bg-primary-600 text-primary-50'
+                        : 'text-surface-300 hover:text-surface-200 hover:bg-surface-700'
+                    }`}
+                  >
+                    🧭 Overview
+                  </button>
+                )}
                 {/* Step 1: Catalog Analyzer */}
                 {isTabAllowed('catalog-analyzer') && (
                 <button
@@ -1674,6 +1688,25 @@ export default function App({ userId }: AppProps = {}) {
             <PageTips tab={activeTab} />
 
             {/* Tab Content */}
+            {activeTab === 'overview' && isTabAllowed('overview') && (
+              <React.Suspense fallback={<div className="text-surface-300">Loading Overview…</div>}>
+                {(() => {
+                  const ManagerOverview = require('./components/ManagerOverview').default as any;
+                  return (
+                    <ManagerOverview
+                      profile={app.profile}
+                      project={app.project}
+                      budget={app.budget}
+                      stage={app.profile.stage}
+                      estimatedDraw={app.estimatedDraw}
+                      onExportCSV={exportCSV}
+                      onExportJSON={exportJSON}
+                      onShare={shareUrl}
+                    />
+                  );
+                })()}
+              </React.Suspense>
+            )}
             {activeTab === 'mix-analyzer' && isTabAllowed('mix-analyzer') && (
               <div>
                 <div className="mb-6 rounded-2xl border border-primary-700 bg-primary-900/20 p-6 backdrop-blur">

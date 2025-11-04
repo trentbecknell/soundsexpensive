@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-type TabKey = 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch';
+type TabKey = 'overview' | 'roadmap' | 'master-plan' | 'grants' | 'applications' | 'mix-analyzer' | 'catalog-analyzer' | 'portfolio' | 'live' | 'talent' | 'merch';
 
 type TipsState = {
   byTab: Record<TabKey, { index: number; dismissed: boolean } | undefined>;
@@ -22,6 +22,10 @@ function saveState(state: TipsState) {
 }
 
 const TIPS: Record<TabKey, string[]> = {
+  'overview': [
+    'This executive overview summarizes budget, timeline, merch plan, and risks for fast decisions.',
+    'Use Export/Share to circulate with stakeholders. Switch to Artist mode to edit details.',
+  ],
   'catalog-analyzer': [
     'Upload several released tracks to analyze consistency and quality trends.',
     'Use the insights to decide EP vs. Singles vs. Album before budgeting.',
