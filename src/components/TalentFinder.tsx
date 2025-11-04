@@ -6,6 +6,10 @@ import { inferTalentNeeds, recommendTalent, filterTalent } from '../lib/talentRe
 import { generateOutreachBrief } from '../lib/talentOutreach';
 import TesterContactPanel from './TesterContact';
 import { getTesterContact, hasAnyContact } from '../lib/testerContact';
+import type { TalentSourceResult, TalentSearchParams } from '../types/integrations';
+import discogs from '../lib/integrations/discogs';
+import musicbrainz from '../lib/integrations/musicbrainz';
+import bandsintown from '../lib/integrations/bandsintown';
 
 export default function TalentFinder({
   profile,
@@ -22,6 +26,10 @@ export default function TalentFinder({
   });
   const [includeContact, setIncludeContact] = useState<boolean>(() => hasAnyContact(getTesterContact()));
   const [contact, setContact] = useState(() => getTesterContact());
+  const [extEnabled, setExtEnabled] = useState({ discogs: true, musicbrainz: true, bandsintown: true });
+  const [extQuery, setExtQuery] = useState<TalentSearchParams>({});
+  const [extLoading, setExtLoading] = useState(false);
+  const [extResults, setExtResults] = useState<TalentSourceResult[]>([]);
 
   const needs = useMemo(() => inferTalentNeeds(profile, project, budget), [profile, project, budget]);
   const maxPerSong = useMemo(() => {
@@ -102,6 +110,20 @@ export default function TalentFinder({
     </div>
   );
 
+  const runExternalSearch = async () => {
+    setExtLoading(true);
+    try {
+      const tasks = [] as Promise<TalentSourceResult>[];
+      if (extEnabled.discogs) tasks.push(discogs.search(extQuery));
+      if (extEnabled.musicbrainz) tasks.push(musicbrainz.search(extQuery));
+      if (extEnabled.bandsintown) tasks.push(bandsintown.search(extQuery));
+      const results = await Promise.all(tasks);
+      setExtResults(results);
+    } finally {
+      setExtLoading(false);
+    }
+  };
+
   return (
     <div>
       {/* Your contact info */}
@@ -149,6 +171,83 @@ export default function TalentFinder({
             <input className="w-full rounded bg-surface-900 px-2 py-2 text-sm" placeholder="City/State" value={filter.locationContains || ''} onChange={e => setFilter(prev => ({ ...prev, locationContains: e.target.value || undefined }))} />
           </div>
         </div>
+      </div>
+
+      {/* External Sources (beta) */}
+      <div className="mb-6 rounded-2xl border border-primary-700 bg-primary-900/10 p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="font-semibold text-primary-100">External Sources (beta)</h3>
+          <div className="flex gap-3 text-xs text-surface-300">
+            <label className="flex items-center gap-1"><input type="checkbox" checked={extEnabled.discogs} onChange={e => setExtEnabled(s => ({ ...s, discogs: e.target.checked }))} /> Discogs</label>
+            <label className="flex items-center gap-1"><input type="checkbox" checked={extEnabled.musicbrainz} onChange={e => setExtEnabled(s => ({ ...s, musicbrainz: e.target.checked }))} /> MusicBrainz</label>
+            <label className="flex items-center gap-1"><input type="checkbox" checked={extEnabled.bandsintown} onChange={e => setExtEnabled(s => ({ ...s, bandsintown: e.target.checked }))} /> Bandsintown</label>
+          </div>
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          <div>
+            <label className="text-xs text-surface-300">Reference artist or release</label>
+            <input className="w-full rounded bg-surface-900 px-2 py-2 text-sm" placeholder="e.g., Billie Eilish" value={extQuery.referenceArtist || ''} onChange={e => setExtQuery(q => ({ ...q, referenceArtist: e.target.value || undefined }))} />
+          </div>
+          <div>
+            <label className="text-xs text-surface-300">Genre (optional)</label>
+            <input className="w-full rounded bg-surface-900 px-2 py-2 text-sm" placeholder="Pop" value={extQuery.genre || ''} onChange={e => setExtQuery(q => ({ ...q, genre: e.target.value || undefined }))} />
+          </div>
+          <div>
+            <label className="text-xs text-surface-300">City for live</label>
+            <input className="w-full rounded bg-surface-900 px-2 py-2 text-sm" placeholder="e.g., Los Angeles" value={extQuery.city || ''} onChange={e => setExtQuery(q => ({ ...q, city: e.target.value || undefined }))} />
+          </div>
+        </div>
+        <div className="mt-3">
+          <button className="text-xs rounded border border-primary-600 text-primary-200 px-2 py-1 hover:bg-primary-700/30" onClick={runExternalSearch} disabled={extLoading}>
+            {extLoading ? 'Searching…' : 'Search sources'}
+          </button>
+        </div>
+        {extResults.length > 0 && (
+          <div className="mt-4 space-y-3">
+            {extResults.map(r => (
+              <div key={r.source} className="rounded-xl border border-surface-700 bg-surface-900/50 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="text-surface-200 text-sm">{r.source} • {r.items.length} found{r.cached ? ' (cached)' : ''}</div>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {r.items.map(c => (
+                    <div key={c.id} className="rounded border border-surface-700 p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-medium text-surface-100">{c.name}</div>
+                          <div className="text-xs text-surface-300">{c.roles.join(', ')} • {c.genres.join(', ')}{c.location ? ` • ${c.location}` : ''}{c.remote ? ' • Remote' : ''}</div>
+                        </div>
+                        <button
+                          className={`text-xs rounded px-2 py-1 border ${shortlist.includes(c.id) ? 'border-green-600 text-green-300' : 'border-surface-600 text-surface-300'} hover:bg-surface-700`}
+                          onClick={() => toggleShortlist(c.id)}
+                        >
+                          {shortlist.includes(c.id) ? 'Shortlisted' : 'Shortlist'}
+                        </button>
+                      </div>
+                      <div className="mt-2 text-sm text-surface-200">{c.blurb}</div>
+                      <div className="mt-2 text-xs text-surface-300 flex flex-wrap gap-2">
+                        {c.rating && <span className="rounded bg-surface-800 px-2 py-1">⭐ {c.rating}</span>}
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {c.portfolio.map((p, i) => (
+                          <a key={i} href={p.url} target="_blank" rel="noreferrer" className="text-xs rounded border border-surface-600 px-2 py-1 text-surface-200 hover:bg-surface-700">
+                            {p.platform}
+                          </a>
+                        ))}
+                        <button
+                          className="text-xs rounded border border-primary-600 text-primary-200 px-2 py-1 hover:bg-primary-700/30"
+                          onClick={() => copyBrief(c.roles[0] as TalentRole, c)}
+                        >
+                          Copy outreach
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Recommended by role */}

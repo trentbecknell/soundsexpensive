@@ -1,0 +1,18 @@
+[
+  {
+    "release": "Echoes Deluxe",
+    "year": 2021,
+    "name": "Maya Chen",
+    "relation": "mix engineer",
+    "url": "https://musicbrainz.org/artist/xxxx",
+    "genres": ["Pop", "Indie"]
+  },
+  {
+    "release": "Gold Skies",
+    "year": 2020,
+    "name": "Julian Park",
+    "relation": "producer",
+    "url": "https://musicbrainz.org/artist/yyyy",
+    "genres": ["Alternative"]
+  }
+]

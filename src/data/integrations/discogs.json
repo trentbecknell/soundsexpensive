@@ -1,0 +1,20 @@
+[
+  {
+    "release": "Starfall EP",
+    "year": 2023,
+    "artist": "Nova Arc",
+    "name": "Alex Vega",
+    "role": "Mixed By",
+    "url": "https://www.discogs.com/artist/123456-Alex-Vega",
+    "genres": ["Pop", "Electronic"]
+  },
+  {
+    "release": "Neon Dreams",
+    "year": 2022,
+    "artist": "Neon City",
+    "name": "Rin Okada",
+    "role": "Producer",
+    "url": "https://www.discogs.com/artist/654321-Rin-Okada",
+    "genres": ["Synthpop"]
+  }
+]
