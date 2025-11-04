@@ -1,14 +1,12 @@
 <svg width="180" height="180" xmlns="http://www.w3.org/2000/svg">
-  <!-- iOS rounded square with warm background -->
-  <rect width="180" height="180" fill="#faf9f7" rx="40"/>
-  
-  <!-- Reel seal icon -->
-  <g transform="translate(90, 90)">
-    <circle cx="0" cy="0" r="63" fill="none" stroke="#2B2B2B" stroke-width="4"/>
-    <circle cx="-24" cy="0" r="13" fill="#d4773f"/>
-    <circle cx="-24" cy="0" r="9.5" fill="#2B2B2B"/>
-    <circle cx="24" cy="0" r="13" fill="#d4773f"/>
-    <circle cx="24" cy="0" r="9.5" fill="#2B2B2B"/>
-    <rect x="-24" y="-1.5" width="48" height="3" fill="#f59e0b" opacity="0.6"/>
+  <rect width="180" height="180" fill="#8b5cf6" rx="40"/>
+  <g transform="translate(90, 90) scale(0.35)">
+    <!-- Music note -->
+    <circle cx="0" cy="80" r="50" fill="white"/>
+    <rect x="-15" y="-120" width="30" height="200" fill="white" rx="15"/>
+    <circle cx="0" cy="-120" r="50" fill="white" opacity="0.8"/>
+    <!-- Road/path -->
+    <path d="M -80,-180 Q -40,-100 -60,0 Q -70,100 -100,200" stroke="white" stroke-width="8" fill="none" opacity="0.4"/>
+    <path d="M 80,-180 Q 40,-100 60,0 Q 70,100 100,200" stroke="white" stroke-width="8" fill="none" opacity="0.4"/>
   </g>
 </svg>

@@ -1,21 +1,12 @@
 <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <!-- Warm sepia background (brand surface-50) -->
-  <rect width="512" height="512" fill="#faf9f7" rx="80"/>
-  
-  <!-- Reel seal icon (centered, brand charcoal #2B2B2B) -->
+  <rect width="512" height="512" fill="#8b5cf6"/>
   <g transform="translate(256, 256)">
-    <!-- Outer circle (reel) -->
-    <circle cx="0" cy="0" r="180" fill="none" stroke="#2B2B2B" stroke-width="12"/>
-    
-    <!-- Left reel hub -->
-    <circle cx="-70" cy="0" r="38" fill="#d4773f"/>
-    <circle cx="-70" cy="0" r="28" fill="#2B2B2B"/>
-    
-    <!-- Right reel hub -->
-    <circle cx="70" cy="0" r="38" fill="#d4773f"/>
-    <circle cx="70" cy="0" r="28" fill="#2B2B2B"/>
-    
-    <!-- Tape connecting reels (subtle amber accent) -->
-    <rect x="-70" y="-4" width="140" height="8" fill="#f59e0b" opacity="0.6"/>
+    <!-- Music note -->
+    <circle cx="0" cy="80" r="50" fill="white"/>
+    <rect x="-15" y="-120" width="30" height="200" fill="white" rx="15"/>
+    <circle cx="0" cy="-120" r="50" fill="white" opacity="0.8"/>
+    <!-- Road/path -->
+    <path d="M -80,-180 Q -40,-100 -60,0 Q -70,100 -100,200" stroke="white" stroke-width="8" fill="none" opacity="0.4"/>
+    <path d="M 80,-180 Q 40,-100 60,0 Q 70,100 100,200" stroke="white" stroke-width="8" fill="none" opacity="0.4"/>
   </g>
 </svg>
