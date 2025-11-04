@@ -31,6 +31,8 @@ export interface MerchItemPlan {
   colorways?: number; // apparel variants
   targetUnitCostUSD?: number;
   estTotalCostUSD?: number;
+  sellPriceUSD?: number; // expected sell price per unit
+  preferredVendorId?: string; // lock a vendor to reflect MOQ/lead/methods
 }
 
 export interface MerchPlan {
