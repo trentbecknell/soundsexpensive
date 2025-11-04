@@ -43,6 +43,7 @@ const PortfolioAnalytics = React.lazy(() => import("./components/PortfolioAnalyt
 const TourPlanner = React.lazy(() => import("./components/TourPlanner"));
 const MasterPlan = React.lazy(() => import("./components/MasterPlan"));
 const TalentFinder = React.lazy(() => import("./components/TalentFinder"));
+import PageTips from "./components/PageTips";
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
@@ -1432,6 +1433,9 @@ export default function App({ userId }: AppProps = {}) {
                 </button>
               </div>
             </div>
+
+            {/* Page tips */}
+            <PageTips tab={activeTab} />
 
             {/* Tab Content */}
             {activeTab === 'mix-analyzer' && (
