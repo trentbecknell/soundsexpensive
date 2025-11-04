@@ -20,6 +20,12 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         mixanalyzer: resolve(__dirname, 'mix-analyzer.html'),
       },
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-charts': ['recharts'],
+        },
+      },
     },
   },
   test: {

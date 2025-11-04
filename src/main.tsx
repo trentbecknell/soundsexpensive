@@ -2,6 +2,7 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ClerkProvider, SignedIn, SignedOut, useClerk } from '@clerk/clerk-react'
+import ErrorBoundary from './components/ErrorBoundary'
 // Prevent rendering until Clerk is fully loaded
 function ClerkLoader({ children }: { children: React.ReactNode }) {
   const { loaded } = useClerk();
@@ -193,19 +194,21 @@ const AppRoutesWithoutAuth = () => (
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    {ENABLE_CLERK ? (
-      // Clerk authentication enabled (dev mode only)
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!}>
-        <ClerkLoader>
-          {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutesWithAuth />}
-        </ClerkLoader>
-      </ClerkProvider>
-    ) : (
-      // Anonymous mode (production and dev without Clerk key)
-      <>
-        {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutesWithoutAuth />}
-      </>
-    )}
+    <ErrorBoundary>
+      {ENABLE_CLERK ? (
+        // Clerk authentication enabled (dev mode only)
+        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!}>
+          <ClerkLoader>
+            {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutesWithAuth />}
+          </ClerkLoader>
+        </ClerkProvider>
+      ) : (
+        // Anonymous mode (production and dev without Clerk key)
+        <>
+          {isSpotifyCallback ? <SpotifyCallback /> : <AppRoutesWithoutAuth />}
+        </>
+      )}
+    </ErrorBoundary>
   </React.StrictMode>
 )
 

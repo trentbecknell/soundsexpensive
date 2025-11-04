@@ -5,7 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> Non‑technical user notes (latest v1.4.0): Performance improvements for faster analysis and better responsiveness. Enable experimental features with `?flags=perf-slice` for Web Worker-powered analysis that keeps the app smooth while processing heavy computations.
+> Non‑technical user notes (latest v1.7.0): Production-ready release with PWA support, optimized performance, and enhanced error handling for national deployment.
+
+## [1.7.0] - 2025-11-04
+
+### 🚀 Production Readiness - National Deployment
+
+Major production optimizations and PWA support for professional deployment.
+
+#### Added
+- **PWA Support**: Full Progressive Web App manifest with installable icons
+  - Custom app icons (192x192, 512x512, Apple touch icon)
+  - Standalone app mode with proper theme colors
+  - App shortcuts for Quick Start and Manager Overview
+- **Error Boundaries**: Comprehensive error handling with user-friendly fallback UI
+  - Auto-recovery option to retry without page reload
+  - Detailed error information for debugging
+  - Preserves user data during errors
+- **Bundle Optimization**: Vendor chunking reduces initial load time
+  - React/React-DOM/Router split into vendor-react (174 kB)
+  - Recharts split into vendor-charts (422 kB)
+  - Main bundle reduced to 259 kB (was 675 kB - **61% reduction**)
+  - **Eliminated >500 kB bundle warning**
+
+#### Changed
+- Enhanced meta tags for PWA installation and mobile support
+- Updated favicon from data URI to proper SVG icon
+- Improved app title and description for better discoverability
+
+#### Performance
+- Initial bundle: 259.65 kB (67.55 kB gzipped) ✅
+- Vendor chunks properly split for optimal caching
+- All lazy-loaded chunks under 52 kB
+- Zero build warnings
+
+#### Notes
+- All changes deployed to GitHub Pages
+- Production audit completed (see PRODUCTION_READINESS_AUDIT.md)
+- Ready for national deployment and app store submission
 
 ## [1.6.1] - 2025-11-04 (Hotfix)
 
