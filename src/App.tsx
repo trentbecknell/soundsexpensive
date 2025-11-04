@@ -1595,8 +1595,8 @@ export default function App({ userId }: AppProps = {}) {
                         { id: uid(), category: 'Merch', description, qty: 1, unitCost: Math.max(0, totalCost || 0), phase: 'Growth', required: false }
                       ]
                     }));
-                    pushToast('Merch item added to budget');
                   }}
+                  onToast={pushToast}
                 />
               </React.Suspense>
             )}
