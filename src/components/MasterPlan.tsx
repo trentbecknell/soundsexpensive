@@ -8,6 +8,8 @@
 import React, { useMemo } from 'react';
 import { Stage } from '../lib/computeStage';
 import { BudgetItem, ProjectConfig, ArtistProfile } from '../App';
+import { loadMerchPlan } from '../lib/merchStorage';
+import { DEFAULT_SELL_PRICE_BY_CATEGORY } from '../lib/pricing';
 
 interface MasterPlanProps {
   profile: ArtistProfile;
@@ -122,7 +124,12 @@ export default function MasterPlan({
   const totalInvestment = productionBudget + releaseBudget + growthBudget;
 
   // Calculate total year-one revenue
-  const totalYearOneRevenue = tourProjections.netProfit + streamingProjections.yearOneRevenue;
+  const projectKey = `${projectConfig.projectType}-${projectConfig.units}`;
+  const merchPlan = loadMerchPlan(profile.artistName, projectKey) || [];
+  const merchCost = merchPlan.reduce((s, i) => s + (i.estTotalCostUSD || 0), 0);
+  const merchRevenue = merchPlan.reduce((s, i) => s + ((i.sellPriceUSD ?? (DEFAULT_SELL_PRICE_BY_CATEGORY[i.category] || 0)) * (i.quantity || 0)), 0);
+  const merchMargin = Math.max(0, merchRevenue - merchCost);
+  const totalYearOneRevenue = tourProjections.netProfit + streamingProjections.yearOneRevenue + merchMargin;
 
   // Calculate ROI
   const roi = totalInvestment > 0 ? (totalYearOneRevenue - totalInvestment) / totalInvestment : 0;
@@ -301,7 +308,7 @@ export default function MasterPlan({
       </div>
 
       {/* Revenue Projections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Tour Revenue */}
         <div className="rounded-2xl border border-surface-700 bg-surface-800/40 p-6">
           <h3 className="text-lg font-semibold text-surface-100 mb-4">🎤 Tour Revenue</h3>
@@ -355,6 +362,42 @@ export default function MasterPlan({
               Conservative estimate • Based on {artistStage} stage
             </div>
           </div>
+        </div>
+
+        {/* Merch Summary */}
+        <div className="rounded-2xl border border-surface-700 bg-surface-800/40 p-6">
+          <h3 className="text-lg font-semibold text-surface-100 mb-4">🛍️ Merch Summary</h3>
+          {merchPlan.length > 0 ? (
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-surface-400">Items Planned</span>
+                <span className="text-surface-100 font-medium">{merchPlan.length}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-surface-400">Estimated Cost</span>
+                <span className="text-orange-300 font-medium">{currency(merchCost)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-surface-400">Projected Revenue</span>
+                <span className="text-surface-100 font-medium">{currency(merchRevenue)}</span>
+              </div>
+              <div className="pt-2 border-t border-surface-700 flex justify-between">
+                <span className="text-surface-300 font-medium">Gross Margin</span>
+                <span className="text-green-400 font-semibold text-lg">{currency(merchMargin)}</span>
+              </div>
+              <button
+                onClick={() => onNavigate('merch')}
+                className="w-full mt-4 px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium transition-colors"
+              >
+                Open Merch Planner →
+              </button>
+            </div>
+          ) : (
+            <div className="text-sm text-surface-300">
+              No merch planned yet.
+              <button onClick={() => onNavigate('merch')} className="ml-2 underline text-primary-300 hover:text-primary-200">Plan merch now →</button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -435,6 +478,20 @@ export default function MasterPlan({
                     <span className="text-sm text-green-400 font-medium w-20 text-right">{currency(streamingProjections.yearOneRevenue)}</span>
                   </div>
                 </div>
+                {merchPlan.length > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-surface-300">Merch Margin</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-32 h-2 bg-surface-700 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-purple-500"
+                          style={{ width: `${(merchMargin / totalYearOneRevenue) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-sm text-green-400 font-medium w-20 text-right">{currency(merchMargin)}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
