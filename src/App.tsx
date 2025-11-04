@@ -45,6 +45,7 @@ const MasterPlan = React.lazy(() => import("./components/MasterPlan"));
 const TalentFinder = React.lazy(() => import("./components/TalentFinder"));
 const MerchPlanner = React.lazy(() => import("./components/MerchPlanner"));
 import PageTips from "./components/PageTips";
+import { inferMerchPlan } from './lib/merchRecommender';
 import { analyzeChatMessage, findMatchingArtists, suggestFollowupQuestions } from './lib/chatAnalysis';
 import { mapChatAnalysisToAssessment, convertLegacyProfileToAssessment } from './lib/assessmentMapping';
 import { getBenchmarkForGenres, calculateSuccessProbability, generateRecommendations } from './lib/industryBenchmarks';
@@ -1372,6 +1373,111 @@ export default function App({ userId }: AppProps = {}) {
           ) : (
             // Main App Content
             <>
+            {/* Quick Start (Artist mode) */}
+            {persona === 'artist' && (
+              <section className="mb-6 rounded-2xl border border-surface-700 bg-surface-900/60 p-5">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div>
+                    <h2 className="text-base md:text-lg font-semibold text-surface-50">Quick Start</h2>
+                    <p className="text-xs md:text-sm text-surface-300 mt-1">Three choices to generate a plan fast, then optionally add a recommended merch bundle.</p>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                  {/* Release Type */}
+                  <div>
+                    <label className="block text-xs text-surface-300 mb-1">Release type</label>
+                    <select
+                      className="w-full rounded-lg bg-surface-800 px-3 py-2 text-surface-100"
+                      value={app.project.projectType}
+                      onChange={e => {
+                        const projectType = e.target.value as ProjectConfig['projectType'];
+                        const units = projectType === 'Album' ? 10 : projectType === 'EP' ? 4 : 1;
+                        setApp(prev => ({
+                          ...prev,
+                          project: { ...prev.project, projectType, units },
+                          budget: BUDGET_PRESETS(units),
+                          tasks: DEFAULT_TASKS(units)
+                        }));
+                      }}
+                    >
+                      <option value="EP">EP</option>
+                      <option value="Album">Album</option>
+                      <option value="Singles">Singles</option>
+                    </select>
+                  </div>
+                  {/* Timeline */}
+                  <div>
+                    <label className="block text-xs text-surface-300 mb-1">Timeline (weeks)</label>
+                    <select
+                      className="w-full rounded-lg bg-surface-800 px-3 py-2 text-surface-100"
+                      value={app.project.targetWeeks}
+                      onChange={e => {
+                        const w = parseInt(e.target.value || '16');
+                        setApp(prev => ({ ...prev, project: { ...prev.project, targetWeeks: clamp(w, 6, 104) } }));
+                      }}
+                    >
+                      <option value={12}>12 (fast)</option>
+                      <option value={16}>16</option>
+                      <option value={24}>24</option>
+                      <option value={36}>36</option>
+                      <option value={48}>48 (extended)</option>
+                    </select>
+                  </div>
+                  {/* Budget range (display only) */}
+                  <div>
+                    <label className="block text-xs text-surface-300 mb-1">Budget range</label>
+                    <select
+                      className="w-full rounded-lg bg-surface-800 px-3 py-2 text-surface-100"
+                      defaultValue={(() => {
+                        const g = totals.grand;
+                        if (g <= 5000) return 'low';
+                        if (g <= 20000) return 'mid';
+                        return 'high';
+                      })()}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        // For Phase 2, budget range is informational; we may tune presets later.
+                        pushToast(v === 'low' ? 'Budget: Lean' : v === 'mid' ? 'Budget: Mid-tier' : 'Budget: High');
+                      }}
+                    >
+                      <option value="low">$2–5K (lean)</option>
+                      <option value="mid">$10–20K (mid-tier)</option>
+                      <option value="high">$25K+ (pro)</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    className="px-4 py-2 rounded-lg bg-primary-600 text-white text-sm hover:bg-primary-700 transition-colors"
+                    onClick={() => {
+                      setApp(prev => ({ ...prev, roadmapGenerated: true }));
+                      pushToast('✓ Plan generated');
+                      setActiveTab('master-plan');
+                    }}
+                  >
+                    Generate Plan
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded-lg border border-primary-600 text-primary-100 text-sm hover:bg-primary-800/40 transition-colors"
+                    onClick={() => {
+                      const plan = inferMerchPlan(app.profile, app.project, app.estimatedDraw || 100);
+                      const cats = Array.from(new Set(plan.items.map(i => i.category))).join(', ');
+                      const desc = `Recommended Merch Bundle (${cats})`;
+                      setApp(prev => ({
+                        ...prev,
+                        budget: [
+                          ...prev.budget,
+                          { id: uid(), category: 'Merch', description: desc, qty: 1, unitCost: Math.max(0, plan.estBudgetUSD || 0), phase: 'Growth', required: false }
+                        ]
+                      }));
+                      pushToast(`Added merch bundle (~$${plan.estBudgetUSD.toLocaleString()}) to budget`);
+                    }}
+                  >
+                    Add Recommended Merch to Budget
+                  </button>
+                </div>
+              </section>
+            )}
             {/* Navigation Tabs */}
             <div className="mb-6">
               <div className="flex flex-wrap gap-2 p-1 bg-surface-800/50 rounded-xl border border-surface-700">
