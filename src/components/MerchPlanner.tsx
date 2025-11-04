@@ -21,6 +21,8 @@ export default function MerchPlanner({ profile, project, estimatedDraw, onAddToB
 
   useEffect(() => { saveMerchPlan(items, profile.artistName, projectKey); }, [items, profile.artistName, projectKey]);
 
+  const currency = (n: number) => n.toLocaleString(undefined, { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
   const updateQty = (id: string, qty: number) => setItems(prev => prev.map(i => i.id === id ? recalc({ ...i, quantity: Math.max(1, qty) }) : i));
   const updateUnit = (id: string, unit: number) => setItems(prev => prev.map(i => i.id === id ? recalc({ ...i, targetUnitCostUSD: Math.max(0, unit) }) : i));
   const updateColorways = (id: string, c: number) => setItems(prev => prev.map(i => i.id === id ? ({ ...i, colorways: Math.max(1, Math.floor(c)) }) : i));
@@ -76,6 +78,13 @@ export default function MerchPlanner({ profile, project, estimatedDraw, onAddToB
     return { minOrder: Number.isFinite(minOrder) ? minOrder : undefined, leadDays: Number.isFinite(lead) && lead > 0 ? lead : undefined };
   }
 
+  function vendorFeatures(category: string) {
+    const vs = MERCH_VENDORS.filter(v => v.categories.includes(category as any));
+    const hasDropship = vs.some(v => v.dropship);
+    const hasEco = vs.some(v => v.ecoOptions);
+    return { hasDropship, hasEco };
+  }
+
   const toCSV = (rows: any[]) => {
     if (!rows.length) return '';
     const headers = Object.keys(rows[0]);
@@ -110,9 +119,10 @@ export default function MerchPlanner({ profile, project, estimatedDraw, onAddToB
         <h2 className="text-xl font-semibold text-primary-100 mb-2">🛍️ Merch Planner</h2>
         <p className="text-surface-300 text-sm">Recommended merch lineup based on your project and expected draw. Adjust quantities, copy a vendor quote request, or add items to your budget.</p>
         <div className="mt-3 flex items-center gap-3 text-sm text-primary-200">
-          <span>Estimated total cost: {`$${estTotal.toLocaleString()}`}</span>
+          <span>Estimated total cost: {currency(estTotal)}</span>
           <button className="text-xs rounded border border-primary-600 text-primary-200 px-2 py-1 hover:bg-primary-700/30" onClick={addAllToBudget}>Add all to budget</button>
           <button className="text-xs rounded border border-surface-600 text-surface-200 px-2 py-1 hover:bg-surface-700" onClick={exportCSV}>Export CSV</button>
+          <button className="text-xs rounded border border-red-600 text-red-200 px-2 py-1 hover:bg-red-700/30" onClick={() => setItems(inferMerchPlan(profile, project, estimatedDraw).items)}>Reset to recommended</button>
         </div>
       </div>
 
@@ -150,13 +160,20 @@ export default function MerchPlanner({ profile, project, estimatedDraw, onAddToB
               <label className="text-surface-400">Unit cost (USD)</label>
               <input type="number" min={0} step="0.01" className="w-28 rounded bg-surface-900 px-2 py-1" value={i.targetUnitCostUSD ?? 0} onChange={e => updateUnit(i.id, parseFloat(e.target.value || '0'))} />
               <span className="text-surface-500">•</span>
-              <span>Est. total: {i.estTotalCostUSD ? `$${i.estTotalCostUSD.toLocaleString()}` : '—'}</span>
+              <span>Est. total: {i.estTotalCostUSD ? currency(i.estTotalCostUSD) : '—'}</span>
             </div>
-            {(() => { const h = vendorHints(i.category); return (h.minOrder || h.leadDays) ? (
+            {(() => { const h = vendorHints(i.category); const f = vendorFeatures(i.category); return (h.minOrder || h.leadDays || f.hasDropship || f.hasEco) ? (
               <div className="mt-2 text-[11px] text-surface-400">
-                {h.minOrder && (<span className="mr-3">Typical MOQ: {h.minOrder}</span>)}
+                {h.minOrder && (
+                  <span className="mr-3">Typical MOQ: {h.minOrder}</span>
+                )}
                 {h.leadDays && (<span>Avg lead: ~{h.leadDays} days</span>)}
+                {f.hasDropship && (<span className="ml-3 inline-flex items-center gap-1 text-surface-300"><span className="w-1.5 h-1.5 bg-surface-500 rounded-full"></span> Dropship options</span>)}
+                {f.hasEco && (<span className="ml-2 inline-flex items-center gap-1 text-green-300"><span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Eco options</span>)}
               </div>
+            ) : null; })()}
+            {(() => { const h = vendorHints(i.category); return (h.minOrder && i.quantity < h.minOrder) ? (
+              <div className="mt-2 inline-flex items-center text-[11px] text-red-300 bg-red-900/20 border border-red-700/40 rounded px-2 py-1">Below typical MOQ for this item</div>
             ) : null; })()}
             <div className="mt-3 flex flex-wrap gap-2">
               <button className="text-xs rounded border border-primary-600 text-primary-200 px-2 py-1 hover:bg-primary-700/30" onClick={() => addToBudget(i)}>Add to budget</button>
@@ -164,6 +181,7 @@ export default function MerchPlanner({ profile, project, estimatedDraw, onAddToB
               {MERCH_VENDORS.filter(v => v.categories.includes(i.category)).slice(0,3).map(v => (
                 <button key={v.id} className="text-xs rounded border border-surface-600 text-surface-300 px-2 py-1 hover:bg-surface-700" onClick={() => copyQuote(i, v.name)}>Copy quote: {v.name}</button>
               ))}
+              <button className="text-xs rounded border border-surface-700 text-surface-300 px-2 py-1 hover:bg-surface-700" onClick={() => setItems(prev => prev.filter(x => x.id !== i.id))}>Remove</button>
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
               {MERCH_VENDORS.filter(v => v.categories.includes(i.category)).map(v => (
